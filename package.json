@@ -51,5 +51,8 @@
     "*.{css,scss,md,json,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "engines": {
+    "node": ">=22.22.1"
   }
 }
