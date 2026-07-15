@@ -1,8 +1,8 @@
-import LoginButton from "./LoginButton";
-import Logo from "./Logo";
-import NavigationMenu from "./NavigationMenu";
-import RecentProjectList from "./RecentProjectList";
-import SidebarProfile from "./SidebarProfile";
+import LoginButton from "../../features/onboarding/components/sidebar/LoginButton";
+import Logo from "../../features/onboarding/components/sidebar/Logo";
+import NavigationMenu from "../../features/onboarding/components/sidebar/NavigationMenu";
+import RecentProjectList from "../../features/onboarding/components/sidebar/RecentProjectList";
+import SidebarProfile from "../../features/onboarding/components/sidebar/SidebarProfile";
 
 interface OnBoardingSideBarProps {
   isLoggedIn?: boolean;
