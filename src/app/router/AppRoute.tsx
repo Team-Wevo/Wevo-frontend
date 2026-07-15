@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { OnBoardingPage } from "../pages/OnBoardingPage";
+import { OnBoardingPage } from "../../pages/OnBoardingPage";
 
 export const AppRoute = () => {
   return (
