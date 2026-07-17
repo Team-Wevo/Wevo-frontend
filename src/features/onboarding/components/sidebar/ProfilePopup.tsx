@@ -7,7 +7,7 @@ interface ProfilePopupProps {
 
 const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 left-3 z-50 h-56 w-56 origin-bottom overflow-hidden rounded-2xl border border-slate-300/80 bg-white shadow-xl transition-all duration-200 ease-out">
+    <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 z-50 h-56 w-58 origin-bottom overflow-hidden rounded-2xl border border-slate-300/80 bg-white shadow-xl transition-all duration-200 ease-out">
       <div className="flex h-32 w-full flex-col justify-between border-b border-slate-200 bg-white p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">
