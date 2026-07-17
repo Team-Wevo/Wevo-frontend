@@ -37,6 +37,13 @@ const COMPLETED_PROJECTS = [
 
 export const CompletedListPage = () => {
   const [activeFilterIndex, setActiveFilterIndex] = useState(0);
+  const activeFilter = FILTERS[activeFilterIndex].label;
+  const filteredProjects =
+    activeFilter === "전체"
+      ? COMPLETED_PROJECTS
+      : COMPLETED_PROJECTS.filter(
+          (project) => project.category === activeFilter,
+        );
 
   return (
     <ListLayout
@@ -45,7 +52,7 @@ export const CompletedListPage = () => {
       activeFilterIndex={activeFilterIndex}
       onFilterChange={setActiveFilterIndex}
     >
-      {COMPLETED_PROJECTS.map((project) => (
+      {filteredProjects.map((project) => (
         <ProjectCard
           key={project.id}
           category={project.category}

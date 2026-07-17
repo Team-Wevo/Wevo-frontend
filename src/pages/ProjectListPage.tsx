@@ -1,13 +1,26 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import ListLayout from "../app/layouts/ListLayout";
-import { ProjectCard } from "../shared/components/ProjectCard";
+import {
+  ProjectCard,
+  type ProjectRole,
+} from "../shared/components/ProjectCard";
+import { ConfirmModal } from "../shared/components/ConfirmModal";
+import { cn } from "../shared/utils/cn";
 
 const FILTERS = [
   { label: "전체", count: 8 },
   { label: "내가 만든", count: 4 },
   { label: "공유받은", count: 4 },
 ];
+
+const ROLE_BY_FILTER: Record<string, ProjectRole> = {
+  "내가 만든": "팀장",
+  공유받은: "팀원",
+};
+
+const SECONDARY_BUTTON_CLASS =
+  "flex h-9 shrink-0 items-center justify-center rounded-md bg-[#F0F1F7] px-4 py-2 text-sm text-[#5C6080] transition-colors hover:bg-gray-200";
 
 const PROJECTS = [
   {
@@ -78,6 +91,48 @@ const PROJECTS = [
 
 export const ProjectListPage = () => {
   const [activeFilterIndex, setActiveFilterIndex] = useState(0);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const activeFilter = FILTERS[activeFilterIndex].label;
+  const filteredProjects =
+    activeFilter === "전체"
+      ? PROJECTS
+      : PROJECTS.filter(
+          (project) => project.role === ROLE_BY_FILTER[activeFilter],
+        );
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedIds((prev) =>
+      prev.size === filteredProjects.length
+        ? new Set()
+        : new Set(filteredProjects.map((project) => project.id)),
+    );
+  };
+
+  const handleCancelSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleConfirmDelete = () => {
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+    setIsDeleteModalOpen(false);
+  };
 
   return (
     <ListLayout
@@ -86,19 +141,51 @@ export const ProjectListPage = () => {
       activeFilterIndex={activeFilterIndex}
       onFilterChange={setActiveFilterIndex}
       actions={
-        <>
-          <button className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700">
-            <Plus className="h-4 w-4 stroke-[2.5]" />
-            <span>새 프로젝트</span>
-          </button>
-          <button className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50">
-            <Trash2 className="h-4 w-4" />
-            <span>선택 삭제</span>
-          </button>
-        </>
+        isSelectionMode ? (
+          <>
+            <button
+              onClick={handleSelectAll}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              <span>전체선택</span>
+            </button>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={selectedIds.size === 0}
+              className={cn(
+                "rounded-md flex h-9 shrink-0 items-center justify-center gap-1.5 px-4 text-sm font-normal text-white transition-colors",
+                selectedIds.size === 0
+                  ? "cursor-not-allowed bg-[#F0F1F7] text-[#9399B2]"
+                  : "bg-[#FB2C36]",
+              )}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>삭제 {selectedIds.size}</span>
+            </button>
+            <button
+              onClick={handleCancelSelection}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              <span>취소</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="rounded-md bg-main hover:bg-main/90 flex h-9 shrink-0 items-center justify-center gap-1.5 px-4 py-2 text-sm font-normal text-white transition-colors">
+              <Plus className="h-4 w-4 stroke-[2.5]" />
+              <span>새 프로젝트</span>
+            </button>
+            <button
+              onClick={() => setIsSelectionMode(true)}
+              className={SECONDARY_BUTTON_CLASS}
+            >
+              <span>선택 삭제</span>
+            </button>
+          </>
+        )
       }
     >
-      {PROJECTS.map((project) => (
+      {filteredProjects.map((project) => (
         <ProjectCard
           key={project.id}
           category={project.category}
@@ -107,8 +194,26 @@ export const ProjectListPage = () => {
           statusText={project.status}
           date={project.date}
           dateLabel="수정"
+          isSelectionMode={isSelectionMode}
+          isSelected={selectedIds.has(project.id)}
+          onToggleSelect={() => toggleSelect(project.id)}
         />
       ))}
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          icon={<Trash2 className="h-5 w-5 text-[#FB2C36]" />}
+          title="프로젝트를 삭제할까요?"
+          description={
+            <>
+              선택한 {selectedIds.size}개의 프로젝트가 삭제돼요.
+              <br />이 작업은 되돌릴 수 없어요.
+            </>
+          }
+          confirmLabel="삭제"
+          onCancel={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </ListLayout>
   );
 };

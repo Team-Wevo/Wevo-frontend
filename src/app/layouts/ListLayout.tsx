@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "../../shared/utils/cn";
 
 interface ListFilter {
   label: string;
@@ -23,10 +24,10 @@ const ListLayout = ({
   children,
 }: ListLayoutProps) => {
   return (
-    <div className="px-10 py-8">
+    <div className="my-12 p-16">
       {/* 헤더: 타이틀 + 페이지별 액션 버튼 슬롯 */}
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="color-[#1A1D2E] text-3xl font-bold text-gray-900">
           {title}
         </h1>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -38,13 +39,27 @@ const ListLayout = ({
           <button
             key={filter.label}
             onClick={() => onFilterChange(index)}
-            className={
+            className={cn(
+              "flex items-center gap-1 rounded-sm px-4 py-2 text-sm font-normal transition-colors",
               index === activeFilterIndex
-                ? "rounded-full bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm"
-                : "rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50"
-            }
+                ? "bg-main"
+                : "bg-gray-100 hover:bg-gray-200",
+            )}
           >
-            {filter.label} {filter.count}
+            <span
+              className={
+                index === activeFilterIndex ? "text-white" : "text-gray-800"
+              }
+            >
+              {filter.label}
+            </span>
+            <span
+              className={
+                index === activeFilterIndex ? "text-white/70" : "text-gray-700"
+              }
+            >
+              {filter.count}
+            </span>
           </button>
         ))}
       </div>
