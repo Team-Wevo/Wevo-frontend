@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { OnBoardingSideBar } from "../../shared/layouts/OnBoardingSideBar";
+import { OnBoardingSideBar } from "../../shared/components/OnBoardingSideBar";
 import useOnboardingAuth from "../../features/onboarding/hooks/useOnboardingAuth";
 
 const MainLayout = () => {
