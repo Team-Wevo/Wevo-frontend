@@ -1,34 +1,41 @@
 @theme {
-  /* 색상 추후 픽스 예정
-  --color-primary-50: #f4f2ff;
-  --color-primary-100: #e9e5ff;
-  --color-primary-200: #b8aeff;
-  --color-primary-300: #9b8fff;
-  --color-primary-400: #7c6ff7;
-  --color-primary-500: #6b5ef0;
-  --color-primary-600: #594cd9;
-  --color-primary-700: #463ab5;
-  --color-primary-800: #322a85;
-  --color-primary-900: #21185c;
+  --color-main-50: #f4f2ff;
+  --color-main-100: #e9e5ff;
+  --color-main-200: #d4ccff;
+  --color-main-300: #b8aeff;
+  --color-main-400: #9b8fff;
+  --color-main-500: #7c6ff7;
+  --color-main-600: #6b5ef0;
+  --color-main-700: #594cd9;
+  --color-main-800: #463ab5;
+  --color-main-900: #322a85;
 
-  --color-gray-50: #ffffff;
-  --color-gray-100: #ededf5;
-  --color-gray-200: #d9ddec;
-  --color-gray-300: #b2b7ca;
-  --color-gray-400: #78819a;
-  --color-gray-500: #5a637a;
-  --color-gray-600: #3b4252;
-  --color-gray-700: #282d3c;
-  --color-gray-800: #1c1f29;
-  --color-gray-900: #111111;
+  --color-main: var(--color-main-500);
 
-  --color-collecting: #5C6080;  작성중 
-  --color-drafting: #7C6FF7;  검토중 
-  --color-confirmed: #1DB757;  확정 
-  --color-review-required: #F59E0B; 재검토 필요 */
+  --color-gray-50: #fcfcfd;
+  --color-gray-100: #f5f7fa;
+  --color-gray-200: #eef2f6;
+  --color-gray-300: #dde3eb;
+  --color-gray-400: #c6ceda;
+  --color-gray-500: #a9b3c3;
+  --color-gray-600: #7d889c;
+  --color-gray-700: #596579;
+  --color-gray-800: #394255;
+  --color-gray-900: #1c2230;
 
-  --radius-s: 10px;
-  --radius-m: 14px;
-  --radius-l: 18px;
-  --radius-2xl: 24px;
+  --color-success: #1eb857;
+  --color-warning: #f59e0b;
+  --color-processing: #9399b2;
+  --color-error: #dc3e26;
+  --color-complete: #3b82f6;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-700: #1447e6;
+
+  --color-amber-100: #fef3c7;
+  --color-amber-700: #b45309;
+
+  --color-green-100: #dcfce7;
+  --color-green-700: #166534;
 }
