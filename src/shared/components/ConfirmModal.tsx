@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
+import { Button } from "./Button";
 
 interface ConfirmModalProps {
-  icon?: ReactNode;
   title: string;
   description: ReactNode;
   cancelLabel?: string;
@@ -11,7 +11,6 @@ interface ConfirmModalProps {
 }
 
 export const ConfirmModal = ({
-  icon,
   title,
   description,
   cancelLabel = "취소",
@@ -25,37 +24,33 @@ export const ConfirmModal = ({
       onClick={onCancel}
     >
       <div
-        className="flex w-96 flex-col gap-4 rounded-lg border-[0.8px] border-[#CDD0DF] bg-white p-6 shadow-[0_8px_10px_-6px_rgba(0,0,0,0.10),0_20px_25px_-5px_rgba(0,0,0,0.10)]"
+        className="flex w-96 flex-col gap-4 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {icon && (
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-100">
-            {icon}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1">
-          <h2 className="text-[16px] leading-[24px] font-bold text-[#1A1D2E]">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg leading-7 font-semibold text-gray-900">
             {title}
           </h2>
-          <p className="text-[14px] leading-[22.75px] font-normal text-[#5C6080]">
+          <p className="text-[13px] leading-5 font-normal text-gray-700">
             {description}
           </p>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            base="white"
             onClick={onCancel}
-            className="flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-normal text-[#5C6080]"
+            className="rounded-sm text-xs leading-4 font-medium"
           >
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
+            base="error"
             onClick={onConfirm}
-            className="flex items-center justify-center rounded-md bg-[#FB2C36] px-4 py-2 text-sm font-normal text-white transition-colors hover:bg-[#FB2C36]/90"
+            className="rounded-sm text-xs leading-4 font-medium"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

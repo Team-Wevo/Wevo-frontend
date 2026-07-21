@@ -1,11 +1,4 @@
-import {
-  Pencil,
-  Presentation,
-  FileText,
-  Crown,
-  Users,
-  Check,
-} from "lucide-react";
+import { Pencil, Presentation, FileText, Check } from "lucide-react";
 import { cn } from "../utils/cn";
 
 export type ProjectCategory = "발표 구성안" | "제안서";
@@ -24,30 +17,9 @@ interface ProjectCardProps {
   onToggleSelect?: () => void;
 }
 
-const CATEGORY_STYLE = {
-  "발표 구성안": {
-    icon: Presentation,
-    badge: "bg-purple-100 text-[#8200DB] border-[0.8px] border-[#E9D4FF]",
-    cardBg: "from-purple-50 to-pink-50",
-    iconColor: "text-purple-200",
-  },
-  제안서: {
-    icon: FileText,
-    badge: "bg-[#dbeafe] text-[#1447E6] border-[0.8px] border-[#BEDBFF]",
-    cardBg: "from-blue-50 to-indigo-50",
-    iconColor: "text-blue-200",
-  },
-} as const;
-
-const ROLE_STYLE = {
-  팀장: {
-    icon: Crown,
-    badge: "border-[0.8px] border-[#E4E6EF] text-[#735DF4]",
-  },
-  팀원: {
-    icon: Users,
-    badge: "border-[0.8px] border-[#E4E6EF] text-slate-500",
-  },
+const CATEGORY_ICON = {
+  "발표 구성안": Presentation,
+  제안서: FileText,
 } as const;
 
 export const ProjectCard = ({
@@ -62,85 +34,69 @@ export const ProjectCard = ({
   isSelected = false,
   onToggleSelect,
 }: ProjectCardProps) => {
-  const {
-    icon: CategoryIcon,
-    badge,
-    cardBg,
-    iconColor,
-  } = CATEGORY_STYLE[category];
-  const RoleIcon = role ? ROLE_STYLE[role].icon : null;
-  const roleBadge = role ? ROLE_STYLE[role].badge : "";
+  const CategoryIcon = CATEGORY_ICON[category];
 
   return (
     <div
       className={cn(
-        "overflow-hidden border bg-white",
-        isSelected
-          ? "rounded-md border-[0.8px] border-[#735DF4] shadow-[0_0_0_2px_#735DF4]"
-          : "rounded-lg border-gray-200",
+        "flex h-52 w-full flex-col overflow-hidden rounded-xl bg-gray-50",
+        isSelected ? "border-main-600 border-[2px]" : "border border-gray-400",
       )}
     >
       {/* 카드 상단 썸네일 영역 */}
-      <div
-        className={`relative flex h-28 items-center justify-center bg-gradient-to-br ${cardBg} px-3 pt-3`}
-      >
-        <span
-          className={cn(
-            "absolute top-3 left-3 flex items-center justify-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-normal",
-            badge,
-          )}
-        >
-          {category}
-        </span>
-        {isSelectionMode ? (
-          <button
-            onClick={onToggleSelect}
-            className={cn(
-              "absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-lg border-[0.8px]",
-              isSelected
-                ? "border-[#1A1D2E] bg-[#1A1D2E]"
-                : "border-[#CDD0DF] bg-white/90",
-            )}
-          >
-            {isSelected && <Check className="h-[15px] w-[15px] text-white" />}
-          </button>
-        ) : (
-          RoleIcon &&
-          role && (
-            <span
+      <div className="bg-main-50 flex h-32 flex-col items-start justify-start overflow-hidden p-3">
+        <div className="flex w-full items-start justify-between overflow-hidden">
+          <span className="bg-main-100 text-main-700 flex items-center justify-center rounded-full px-2 py-1 text-xs font-normal">
+            {category}
+          </span>
+          {isSelectionMode ? (
+            <button
+              onClick={onToggleSelect}
               className={cn(
-                "absolute top-3 right-3 flex items-center justify-center gap-1 rounded-full bg-white/70 px-2 py-1 text-[13px] font-normal backdrop-blur-sm",
-                roleBadge,
+                "flex h-6 w-6 items-center justify-center rounded-full border-[0.8px]",
+                isSelected
+                  ? "border-main-600 bg-main-600"
+                  : "border-gray-300 bg-white/90",
               )}
             >
-              <RoleIcon className="h-3 w-3" />
-              {role}
-            </span>
-          )
-        )}
-        <CategoryIcon
-          className={`h-10 w-10 ${iconColor}`}
-          strokeWidth={1.5}
-        />
+              {isSelected && <Check className="h-[15px] w-[15px] text-white" />}
+            </button>
+          ) : (
+            role && (
+              <span className="flex items-center justify-center rounded-full bg-gray-100 px-2 py-1 text-xs font-normal text-gray-700">
+                {role}
+              </span>
+            )
+          )}
+        </div>
+        <div className="flex w-full flex-1 items-center justify-center overflow-hidden">
+          <CategoryIcon
+            className="text-main-200 h-10 w-10"
+            strokeWidth={1.5}
+          />
+        </div>
       </div>
 
       {/* 카드 하단 정보 영역 */}
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="truncate text-[16px] font-bold text-slate-900">
+      <div className="flex flex-1 flex-col items-start justify-start gap-2 overflow-hidden border-t border-gray-400 p-4">
+        <div className="flex w-full items-center justify-between overflow-hidden">
+          <h3 className="line-clamp-1 flex-1 text-sm leading-5 font-medium text-gray-900">
             {title}
           </h3>
           {showEditIcon && !isSelectionMode && (
-            <Pencil className="h-3.5 w-3.5 shrink-0 text-gray-300" />
+            <Pencil className="h-3.5 w-3.5 shrink-0 text-gray-600" />
           )}
         </div>
-        <div className="mt-1.5 flex items-center justify-between font-medium text-slate-400">
+        <div className="flex w-full items-center justify-between overflow-hidden">
           {statusText && (
-            <span className="truncate text-[12px]">{statusText}</span>
+            <span className="truncate text-xs leading-5 text-gray-700">
+              {statusText}
+            </span>
           )}
-          <span className="shrink-0 text-[11px]">
-            {date} {dateLabel}
-          </span>
+          <div className="flex shrink-0 items-start justify-start gap-1 overflow-hidden">
+            <span className="text-xs leading-4 text-gray-600">{date}</span>
+            <span className="text-xs leading-4 text-gray-600">{dateLabel}</span>
+          </div>
         </div>
       </div>
     </div>
