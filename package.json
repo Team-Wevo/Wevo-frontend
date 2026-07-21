@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "prepare": "husky",
-    "check": "pnpm lint && pnpm format:check"
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
