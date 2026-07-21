@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { OnBoardingPage } from "../../pages/OnBoardingPage";
 
 import MainLayout from "../layouts/MainLayout";
-import ListLayout from "../layouts/ListLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import GuestRoute from "./GuestRoute";
 import ProjectListPage from "../../pages/ProjectListPage";
@@ -30,26 +29,21 @@ export const AppRoute = () => {
 
             <Route
               path="/list"
-              element={<ListLayout />}
-            >
-              <Route
-                index
-                element={
-                  <Navigate
-                    to="project"
-                    replace
-                  />
-                }
-              />
-              <Route
-                path="project"
-                element={<ProjectListPage />}
-              />
-              <Route
-                path="completed"
-                element={<CompletedListPage />}
-              />
-            </Route>
+              element={
+                <Navigate
+                  to="/list/project"
+                  replace
+                />
+              }
+            />
+            <Route
+              path="/list/project"
+              element={<ProjectListPage />}
+            />
+            <Route
+              path="/list/completed"
+              element={<CompletedListPage />}
+            />
 
             <Route
               path="/project/:id"
