@@ -46,13 +46,13 @@ export const ConfirmModal = ({
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="rounded-md flex items-center justify-center bg-white px-4 py-2 text-sm font-normal text-[#5C6080]"
+            className="flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-normal text-[#5C6080]"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className="rounded-md flex items-center justify-center bg-[#FB2C36] px-4 py-2 text-sm font-normal text-white transition-colors hover:bg-[#FB2C36]/90"
+            className="flex items-center justify-center rounded-md bg-[#FB2C36] px-4 py-2 text-sm font-normal text-white transition-colors hover:bg-[#FB2C36]/90"
           >
             {confirmLabel}
           </button>

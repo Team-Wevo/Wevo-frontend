@@ -153,7 +153,7 @@ export const ProjectListPage = () => {
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={selectedIds.size === 0}
               className={cn(
-                "rounded-md flex h-9 shrink-0 items-center justify-center gap-1.5 px-4 text-sm font-normal text-white transition-colors",
+                "flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-normal text-white transition-colors",
                 selectedIds.size === 0
                   ? "cursor-not-allowed bg-[#F0F1F7] text-[#9399B2]"
                   : "bg-[#FB2C36]",
@@ -171,7 +171,7 @@ export const ProjectListPage = () => {
           </>
         ) : (
           <>
-            <button className="rounded-md bg-main hover:bg-main/90 flex h-9 shrink-0 items-center justify-center gap-1.5 px-4 py-2 text-sm font-normal text-white transition-colors">
+            <button className="bg-main hover:bg-main/90 flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-normal text-white transition-colors">
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>새 프로젝트</span>
             </button>
