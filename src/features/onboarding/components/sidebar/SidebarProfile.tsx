@@ -44,8 +44,12 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
         onClick={() => setIsProfileOpen((prev) => !prev)}
         className={`flex cursor-pointer items-center gap-3 rounded-xl p-1.5 transition-colors ${isProfileOpen ? "bg-slate-50" : "hover:bg-slate-50"}`}
       >
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white shadow-sm">
-          현
+        <div className="flex items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
+          <img
+            src="../../../../../public/Wevo-logo.svg"
+            alt="Logo"
+            className="h-8 w-8 rounded-full"
+          />
         </div>
         <span className="text-xs font-semibold text-slate-700">지현구</span>
       </div>
