@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ListLayout from "../app/layouts/ListLayout";
-import { ProjectCard } from "../shared/components/ProjectCard";
+import ListLayout from "../../app/layouts/ListLayout";
+import { ProjectCard } from "../../shared/components/ProjectCard";
 
 const FILTERS = [
   { label: "전체", count: 4 },
