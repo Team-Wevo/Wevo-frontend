@@ -1,113 +1,114 @@
 import {
-  Route,
-  RouterProvider,
   createBrowserRouter,
-  createRoutesFromElements,
   redirect,
+  RouterProvider,
+  type RouteObject,
 } from "react-router-dom";
-import { OnBoardingPage } from "../../pages/onboarding/OnBoardingPage";
-
 import MainLayout from "../layouts/MainLayout";
-import ProtectedRoute from "./ProtectedRoute";
+import {
+  workspaceIndexLoader,
+  workspaceSectionLoader,
+} from "./loaders/workspaceLoaders";
 import GuestRoute from "./GuestRoute";
-import ProjectListPage from "../../pages/project/ProjectListPage";
+import ProtectedRoute from "./ProtectedRoute";
+import ErrorPage from "../../pages/common/ErrorPage";
+import NotFoundPage from "../../pages/common/NotFoundPage";
+import { OnBoardingPage } from "../../pages/onboarding/OnBoardingPage";
+import CompletedDetailPage from "../../pages/completed/CompletedDetailPage";
 import CompletedListPage from "../../pages/completed/CompletedListPage";
 import ProjectDetailPage from "../../pages/project/ProjectDetailPage";
-import CompletedDetailPage from "../../pages/completed/CompletedDetailPage";
-import NotFoundPage from "../../pages/common/NotFoundPage";
-import ErrorPage from "../../pages/common/ErrorPage";
+import ProjectListPage from "../../pages/project/ProjectListPage";
 import WorkspacePage from "../../pages/workspace/WorkspacePage";
-import {
-  DEFAULT_WORKSPACE_SECTION,
-  isWorkspaceSection,
-} from "../../features/workspace/constants/sections";
-import {
-  DEFAULT_WORKSPACE_DOCUMENT_TYPE,
-  isWorkspaceDocumentType,
-} from "../../features/workspace/constants/documentTypes";
 
-const workspaceRouteLoader = ({
-  params,
-}: {
-  params: Record<string, string | undefined>;
-}) => {
-  const projectId = params.projectId;
-  const documentType = params.documentType;
-  const section = params.section;
-
-  if (!projectId) {
-    return redirect("/list/project");
-  }
-
-  const safeDocumentType = isWorkspaceDocumentType(documentType)
-    ? documentType
-    : DEFAULT_WORKSPACE_DOCUMENT_TYPE;
-
-  const safeSection = isWorkspaceSection(section)
-    ? section
-    : DEFAULT_WORKSPACE_SECTION;
-
-  if (documentType !== safeDocumentType || section !== safeSection) {
-    return redirect(
-      `/workspace/${projectId}/${safeDocumentType}/${safeSection}`,
-    );
-  }
-
-  return null;
+const listRoute: RouteObject = {
+  path: "list",
+  children: [
+    {
+      index: true,
+      loader: () => redirect("/list/project"),
+    },
+    {
+      path: "project",
+      element: <ProjectListPage />,
+    },
+    {
+      path: "completed",
+      element: <CompletedListPage />,
+    },
+  ],
 };
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route
-      element={<MainLayout />}
-      errorElement={<ErrorPage />}
-    >
-      <Route element={<GuestRoute />}>
-        <Route
-          path="/"
-          element={<OnBoardingPage isLoggedIn={false} />}
-        />
-      </Route>
+const workspaceRoute: RouteObject = {
+  path: "workspace/:projectId",
+  errorElement: <ErrorPage />,
+  children: [
+    {
+      index: true,
+      loader: workspaceIndexLoader,
+    },
+    {
+      path: "sections/:sectionNo",
+      loader: workspaceSectionLoader,
+      element: <WorkspacePage />,
+    },
+  ],
+};
 
-      <Route element={<ProtectedRoute />}>
-        <Route
-          path="/home"
-          element={<OnBoardingPage isLoggedIn={true} />}
-        />
-        <Route
-          path="/list"
-          loader={() => redirect("/list/project")}
-        />
-        <Route
-          path="/list/project"
-          element={<ProjectListPage />}
-        />
-        <Route
-          path="/list/completed"
-          element={<CompletedListPage />}
-        />
-        <Route
-          path="/project/:id"
-          element={<ProjectDetailPage />}
-        />
-        <Route
-          path="/completed/:id"
-          element={<CompletedDetailPage />}
-        />
-        <Route
-          path="/workspace/:projectId/:documentType/:section"
-          loader={workspaceRouteLoader}
-          element={<WorkspacePage />}
-        />
-      </Route>
+const protectedMainRoute: RouteObject = {
+  element: <ProtectedRoute />,
+  children: [
+    {
+      path: "home",
+      element: <OnBoardingPage isLoggedIn={true} />,
+    },
+    listRoute,
+    {
+      path: "project/:id",
+      element: <ProjectDetailPage />,
+    },
+    {
+      path: "completed/:id",
+      element: <CompletedDetailPage />,
+    },
+  ],
+};
 
-      <Route
-        path="*"
-        element={<NotFoundPage />}
-      />
-    </Route>,
-  ),
-);
+const protectedWorkspaceRoute: RouteObject = {
+  element: <ProtectedRoute />,
+  errorElement: <ErrorPage />,
+  children: [workspaceRoute],
+};
+
+const routes: RouteObject[] = [
+  {
+    path: "/",
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            element: <GuestRoute />,
+            children: [
+              {
+                index: true,
+                element: <OnBoardingPage isLoggedIn={false} />,
+              },
+            ],
+          },
+          protectedMainRoute,
+        ],
+      },
+      protectedWorkspaceRoute,
+    ],
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
+];
+
+const router = createBrowserRouter(routes);
 
 export const AppRoute = () => {
   return <RouterProvider router={router} />;
