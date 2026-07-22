@@ -17,8 +17,9 @@ const PromptInput = () => {
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, [text]);
 
+  const isMaxLengthReached = text.length === 150;
   const showGuide = text.length > 0 && text.length < 10;
-  const showMaxGuide = text.length === 150;
+  const showMaxGuide = isMaxLengthReached;
   const canSubmit = text.length >= 10 && text.length <= 150;
   const shouldHighlightButton = isFocused && canSubmit;
 
@@ -46,21 +47,25 @@ const PromptInput = () => {
             )}
 
             {showMaxGuide && (
-              <p className="text-xs leading-5 text-slate-400">
+              <p className="text-error text-xs leading-5">
                 최대 150자까지 작성할 수 있어요.
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs leading-4 text-slate-400">
+          <div className="flex items-end gap-3">
+            <span
+              className={`text-xs leading-4 ${
+                isMaxLengthReached ? "text-error" : "text-slate-400"
+              }`}
+            >
               {text.length} / 150
             </span>
 
             <button
               type="button"
               disabled={!canSubmit}
-              className={`flex h-9 w-9 min-w-[36px] items-center justify-center rounded-2xl transition-all duration-200 ${
+              className={`flex h-9 w-9 min-w-[36px] items-center justify-center rounded-sm transition-all duration-200 ${
                 shouldHighlightButton
                   ? "bg-indigo-600 text-white shadow-sm"
                   : "bg-gray-100 text-gray-400 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-300"

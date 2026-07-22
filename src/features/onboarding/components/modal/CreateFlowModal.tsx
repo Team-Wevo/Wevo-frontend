@@ -68,14 +68,14 @@ const CreateFlowModal = ({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between">
-            <div className="text-sm leading-7 text-gray-900">
+            <div className="text-sm leading-7 font-normal text-gray-900">
               무엇을 만들지 알려주세요
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer text-gray-400 transition-colors hover:text-gray-700"
+              className="cursor-pointer text-gray-700 transition-colors hover:text-gray-900"
             >
               <X className="h-5 w-5" />
             </button>
