@@ -27,9 +27,7 @@ const ListLayout = ({
     <div className="my-12 p-16">
       {/* 헤더: 타이틀 + 페이지별 액션 버튼 슬롯 */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="color-[#1A1D2E] text-3xl font-semibold text-gray-900">
-          {title}
-        </h1>
+        <h1 className="text-3xl font-semibold text-gray-900">{title}</h1>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
 

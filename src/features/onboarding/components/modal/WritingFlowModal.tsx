@@ -59,7 +59,7 @@ const WritingFlowModal = ({
             작성 흐름 확인
           </div>
           <div className="rounded-full bg-[#e0d7f5] px-2 py-1">
-            <div className="text-xs leading-4 font-medium text-[#5a4dd1]">
+            <div className="text-main-700 text-xs leading-4 font-medium">
               {documentTypeLabel[documentType]}
             </div>
           </div>
@@ -76,12 +76,12 @@ const WritingFlowModal = ({
 
       {/* Guide Box */}
       <div className="mt-5 flex gap-2 rounded-lg bg-[#e0d7f5] p-4">
-        <div className="h-3.5 w-3.5 flex-shrink-0">
+        <div className="text-main-600 h-3.5 w-3.5 flex-shrink-0">
           <svg
             viewBox="0 0 14 14"
             className="h-full w-full"
             fill="none"
-            stroke="#6b5aff"
+            stroke="currentColor"
             strokeWidth="1"
           >
             <circle
@@ -96,7 +96,7 @@ const WritingFlowModal = ({
             />
           </svg>
         </div>
-        <div className="text-xs leading-5 font-normal text-[#5a4dd1]">
+        <div className="text-main-700 text-xs leading-5 font-normal">
           결과물 유형에 맞는 작성 흐름입니다. 각 섹션의 핵심 질문과 작성
           가이드는 입력한 아이디어·전달 대상에 맞춰 제공됩니다.
         </div>
@@ -110,7 +110,7 @@ const WritingFlowModal = ({
             className="flex items-center gap-3 rounded-lg bg-[#f0f0f0] px-4 py-3"
           >
             <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#ddd6f0]">
-              <span className="text-xs leading-4 font-medium text-[#5a4dd1]">
+              <span className="text-main-700 text-xs leading-4 font-medium">
                 {step.id}
               </span>
             </div>
@@ -134,7 +134,7 @@ const WritingFlowModal = ({
         <button
           type="button"
           onClick={onStart}
-          className="flex-1 cursor-pointer rounded-lg bg-[#6b5aff] px-5 py-3 text-xs leading-4 font-medium text-[#fbfaff] transition-colors hover:bg-[#5a4dd1]"
+          className="bg-main-600 hover:bg-main-700 flex-1 cursor-pointer rounded-lg px-5 py-3 text-xs leading-4 font-medium text-[#fbfaff] transition-colors"
         >
           <span>이 흐름으로 시작</span>
           <span className="ml-1">→</span>

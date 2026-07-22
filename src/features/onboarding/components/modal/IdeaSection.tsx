@@ -40,7 +40,7 @@ const IdeaSection = ({
       </div>
 
       {isEditing ? (
-        <div className="w-full rounded-lg border border-[#d4d4d8] bg-[#fbfaff] p-3 transition-all duration-200 focus-within:border-[#6b5aff] focus-within:ring-2 focus-within:ring-[#e0d7f5]">
+        <div className="focus-within:border-main-600 w-full rounded-lg border border-[#d4d4d8] bg-[#fbfaff] p-3 transition-all duration-200 focus-within:ring-2 focus-within:ring-[#e0d7f5]">
           <textarea
             ref={textareaRef}
             value={idea}
@@ -94,7 +94,7 @@ const IdeaSection = ({
           <button
             type="button"
             onClick={onEditToggle}
-            className="flex-shrink-0 cursor-pointer text-xs leading-4 font-medium whitespace-nowrap text-[#5a4dd1]"
+            className="text-main-700 flex-shrink-0 cursor-pointer text-xs leading-4 font-medium whitespace-nowrap"
           >
             수정
           </button>

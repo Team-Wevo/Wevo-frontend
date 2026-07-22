@@ -43,7 +43,7 @@ const AudienceSection = ({
           value={customAudience}
           onChange={(event) => onCustomAudienceChange(event.target.value)}
           placeholder="예) 스타트업 대표"
-          className="w-full rounded-lg border border-[#d4d4d8] bg-[#fbfaff] px-4 py-3 text-sm text-[#3d3d3d] transition-all duration-200 placeholder:text-[#8b8d99] focus:border-[#6b5aff] focus:ring-2 focus:ring-[#e0d7f5] focus:outline-none"
+          className="focus:border-main-600 w-full rounded-lg border border-[#d4d4d8] bg-[#fbfaff] px-4 py-3 text-sm text-[#3d3d3d] transition-all duration-200 placeholder:text-[#8b8d99] focus:ring-2 focus:ring-[#e0d7f5] focus:outline-none"
         />
       )}
     </div>

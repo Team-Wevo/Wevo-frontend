@@ -17,7 +17,7 @@ const MainLayout = () => {
   const sidebarIsLoggedIn = authLoggedIn || isLoggedIn;
 
   return (
-    <div className="flex min-h-screen w-full bg-[#F5F6FA] font-sans text-slate-800 select-none">
+    <div className="flex min-h-screen w-full bg-gray-100 font-sans text-slate-800 select-none">
       <OnBoardingSideBar
         isLoggedIn={sidebarIsLoggedIn}
         onLoginClick={() => setIsLoginModalOpen(true)}
