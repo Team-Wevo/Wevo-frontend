@@ -1,44 +1,33 @@
 import { useLoaderData } from "react-router-dom";
 import type { WorkspaceSectionLoaderData } from "../../app/router/loaders/workspaceLoaders";
+import WorkspaceLayout from "../../app/layouts/WorkspaceLayout";
+import DraftView from "../../features/workspace/components/views/DraftView";
+import OpinionView from "../../features/workspace/components/views/OpinionView";
+import ReviewView from "../../features/workspace/components/views/ReviewView";
 import { getWorkspacePhase } from "../../features/workspace/utils/getWorkspacePhase";
-import WorkspaceHeader from "../../features/workspace/components/WorkspaceHeader";
-import WorkspaceRenderer from "../../features/workspace/components/WorkspaceRenderer";
-import WorkspaceSidebar from "../../features/workspace/components/WorkspaceSidebar";
+import { toDocumentProgress } from "../../features/workspace/utils/toDocumentProgress";
 
 const WorkspacePage = () => {
-  const { projectId, sectionNo, sections, currentSection } =
+  const { projectId, sections, currentSection } =
     useLoaderData() as WorkspaceSectionLoaderData;
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
 
   return (
-    <div className="p-6 md:p-10">
-      <WorkspaceHeader
-        projectId={projectId}
-        sectionNo={currentSection.orderNo}
-        currentSection={currentSection}
-      />
-
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <WorkspaceSidebar
-          projectId={projectId}
-          currentSectionNo={currentSection.orderNo}
-        />
-
-        <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
-            <p>URL sectionNo: {sectionNo}</p>
-            <p>현재 sectionStatus: {currentSection.sectionStatus}</p>
-            <p>현재 phase: {currentPhase}</p>
-            <p>섹션 수: {sections.length}</p>
-          </div>
-
-          <WorkspaceRenderer
-            phase={currentPhase}
-            section={currentSection}
-          />
-        </div>
-      </div>
-    </div>
+    <WorkspaceLayout
+      // TODO: 프로젝트 상세 API 연동 후 실제 프로젝트 제목으로 교체
+      title={`프로젝트 ${projectId}`}
+      projectId={String(projectId)}
+      progress={toDocumentProgress(sections)}
+      activeStepId={currentSection.orderNo}
+    >
+      {currentPhase === "의견 모으기" ? (
+        <OpinionView section={currentSection} />
+      ) : currentPhase === "정리·초안" ? (
+        <DraftView section={currentSection} />
+      ) : (
+        <ReviewView section={currentSection} />
+      )}
+    </WorkspaceLayout>
   );
 };
 

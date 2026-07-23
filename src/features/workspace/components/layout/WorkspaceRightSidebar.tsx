@@ -3,11 +3,11 @@ export interface ProjectInfoItem {
   value: string;
 }
 
-interface WorkBoardRightSidebarProps {
+interface WorkspaceRightSidebarProps {
   projectInfo: ProjectInfoItem[];
 }
 
-const WorkBoardRightSidebar = ({ projectInfo }: WorkBoardRightSidebarProps) => {
+const WorkspaceRightSidebar = ({ projectInfo }: WorkspaceRightSidebarProps) => {
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col items-start justify-start gap-6 overflow-hidden border-l border-gray-400 bg-gray-50 px-5 py-6">
       <div className="flex w-full flex-col items-start justify-start gap-3 overflow-hidden">
@@ -43,4 +43,4 @@ const WorkBoardRightSidebar = ({ projectInfo }: WorkBoardRightSidebarProps) => {
   );
 };
 
-export default WorkBoardRightSidebar;
+export default WorkspaceRightSidebar;

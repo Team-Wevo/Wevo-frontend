@@ -1,11 +1,11 @@
 import { ArrowRight } from "lucide-react";
-// import { Link } from "react-router-dom";
-import { cn } from "../../../shared/utils/cn";
+import { Link } from "react-router-dom";
+import { cn } from "../../../../shared/utils/cn";
 import type {
   DocumentProgress,
   SectionStatusValue,
-} from "../../../shared/types/documentType";
-import { Button } from "../../../shared/components/Button";
+} from "../../../../shared/types/documentType";
+import { Button } from "../../../../shared/components/Button";
 
 const SIDEBAR_STATUS_LABEL: Record<SectionStatusValue, string> = {
   "시작 전": "시작 전",
@@ -15,21 +15,19 @@ const SIDEBAR_STATUS_LABEL: Record<SectionStatusValue, string> = {
   "작성 완료": "작성 완료",
 };
 
-interface WorkBoardLeftSidebarProps {
+interface WorkspaceLeftSidebarProps {
   progress: DocumentProgress;
   activeStepId: number;
   projectId: string;
-  onStepSelect?: (id: number) => void;
   onConfirmFinal?: () => void;
 }
 
-const WorkBoardLeftSidebar = ({
+const WorkspaceLeftSidebar = ({
   progress,
   activeStepId,
-  // projectId,
-  onStepSelect,
+  projectId,
   onConfirmFinal,
-}: WorkBoardLeftSidebarProps) => {
+}: WorkspaceLeftSidebarProps) => {
   const totalCount = progress.length;
   const completedCount = progress.filter(
     (item) => item.status === "작성 완료",
@@ -47,28 +45,14 @@ const WorkBoardLeftSidebar = ({
             const stepId = index + 1;
             const isActive = stepId === activeStepId;
             return (
-              // TODO: 라우트 연결 시 projectId를 useParams로 받아 아래 Link로 교체
-              // (지금은 activeStepId로만 선택 표시)
               // 경로: /workspace/:projectId/sections/:sectionNo
               // - sectionNo(stepId)는 orderNo 기준 1~6이며 projectSectionId가 아님 -
               //   API 호출 시에는 섹션 목록에서 orderNo가 일치하는 항목의 projectSectionId를 사용
               // - phase(의견 모으기/정리·초안/검토·확정)는 URL에 넣지 않고 sectionStatus에 따라
               //   중앙 컴포넌트만 교체
-              // <Link
-              //   key={item.section}
-              //   to={`/workspace/${projectId}/sections/${stepId}`}
-              //   onClick={() => onStepSelect?.(stepId)}
-              //   className={cn(
-              //     "flex cursor-pointer items-center gap-2 px-4 py-2.5 text-left",
-              //     isActive && "bg-main-50",
-              //   )}
-              // >
-              //   ...
-              // </Link>
-              <button
+              <Link
                 key={item.section}
-                type="button"
-                onClick={() => onStepSelect?.(stepId)}
+                to={`/workspace/${projectId}/sections/${stepId}`}
                 className={cn(
                   "flex cursor-pointer items-start gap-2 overflow-hidden rounded-sm px-3 py-2 text-left",
                   isActive && "bg-main-50",
@@ -100,13 +84,12 @@ const WorkBoardLeftSidebar = ({
                     {SIDEBAR_STATUS_LABEL[item.status]}
                   </span>
                 </span>
-              </button>
+              </Link>
             );
           })}
         </nav>
         <Button
-          type="button"
-          base="main"
+          type="main"
           onClick={onConfirmFinal}
           className="mt-4 h-10 w-full items-center justify-start gap-2 overflow-hidden rounded-sm px-4 py-3 text-xs leading-4 font-medium text-gray-50"
         >
@@ -123,4 +106,4 @@ const WorkBoardLeftSidebar = ({
   );
 };
 
-export default WorkBoardLeftSidebar;
+export default WorkspaceLeftSidebar;
