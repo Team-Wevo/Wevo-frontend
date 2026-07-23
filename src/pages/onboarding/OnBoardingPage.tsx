@@ -1,4 +1,4 @@
-import MainContent from "../features/onboarding/components/MainContent";
+import MainContent from "../../features/onboarding/components/MainContent";
 
 interface OnBoardingPageProps {
   isLoggedIn?: boolean;

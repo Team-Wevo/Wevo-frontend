@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import ListLayout from "../app/layouts/ListLayout";
+import ListLayout from "../../app/layouts/ListLayout";
 import {
   ProjectCard,
   type ProjectRole,
-} from "../shared/components/ProjectCard";
-import { ConfirmModal } from "../shared/components/ConfirmModal";
-import { Button } from "../shared/components/Button";
+} from "../../shared/components/ProjectCard";
+import { ConfirmModal } from "../../shared/components/ConfirmModal";
+import { Button } from "../../shared/components/Button";
 
 const FILTERS = [
   { label: "전체", count: 8 },
