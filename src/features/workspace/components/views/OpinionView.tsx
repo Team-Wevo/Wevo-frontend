@@ -10,7 +10,9 @@ const OpinionView = ({ section }: OpinionViewProps) => {
   return (
     <>
       <SectionBlock>
-        섹션: {section.title}이 블럭 이용해서 구현해주세요!
+        <p className="mb-4 text-gray-600">섹션: {section.title}</p>
+        <br />
+        <p className="mb-4">이 섹션블럭 블럭 이용해서 구현해주세요!</p>
         <Button type="outline"> 버튼은 이거 사용해주세요! </Button>
         <Button type="main"> main </Button>
         <Button type="red"> red </Button>
