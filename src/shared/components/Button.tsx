@@ -1,43 +1,35 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 
-export type ButtonBase = "main" | "default" | "white" | "error";
+export type ButtonType = "main" | "outline" | "red" | "green" | "transparent";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  base?: ButtonBase;
-  textColor?: string;
+interface ButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "type"
+> {
+  type?: ButtonType;
 }
 
 const BASE_CLASS =
   "flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-sm border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50";
 
-const BASE_STYLE_CLASS: Record<ButtonBase, string> = {
-  main: "border-transparent bg-main-600 hover:bg-main-700",
-  default: "border-gray-400 bg-gray-50 hover:bg-gray-200",
-  white: "border-transparent bg-transparent hover:bg-gray-200",
-  error: "border-transparent bg-error hover:bg-error/90",
-};
-
-const DEFAULT_TEXT_COLOR: Record<ButtonBase, string> = {
-  main: "gray-50",
-  default: "gray-700",
-  white: "gray-700",
-  error: "gray-50",
+const TYPE_STYLE_CLASS: Record<ButtonType, string> = {
+  main: "border-transparent bg-main-600 text-gray-50 hover:bg-main-700",
+  outline: "border-gray-400 bg-gray-50 text-gray-700 hover:bg-gray-200",
+  red: "border-transparent bg-error text-gray-50 hover:bg-error/90",
+  green: "border-transparent bg-success text-gray-50 hover:bg-success/90",
+  transparent:
+    "border-transparent bg-transparent text-gray-700 hover:bg-gray-200",
 };
 
 export const Button = ({
-  base = "default",
-  textColor,
+  type = "outline",
   className,
   ...props
 }: ButtonProps) => (
   <button
-    className={cn(
-      BASE_CLASS,
-      BASE_STYLE_CLASS[base],
-      `text-${textColor ?? DEFAULT_TEXT_COLOR[base]}`,
-      className,
-    )}
+    type="button"
+    className={cn(BASE_CLASS, TYPE_STYLE_CLASS[type], className)}
     {...props}
   />
 );

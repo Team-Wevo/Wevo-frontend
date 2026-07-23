@@ -38,14 +38,14 @@ export const ConfirmModal = ({
 
         <div className="flex items-center justify-end gap-2">
           <Button
-            base="white"
+            type="transparent"
             onClick={onCancel}
             className="rounded-sm text-xs leading-4 font-medium"
           >
             {cancelLabel}
           </Button>
           <Button
-            base="error"
+            type="red"
             onClick={onConfirm}
             className="rounded-sm text-xs leading-4 font-medium"
           >
