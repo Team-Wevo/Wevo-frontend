@@ -14,7 +14,7 @@ const documentOptions = [
 const DocumentTypeSection = ({ value, onChange }: DocumentTypeSectionProps) => {
   return (
     <div className="flex w-full flex-col items-start gap-2 overflow-hidden">
-      <div className="text-xs leading-4 font-medium text-[#8b8d99]">
+      <div className="text-xs leading-4 font-medium text-gray-700">
         무엇으로 만들까요?
       </div>
 

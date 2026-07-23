@@ -64,11 +64,11 @@ const CreateFlowModal = ({
       {/* CreateFlowModal 폼 - isFlowModalOpen이 false일 때만 표시 */}
       {!isFlowModalOpen && (
         <div
-          className="w-full max-w-[384px] rounded-[24px] bg-[#fbfaff] p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
+          className="w-full max-w-[384px] rounded-[24px] bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between">
-            <div className="text-sm leading-7 font-normal text-gray-900">
+            <div className="text-sm leading-7 font-semibold text-gray-900">
               무엇을 만들지 알려주세요
             </div>
 

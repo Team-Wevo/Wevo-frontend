@@ -49,17 +49,15 @@ const WritingFlowModal = ({
 
   return (
     <div
-      className="w-full max-w-[384px] rounded-2xl bg-[#fbfaff] p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
+      className="w-full max-w-[384px] rounded-2xl bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="text-lg leading-7 font-semibold text-[#1a1a1a]">
-            작성 흐름 확인
-          </div>
-          <div className="rounded-full bg-[#e0d7f5] px-2 py-1">
-            <div className="text-main-700 text-xs leading-4 font-medium">
+          <div className="text-sm leading-7 text-gray-900">작성 흐름 확인</div>
+          <div className="bg-main-100 rounded-full px-2 py-1">
+            <div className="text-main-600 text-xs leading-4 font-medium">
               {documentTypeLabel[documentType]}
             </div>
           </div>
@@ -68,14 +66,14 @@ const WritingFlowModal = ({
         <button
           type="button"
           onClick={onClose}
-          className="cursor-pointer text-sm leading-5 font-normal text-[#8b8d99] transition-colors hover:text-[#3d3d3d]"
+          className="cursor-pointer text-sm leading-5 font-normal text-gray-700 transition-colors hover:text-gray-800"
         >
           ✕
         </button>
       </div>
 
       {/* Guide Box */}
-      <div className="mt-5 flex gap-2 rounded-lg bg-[#e0d7f5] p-4">
+      <div className="bg-main-100 mt-5 flex gap-1 rounded-md p-3">
         <div className="text-main-600 h-3.5 w-3.5 flex-shrink-0">
           <svg
             viewBox="0 0 14 14"
@@ -96,7 +94,7 @@ const WritingFlowModal = ({
             />
           </svg>
         </div>
-        <div className="text-main-700 text-xs leading-5 font-normal">
+        <div className="text-main-600 text-xs leading-5 font-normal">
           결과물 유형에 맞는 작성 흐름입니다. 각 섹션의 핵심 질문과 작성
           가이드는 입력한 아이디어·전달 대상에 맞춰 제공됩니다.
         </div>
@@ -107,14 +105,14 @@ const WritingFlowModal = ({
         {flowSteps.map((step) => (
           <div
             key={step.id}
-            className="flex items-center gap-3 rounded-lg bg-[#f0f0f0] px-4 py-3"
+            className="flex items-center gap-3 rounded-lg bg-gray-100 px-4 py-3"
           >
-            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#ddd6f0]">
+            <div className="bg-main-100 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md">
               <span className="text-main-700 text-xs leading-4 font-medium">
                 {step.id}
               </span>
             </div>
-            <span className="text-xs leading-5 font-normal text-[#3d3d3d]">
+            <span className="text-xs leading-5 font-normal text-gray-800">
               {step.title}
             </span>
           </div>
@@ -126,7 +124,7 @@ const WritingFlowModal = ({
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 cursor-pointer rounded-lg border border-[#d4d4d8] bg-[#fbfaff] px-5 py-3 text-xs leading-4 font-medium text-[#8b8d99] transition-colors hover:bg-gray-50"
+          className="flex-1 cursor-pointer rounded-md border border-gray-400 bg-gray-50 px-5 py-3 text-xs leading-4 font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           <span>←</span>
           <span className="ml-1">뒤로가기</span>
@@ -134,7 +132,7 @@ const WritingFlowModal = ({
         <button
           type="button"
           onClick={onStart}
-          className="bg-main-600 hover:bg-main-700 flex-1 cursor-pointer rounded-lg px-5 py-3 text-xs leading-4 font-medium text-[#fbfaff] transition-colors"
+          className="bg-main-600 hover:bg-main-700 flex-1 cursor-pointer rounded-md px-5 py-3 text-xs leading-4 font-medium text-gray-50 transition-colors"
         >
           <span>이 흐름으로 시작</span>
           <span className="ml-1">→</span>
