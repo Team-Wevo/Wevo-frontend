@@ -1,17 +1,17 @@
 import { Fragment } from "react";
-import { cn } from "../../../shared/utils/cn";
+import { cn } from "../../../../shared/utils/cn";
 import {
   SECTION_PHASES,
   type SectionStatusValue,
-} from "../../../shared/types/documentType";
+} from "../../../../shared/types/documentType";
 
-interface WorkBoardPhaseStepperProps {
+interface WorkspacePhaseStepperProps {
   currentStatus: SectionStatusValue;
 }
 
-const WorkBoardPhaseStepper = ({
+const WorkspacePhaseStepper = ({
   currentStatus,
-}: WorkBoardPhaseStepperProps) => {
+}: WorkspacePhaseStepperProps) => {
   const effectiveStatus =
     currentStatus === "시작 전" ? "의견 모으기" : currentStatus;
 
@@ -56,4 +56,4 @@ const WorkBoardPhaseStepper = ({
   );
 };
 
-export default WorkBoardPhaseStepper;
+export default WorkspacePhaseStepper;

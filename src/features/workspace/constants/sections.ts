@@ -24,7 +24,18 @@ export interface WorkspaceSection {
   sectionStatus: WorkspaceSectionStatus;
 }
 
-const DEFAULT_SECTION_STATUS: WorkspaceSectionStatus = "COLLECTING";
+// 여러 상태를 한 번에 확인해볼 수 있도록 섹션마다 다른 status를 채워둔 테스트용 기본값
+const DEFAULT_SECTION_STATUS_BY_SECTION_NO: Record<
+  WorkspaceSectionNo,
+  WorkspaceSectionStatus
+> = {
+  1: "COMPLETED",
+  2: "COLLECTING",
+  3: "SYNTHESIZING",
+  4: "REVIEWING",
+  5: "DRAFTING",
+  6: "COMPLETED",
+};
 
 const toWorkspaceSectionNo = (value: number): WorkspaceSectionNo | null => {
   if (value >= 1 && value <= 6) {
@@ -56,7 +67,7 @@ const buildDefaultSections = (projectId: number): WorkspaceSection[] => {
       projectSectionId: projectId * 1000 + sectionNo,
       orderNo: sectionNo,
       title,
-      sectionStatus: DEFAULT_SECTION_STATUS,
+      sectionStatus: DEFAULT_SECTION_STATUS_BY_SECTION_NO[sectionNo],
     };
   });
 };

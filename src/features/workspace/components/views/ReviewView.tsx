@@ -1,3 +1,5 @@
+import { Button } from "../../../../shared/components/Button";
+import SectionBlock from "../blocks/SectionBlock";
 import type { WorkspaceSection } from "../../constants/sections";
 
 interface ReviewViewProps {
@@ -6,15 +8,17 @@ interface ReviewViewProps {
 
 const ReviewView = ({ section }: ReviewViewProps) => {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <p className="text-xs font-medium text-slate-500">검토·확정</p>
-      <h2 className="mt-1 text-lg font-semibold text-slate-900">
-        {section.title} 내용을 최종 검토합니다.
-      </h2>
-      <p className="mt-2 text-sm text-slate-600">
-        REVIEWING 또는 COMPLETED 상태에서 이 화면을 렌더링합니다.
-      </p>
-    </section>
+    <>
+      <SectionBlock>
+        <p className="mb-4 text-gray-600">섹션: {section.title}</p>
+        <br />
+        <p className="mb-4">이 섹션블럭 블럭 이용해서 구현해주세요!</p>
+        <Button type="outline"> 버튼은 이거 사용해주세요! </Button>
+        <Button type="main"> main </Button>
+        <Button type="red"> red </Button>
+        <Button type="green"> green </Button>
+      </SectionBlock>
+    </>
   );
 };
 

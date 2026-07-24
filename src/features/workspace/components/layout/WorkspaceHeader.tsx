@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, CircleDot, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../shared/components/Button";
-import { cn } from "../../../shared/utils/cn";
+import { Button } from "../../../../shared/components/Button";
+import { cn } from "../../../../shared/utils/cn";
 
 export interface Collaborator {
   id: string;
@@ -9,7 +9,7 @@ export interface Collaborator {
   name: string;
 }
 
-interface WorkBoardHeaderProps {
+interface WorkspaceHeaderProps {
   title: string;
   isSaved: boolean;
   collaborators: Collaborator[];
@@ -19,13 +19,13 @@ interface WorkBoardHeaderProps {
 
 const HEADER_ACTION_BUTTON_CLASS = "gap-1 px-3 py-2 text-[12px] text-gray-700";
 
-const WorkBoardHeader = ({
+const WorkspaceHeader = ({
   title,
   isSaved,
   collaborators,
   onInvite,
   onPreviewAll,
-}: WorkBoardHeaderProps) => {
+}: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
 
   return (
@@ -76,7 +76,6 @@ const WorkBoardHeader = ({
         </div>
 
         <Button
-          base="default"
           onClick={onInvite}
           className={HEADER_ACTION_BUTTON_CLASS}
         >
@@ -85,7 +84,6 @@ const WorkBoardHeader = ({
         </Button>
 
         <Button
-          base="default"
           onClick={onPreviewAll}
           className={cn(HEADER_ACTION_BUTTON_CLASS)}
         >
@@ -97,4 +95,4 @@ const WorkBoardHeader = ({
   );
 };
 
-export default WorkBoardHeader;
+export default WorkspaceHeader;
