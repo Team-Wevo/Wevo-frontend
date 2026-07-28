@@ -1,1 +1,5 @@
+@import "pretendard/dist/web/static/pretendard.css";
 @import "tailwindcss";
+@import "./app/styles/colors.css";
+@import "./app/styles/radius.css";
+@import "./app/styles/font.css";

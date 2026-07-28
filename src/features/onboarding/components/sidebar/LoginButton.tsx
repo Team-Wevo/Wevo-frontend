@@ -1,0 +1,24 @@
+interface LoginButtonProps {
+  onClick?: () => void;
+}
+
+const LoginButton = ({ onClick }: LoginButtonProps) => {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex w-full cursor-pointer items-center gap-3 rounded-xl p-1.5 text-left text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
+    >
+      <div className="size-8 items-center justify-center overflow-hidden rounded-full bg-indigo-500 text-xs font-bold text-white shadow-sm transition-colors group-hover:bg-indigo-600">
+        <img
+          src="../../../../../public/Wevo-logo.svg"
+          alt="Logo"
+          className="h-8 w-8 object-contain"
+        />
+      </div>
+
+      <span className="text-xs font-semibold tracking-tight">로그인하기</span>
+    </button>
+  );
+};
+
+export default LoginButton;

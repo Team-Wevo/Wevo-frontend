@@ -1,0 +1,12 @@
+@theme {
+  /* Fonts */
+  --font-sans:
+    "Pretendard", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans KR", "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+  --font-mainFont: var(--font-sans);
+  --font-boldFont: var(--font-sans);
+  --font-mediumFont: var(--font-sans);
+  --font-semiBoldFont: var(--font-sans);
+  --font-blackFont: var(--font-sans);
+}
