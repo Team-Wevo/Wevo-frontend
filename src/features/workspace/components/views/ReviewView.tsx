@@ -22,7 +22,7 @@ const REVIEW_STATUS_LABEL: Record<SectionReviewStatus, string> = {
 
 const REVIEW_STATUS_TEXT_CLASS: Record<SectionReviewStatus, string> = {
   AGREED: "text-success",
-  CHANGES_REQUESTED: "text-amber-700",
+  CHANGES_REQUESTED: "text-error",
   PENDING: "text-gray-600",
 };
 
@@ -45,7 +45,7 @@ const SECTION_REVIEWERS: SectionReviewer[] = [
 ];
 
 // TODO: 프로젝트 멤버 권한 API 연동 후 실제 팀장 여부로 교체
-const IS_TEAM_LEADER = false;
+const IS_TEAM_LEADER = true;
 
 const countAgreedReviewers = (reviewers: SectionReviewer[]): number => {
   return reviewers.filter((reviewer) => reviewer.reviewStatus === "AGREED")
@@ -208,6 +208,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
               <Button
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"
+                disabled={isChangeRequestUnresolved}
               >
                 섹션 확정
               </Button>
