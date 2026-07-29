@@ -55,7 +55,7 @@ const WorkspaceLayout = ({
           projectId={projectId}
         />
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8">
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
           <h1 className="text-2xl font-semibold text-gray-900">
             {activeStepId}. {activeSection?.section}
           </h1>
