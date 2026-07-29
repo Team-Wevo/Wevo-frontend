@@ -23,7 +23,7 @@ const LoginModal = ({ onClose, onSocialLogin }: LoginModalProps) => {
           <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-indigo-500">
             <span className="text-xl font-bold tracking-tighter text-white">
               <img
-                src="../../../../../public/Wevo-logo.svg"
+                src="/Wevo-logo.svg"
                 alt="Logo"
                 className="h-12 w-12 stroke-[2.5]"
               />

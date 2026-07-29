@@ -10,7 +10,7 @@ const LoginButton = ({ onClick }: LoginButtonProps) => {
     >
       <div className="size-8 items-center justify-center overflow-hidden rounded-full bg-indigo-500 text-xs font-bold text-white shadow-sm transition-colors group-hover:bg-indigo-600">
         <img
-          src="../../../../../public/Wevo-logo.svg"
+          src="/Wevo-logo.svg"
           alt="Logo"
           className="h-8 w-8 object-contain"
         />

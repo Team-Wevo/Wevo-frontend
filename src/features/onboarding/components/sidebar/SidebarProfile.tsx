@@ -46,7 +46,7 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
       >
         <div className="flex items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
           <img
-            src="../../../../../public/Wevo-logo.svg"
+            src="/Wevo-logo.svg"
             alt="Logo"
             className="h-8 w-8 rounded-full"
           />
