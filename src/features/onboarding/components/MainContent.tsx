@@ -6,8 +6,18 @@ import CreateFlowModal from "./modal/CreateFlowModal";
 const MainContent = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocumentType, setSelectedDocumentType] = useState<
-    "proposal" | "presentation" | "free"
-  >("proposal");
+    "proposal" | "presentation" | "free" | null
+  >(null);
+  const [ideaFromPromptInput, setIdeaFromPromptInput] = useState("");
+  const [modalOpenKey, setModalOpenKey] = useState(0);
+
+  const handleSubmitPrompt = (value: string) => {
+    setIdeaFromPromptInput(value);
+    setSelectedDocumentType(null);
+    setModalOpenKey((prev) => prev + 1);
+    setIsModalOpen(true);
+  };
+
   return (
     <main className="relative flex-1 overflow-y-auto bg-slate-50">
       {/* 고정 인사말 */}
@@ -23,11 +33,13 @@ const MainContent = () => {
 
       {/* 입력 영역 */}
       <div className="mx-auto flex w-full max-w-[576px] flex-col pt-[350px]">
-        <PromptInput />
+        <PromptInput onSubmit={handleSubmitPrompt} />
 
         <SuggestionTags
           onSelectDocumentType={(documentType) => {
+            setIdeaFromPromptInput("");
             setSelectedDocumentType(documentType);
+            setModalOpenKey((prev) => prev + 1);
             setIsModalOpen(true);
           }}
         />
@@ -39,8 +51,10 @@ const MainContent = () => {
       </div>
 
       <CreateFlowModal
+        key={modalOpenKey}
         isOpen={isModalOpen}
         initialDocumentType={selectedDocumentType}
+        initialIdea={ideaFromPromptInput}
         onClose={() => setIsModalOpen(false)}
       />
     </main>

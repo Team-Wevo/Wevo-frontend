@@ -1,7 +1,11 @@
 import { ArrowUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-const PromptInput = () => {
+interface PromptInputProps {
+  onSubmit: (value: string) => void;
+}
+
+const PromptInput = ({ onSubmit }: PromptInputProps) => {
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -23,8 +27,16 @@ const PromptInput = () => {
   const canSubmit = text.length >= 10 && text.length <= 150;
   const shouldHighlightButton = isFocused && canSubmit;
 
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      return;
+    }
+
+    onSubmit(text.trim());
+  };
+
   return (
-    <div className="w-full rounded-[24px] border border-slate-300 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100">
+    <div className="w-full rounded-md border border-slate-300 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100">
       <div className="relative">
         <textarea
           ref={textareaRef}
@@ -32,6 +44,16 @@ const PromptInput = () => {
           onChange={(event) => setText(event.target.value.slice(0, 150))}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing) {
+              return;
+            }
+
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              handleSubmit();
+            }
+          }}
           maxLength={150}
           rows={1}
           placeholder="예) 장학금 매칭 서비스를 공모전 제안서로 만들고 싶어요"
@@ -64,6 +86,7 @@ const PromptInput = () => {
 
             <button
               type="button"
+              onClick={handleSubmit}
               disabled={!canSubmit}
               className={`flex h-9 w-9 min-w-[36px] items-center justify-center rounded-sm transition-all duration-200 ${
                 shouldHighlightButton

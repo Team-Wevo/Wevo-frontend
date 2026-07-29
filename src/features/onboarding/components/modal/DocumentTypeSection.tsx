@@ -1,8 +1,8 @@
 import Chip from "./Chip";
 
 interface DocumentTypeSectionProps {
-  value: "proposal" | "presentation" | "free";
-  onChange: (value: "proposal" | "presentation" | "free") => void;
+  value: "proposal" | "presentation" | "free" | null;
+  onChange: (value: "proposal" | "presentation" | "free" | null) => void;
 }
 
 const documentOptions = [
