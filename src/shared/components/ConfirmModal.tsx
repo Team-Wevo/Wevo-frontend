@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Button } from "./Button";
+import { Button, type ButtonType } from "./Button";
 
 interface ConfirmModalProps {
   title: string;
   description: ReactNode;
-  cancelLabel?: string;
-  confirmLabel?: string;
+  cancelLabel?: ReactNode;
+  confirmLabel?: ReactNode;
+  confirmType?: ButtonType;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -15,6 +16,7 @@ export const ConfirmModal = ({
   description,
   cancelLabel = "취소",
   confirmLabel = "확인",
+  confirmType = "red",
   onCancel,
   onConfirm,
 }: ConfirmModalProps) => {
@@ -38,14 +40,14 @@ export const ConfirmModal = ({
 
         <div className="flex items-center justify-end gap-2">
           <Button
-            base="white"
+            type="transparent"
             onClick={onCancel}
             className="rounded-sm text-xs leading-4 font-medium"
           >
             {cancelLabel}
           </Button>
           <Button
-            base="error"
+            type={confirmType}
             onClick={onConfirm}
             className="rounded-sm text-xs leading-4 font-medium"
           >

@@ -1,31 +1,33 @@
-import { useLoaderData, useParams } from "react-router-dom";
+import { useLoaderData } from "react-router-dom";
 import type { WorkspaceSectionLoaderData } from "../../app/router/loaders/workspaceLoaders";
+import WorkspaceLayout from "../../app/layouts/WorkspaceLayout";
+import DraftView from "../../features/workspace/components/views/DraftView";
+import OpinionView from "../../features/workspace/components/views/OpinionView";
+import ReviewView from "../../features/workspace/components/views/ReviewView";
 import { getWorkspacePhase } from "../../features/workspace/utils/getWorkspacePhase";
+import { toDocumentProgress } from "../../features/workspace/utils/toDocumentProgress";
 
 const WorkspacePage = () => {
-  const { projectId, sectionNo, sections, currentSection } =
+  const { projectId, sections, currentSection } =
     useLoaderData() as WorkspaceSectionLoaderData;
-  const params = useParams();
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
 
   return (
-    <div className="p-10">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">WorkspacePage</h1>
-
-        <div className="mt-4 space-y-1 text-sm text-slate-600">
-          <p>projectId: {projectId}</p>
-          <p>sectionNo(url): {params.sectionNo ?? sectionNo}</p>
-          <p>currentSection.orderNo: {currentSection.orderNo}</p>
-          <p>
-            currentSection.projectSectionId: {currentSection.projectSectionId}
-          </p>
-          <p>currentSection.sectionStatus: {currentSection.sectionStatus}</p>
-          <p>currentPhase: {currentPhase}</p>
-          <p>sections count: {sections.length}</p>
-        </div>
-      </div>
-    </div>
+    <WorkspaceLayout
+      // TODO: 프로젝트 상세 API 연동 후 실제 프로젝트 제목으로 교체
+      title={`프로젝트 ${projectId}`}
+      projectId={String(projectId)}
+      progress={toDocumentProgress(sections)}
+      activeStepId={currentSection.orderNo}
+    >
+      {currentPhase === "의견 모으기" ? (
+        <OpinionView section={currentSection} />
+      ) : currentPhase === "정리·초안" ? (
+        <DraftView section={currentSection} />
+      ) : (
+        <ReviewView section={currentSection} />
+      )}
+    </WorkspaceLayout>
   );
 };
 

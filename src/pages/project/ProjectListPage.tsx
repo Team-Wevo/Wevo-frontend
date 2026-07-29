@@ -144,7 +144,8 @@ export const ProjectListPage = () => {
               <span>전체 선택</span>
             </Button>
             <Button
-              textColor="error"
+              type="outline"
+              className="text-error"
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={selectedIds.size === 0}
             >
@@ -157,7 +158,7 @@ export const ProjectListPage = () => {
           </>
         ) : (
           <>
-            <Button base="main">
+            <Button type="main">
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>새 프로젝트</span>
             </Button>

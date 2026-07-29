@@ -1,7 +1,9 @@
 import { redirect, type LoaderFunctionArgs } from "react-router-dom";
 import {
   getWorkspaceSectionsByProjectId,
+  isWorkspaceSectionNo,
   type WorkspaceSection,
+  type WorkspaceSectionNo,
 } from "../../../features/workspace/constants/sections";
 
 const DEFAULT_PROJECT_REDIRECT_PATH = "/list/project";
@@ -27,7 +29,7 @@ const buildWorkspaceSectionPath = (projectId: number, sectionNo: number) => {
 
 const findSectionByOrderNo = (
   sections: WorkspaceSection[],
-  sectionNo: number,
+  sectionNo: WorkspaceSectionNo,
 ): WorkspaceSection | null => {
   return sections.find((section) => section.orderNo === sectionNo) ?? null;
 };
@@ -67,6 +69,10 @@ export const workspaceSectionLoader = async ({
   const fallbackSectionNo = getFallbackSectionNo(sections);
 
   if (!sectionNo) {
+    return redirect(buildWorkspaceSectionPath(projectId, fallbackSectionNo));
+  }
+
+  if (!isWorkspaceSectionNo(sectionNo)) {
     return redirect(buildWorkspaceSectionPath(projectId, fallbackSectionNo));
   }
 

@@ -54,40 +54,52 @@ const workspaceRoute: RouteObject = {
   ],
 };
 
+const protectedMainRoute: RouteObject = {
+  element: <ProtectedRoute />,
+  children: [
+    {
+      path: "home",
+      element: <OnBoardingPage isLoggedIn={true} />,
+    },
+    listRoute,
+    {
+      path: "project/:id",
+      element: <ProjectDetailPage />,
+    },
+    {
+      path: "completed/:id",
+      element: <CompletedDetailPage />,
+    },
+  ],
+};
+
+const protectedWorkspaceRoute: RouteObject = {
+  element: <ProtectedRoute />,
+  errorElement: <ErrorPage />,
+  children: [workspaceRoute],
+};
+
 const routes: RouteObject[] = [
   {
     path: "/",
-    element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
       {
-        element: <GuestRoute />,
+        element: <MainLayout />,
         children: [
           {
-            index: true,
-            element: <OnBoardingPage isLoggedIn={false} />,
+            element: <GuestRoute />,
+            children: [
+              {
+                index: true,
+                element: <OnBoardingPage isLoggedIn={false} />,
+              },
+            ],
           },
+          protectedMainRoute,
         ],
       },
-      {
-        element: <ProtectedRoute />,
-        children: [
-          {
-            path: "home",
-            element: <OnBoardingPage isLoggedIn={true} />,
-          },
-          listRoute,
-          {
-            path: "project/:id",
-            element: <ProjectDetailPage />,
-          },
-          {
-            path: "completed/:id",
-            element: <CompletedDetailPage />,
-          },
-          workspaceRoute,
-        ],
-      },
+      protectedWorkspaceRoute,
     ],
   },
   {
