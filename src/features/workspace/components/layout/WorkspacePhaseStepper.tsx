@@ -16,7 +16,7 @@ const WorkspacePhaseStepper = ({
     currentStatus === "시작 전" ? "의견 모으기" : currentStatus;
 
   return (
-    <div className="flex h-7 w-full items-center justify-start gap-3 overflow-hidden">
+    <div className="flex w-full items-center justify-start gap-3">
       {SECTION_PHASES.map((phase, index) => {
         const isActive = phase === effectiveStatus;
         const isLastPhase = index === SECTION_PHASES.length - 1;
