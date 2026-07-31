@@ -2,10 +2,15 @@ import { useCallback } from "react";
 
 interface LoginModalProps {
   onClose: () => void;
-  onSocialLogin: () => void;
+  onGoogleLogin: () => void;
+  onKakaoLogin: () => void;
 }
 
-const LoginModal = ({ onClose, onSocialLogin }: LoginModalProps) => {
+const LoginModal = ({
+  onClose,
+  onGoogleLogin,
+  onKakaoLogin,
+}: LoginModalProps) => {
   const handleOverlayClick = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -39,7 +44,7 @@ const LoginModal = ({ onClose, onSocialLogin }: LoginModalProps) => {
 
         <div className="flex flex-col items-start justify-start gap-2.5 self-stretch overflow-hidden">
           <button
-            onClick={onSocialLogin}
+            onClick={onKakaoLogin}
             className="flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch overflow-hidden rounded-2xl bg-yellow-300 transition-opacity hover:bg-yellow-400"
           >
             <div className="flex h-4 w-4 items-center justify-center">
@@ -55,7 +60,7 @@ const LoginModal = ({ onClose, onSocialLogin }: LoginModalProps) => {
           </button>
 
           <button
-            onClick={onSocialLogin}
+            onClick={onGoogleLogin}
             className="flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-colors hover:bg-slate-50"
           >
             <div className="flex h-4 w-4 items-center justify-center">

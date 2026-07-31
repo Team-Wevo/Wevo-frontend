@@ -1,10 +1,9 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { OnBoardingSideBar } from "../../shared/components/OnBoardingSideBar";
 import useOnboardingAuth from "../../features/onboarding/hooks/useOnboardingAuth";
 import LoginModal from "../../features/onboarding/components/LoginModal";
 
 const MainLayout = () => {
-  const navigate = useNavigate();
   const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
   const {
     isLoggedIn: authLoggedIn,
@@ -22,8 +21,7 @@ const MainLayout = () => {
         isLoggedIn={sidebarIsLoggedIn}
         onLoginClick={() => setIsLoginModalOpen(true)}
         onLogoutClick={() => {
-          handleLogout();
-          navigate("/");
+          void handleLogout();
         }}
       />
 
@@ -34,7 +32,8 @@ const MainLayout = () => {
       {isLoginModalOpen && (
         <LoginModal
           onClose={() => setIsLoginModalOpen(false)}
-          onSocialLogin={handleSocialLogin}
+          onKakaoLogin={() => handleSocialLogin("KAKAO")}
+          onGoogleLogin={() => handleSocialLogin("GOOGLE")}
         />
       )}
     </div>

@@ -19,6 +19,7 @@ import CompletedListPage from "../../pages/completed/CompletedListPage";
 import ProjectDetailPage from "../../pages/project/ProjectDetailPage";
 import ProjectListPage from "../../pages/project/ProjectListPage";
 import WorkspacePage from "../../pages/workspace/WorkspacePage";
+import OAuthCallbackPage from "../../pages/auth/OAuthCallbackPage";
 
 const listRoute: RouteObject = {
   path: "list",
@@ -84,6 +85,10 @@ const routes: RouteObject[] = [
     path: "/",
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: "oauth/callback/:provider",
+        element: <OAuthCallbackPage />,
+      },
       {
         element: <MainLayout />,
         children: [
