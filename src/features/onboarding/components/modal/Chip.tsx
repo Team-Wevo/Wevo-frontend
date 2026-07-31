@@ -11,8 +11,8 @@ const Chip = ({ label, selected, onClick }: ChipProps) => {
       onClick={onClick}
       className={`flex h-8 cursor-pointer items-center justify-center rounded-full border px-3 text-xs leading-5 font-normal transition-colors ${
         selected
-          ? "border-[#6b5aff] bg-[#e0d7f5] text-[#6b5aff]"
-          : "border-[#d4d4d8] bg-[#fbfaff] text-[#8b8d99]"
+          ? "border-main-600 bg-main-100 text-main-600"
+          : "border-gray-400 bg-gray-50 text-gray-700"
       }`}
     >
       {label}

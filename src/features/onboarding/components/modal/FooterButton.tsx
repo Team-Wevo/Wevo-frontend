@@ -11,8 +11,8 @@ const FooterButton = ({ disabled, onClick }: FooterButtonProps) => {
       disabled={disabled}
       className={`flex w-full items-center justify-center rounded-lg px-5 py-3 text-xs font-medium transition-colors ${
         disabled
-          ? "cursor-not-allowed bg-[#ddd6f0] text-[#8b8d99]"
-          : "cursor-pointer bg-[#6b5aff] text-[#fbfaff]"
+          ? "bg-main-100 cursor-not-allowed text-gray-700"
+          : "bg-main-600 cursor-pointer text-gray-50"
       }`}
     >
       <span>작성 흐름 보기</span>
