@@ -55,14 +55,22 @@ const WorkspaceLayout = ({
           projectId={projectId}
         />
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {activeStepId}. {activeSection?.section}
-          </h1>
-          <WorkspacePhaseStepper
-            currentStatus={activeSection?.status ?? "시작 전"}
-          />
-          {children}
+        <div className="flex flex-1 flex-col bg-gray-100 px-12 py-8">
+          <div
+            className="min-h-0 flex-1 overflow-y-auto"
+            data-workspace-scroll-container="true"
+          >
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {activeStepId}. {activeSection?.section}
+              </h1>
+              <WorkspacePhaseStepper
+                currentStatus={activeSection?.status ?? "시작 전"}
+              />
+            </div>
+
+            <div className="mt-6">{children}</div>
+          </div>
         </div>
 
         <WorkspaceRightSidebar projectInfo={DEFAULT_PROJECT_INFO} />
