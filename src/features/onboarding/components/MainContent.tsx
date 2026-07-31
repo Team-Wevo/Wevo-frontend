@@ -43,11 +43,6 @@ const MainContent = () => {
             setIsModalOpen(true);
           }}
         />
-
-        <p className="mt-4 text-center text-[10px] font-medium tracking-wide text-slate-400">
-          Pro로 시작하면 AI에게 더 많이 물어볼 수 있으며 자세한 섹션 구조를
-          만들어 줍니다.
-        </p>
       </div>
 
       <CreateFlowModal
