@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL?.trim(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -22,6 +22,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
       // TODO: 로그인 라우트 구현 후 로그인 페이지로 리다이렉트 처리 필요
     }
 
