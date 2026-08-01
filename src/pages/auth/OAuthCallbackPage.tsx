@@ -3,6 +3,8 @@ import { isAxiosError } from "axios";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loginWithOAuth } from "../../features/auth/api/auth";
 import {
+  clearSavedOAuthState,
+  getSavedOAuthState,
   getOAuthProviderFromPath,
   type OAuthProvider,
 } from "../../features/auth/constants/oauth";
@@ -43,19 +45,35 @@ const OAuthCallbackPage = () => {
   const oauthError = searchParams.get("error");
   const oauthErrorDescription = searchParams.get("error_description");
   const code = searchParams.get("code");
+  const callbackState = searchParams.get("state");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const callbackRedirectUri = `${window.location.origin}${window.location.pathname}`;
+  const savedState = provider ? getSavedOAuthState(provider) : null;
+  const isStateValid = Boolean(
+    provider && callbackState && savedState && callbackState === savedState,
+  );
 
   const callbackErrorMessage = !provider
     ? "지원하지 않는 로그인 제공자입니다."
     : oauthError
       ? (oauthErrorDescription ?? oauthError)
-      : !code
-        ? "인가 코드가 없어 로그인할 수 없습니다."
-        : null;
+      : !callbackState || !savedState
+        ? "OAuth state 정보가 없어 로그인할 수 없습니다. 다시 시도해주세요."
+        : !isStateValid
+          ? "OAuth state 검증에 실패했습니다. 다시 시도해주세요."
+          : !code
+            ? "인가 코드가 없어 로그인할 수 없습니다."
+            : null;
 
   useEffect(() => {
-    if (!provider || !code || callbackErrorMessage) {
+    if (!provider || !callbackState || !savedState) {
+      return;
+    }
+
+    clearSavedOAuthState(provider);
+  }, [callbackState, provider, savedState]);
+
+  useEffect(() => {
+    if (!provider || !code || callbackErrorMessage || !isStateValid) {
       return;
     }
 
@@ -78,7 +96,6 @@ const OAuthCallbackPage = () => {
         const response = await loginWithOAuth({
           provider: oauthProvider,
           code,
-          redirectUri: callbackRedirectUri,
         });
 
         if (
@@ -102,7 +119,7 @@ const OAuthCallbackPage = () => {
     };
 
     void handleOAuthCallback(provider);
-  }, [callbackErrorMessage, callbackRedirectUri, code, navigate, provider]);
+  }, [callbackErrorMessage, code, isStateValid, navigate, provider]);
 
   const visibleErrorMessage = callbackErrorMessage ?? errorMessage;
 
