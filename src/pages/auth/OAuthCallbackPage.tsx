@@ -67,14 +67,6 @@ const OAuthCallbackPage = () => {
               : null;
 
   useEffect(() => {
-    if (!provider || !callbackState || !savedState) {
-      return;
-    }
-
-    clearSavedOAuthState(provider);
-  }, [callbackState, provider, savedState]);
-
-  useEffect(() => {
     if (!provider || !code || callbackErrorMessage || !isStateValid) {
       return;
     }
@@ -92,6 +84,8 @@ const OAuthCallbackPage = () => {
 
     hasRequestedRef.current = true;
     sessionStorage.setItem(requestKey, "in-progress");
+    // state 검증에 성공한 요청만 즉시 폐기해 재사용 공격을 줄인다.
+    clearSavedOAuthState(provider);
 
     const handleOAuthCallback = async (oauthProvider: OAuthProvider) => {
       try {
