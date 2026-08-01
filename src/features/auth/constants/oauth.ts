@@ -1,5 +1,7 @@
 export type OAuthProvider = "GOOGLE" | "KAKAO";
 
+const OAUTH_STATE_KEY_PREFIX = "oauth:state";
+
 interface OAuthProviderConfig {
   provider: OAuthProvider;
   callbackPath: string;
@@ -110,7 +112,50 @@ const getOAuthScope = (provider: OAuthProvider) => {
   );
 };
 
-export const buildOAuthAuthorizeUrl = (provider: OAuthProvider) => {
+const getOAuthStateStorageKey = (provider: OAuthProvider) => {
+  return `${OAUTH_STATE_KEY_PREFIX}:${provider}`;
+};
+
+export const createOAuthState = () => {
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+export const saveOAuthState = (provider: OAuthProvider, state: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  sessionStorage.setItem(getOAuthStateStorageKey(provider), state);
+};
+
+export const getSavedOAuthState = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return sessionStorage.getItem(getOAuthStateStorageKey(provider));
+};
+
+export const clearSavedOAuthState = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  sessionStorage.removeItem(getOAuthStateStorageKey(provider));
+};
+
+interface BuildOAuthAuthorizeUrlOptions {
+  state?: string;
+}
+
+export const buildOAuthAuthorizeUrl = (
+  provider: OAuthProvider,
+  options: BuildOAuthAuthorizeUrlOptions = {},
+) => {
   const { authorizeEndpoint } = getOAuthProviderConfig(provider);
   const clientId = getOAuthClientId(provider);
 
@@ -131,6 +176,10 @@ export const buildOAuthAuthorizeUrl = (provider: OAuthProvider) => {
     response_type: "code",
     scope,
   });
+
+  if (options.state) {
+    params.set("state", options.state);
+  }
 
   return `${authorizeEndpoint}?${params.toString()}`;
 };

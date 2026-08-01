@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../auth/api/auth";
 import {
+  createOAuthState,
   buildOAuthAuthorizeUrl,
+  saveOAuthState,
   type OAuthProvider,
 } from "../../auth/constants/oauth";
 import { clearAuthTokens } from "../../auth/utils/tokenStorage";
@@ -25,7 +27,9 @@ const useOnboardingAuth = ({
     setIsLoginModalOpen(false);
 
     try {
-      window.location.assign(buildOAuthAuthorizeUrl(provider));
+      const state = createOAuthState();
+      saveOAuthState(provider, state);
+      window.location.assign(buildOAuthAuthorizeUrl(provider, { state }));
     } catch (error) {
       const message =
         error instanceof Error
