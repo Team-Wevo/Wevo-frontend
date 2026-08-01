@@ -59,7 +59,7 @@ const OAuthCallbackPage = () => {
       : !callbackState
         ? "OAuth 제공자가 state 파라미터를 반환하지 않아 로그인할 수 없습니다. 다시 시도해주세요."
         : !savedState
-          ? "브라우저 저장소에 OAuth state 정보가 없어 로그인할 수 없습니다. 다시 시도해주세요."
+          ? "브라우저 저장소에 OAuth state 정보가 없어 로그인할 수 없습니다. 로그인 버튼부터 다시 시도해주세요."
           : !isStateValid
             ? "OAuth state 검증에 실패했습니다. 다시 시도해주세요."
             : !code

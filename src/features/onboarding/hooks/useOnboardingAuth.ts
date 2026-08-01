@@ -4,6 +4,7 @@ import { logout } from "../../auth/api/auth";
 import {
   createOAuthState,
   buildOAuthAuthorizeUrl,
+  getSavedOAuthState,
   saveOAuthState,
   type OAuthProvider,
 } from "../../auth/constants/oauth";
@@ -29,6 +30,12 @@ const useOnboardingAuth = ({
     try {
       const state = createOAuthState();
       saveOAuthState(provider, state);
+      const savedState = getSavedOAuthState(provider);
+
+      if (savedState !== state) {
+        throw new Error("OAuth state 저장 검증에 실패했습니다.");
+      }
+
       const authorizeUrl = buildOAuthAuthorizeUrl(provider, { state });
 
       if (!authorizeUrl.includes("state=")) {

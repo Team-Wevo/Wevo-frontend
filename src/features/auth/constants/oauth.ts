@@ -1,6 +1,7 @@
 export type OAuthProvider = "GOOGLE" | "KAKAO";
 
 const OAUTH_STATE_KEY_PREFIX = "oauth:state";
+const OAUTH_STATE_LAST_KEY = "oauth:state:last";
 
 interface OAuthProviderConfig {
   provider: OAuthProvider;
@@ -129,8 +130,34 @@ export const saveOAuthState = (provider: OAuthProvider, state: string) => {
     return;
   }
 
-  sessionStorage.setItem(getOAuthStateStorageKey(provider), state);
-  localStorage.setItem(getOAuthStateStorageKey(provider), state);
+  const storageKey = getOAuthStateStorageKey(provider);
+  const debugSnapshot = JSON.stringify({
+    provider,
+    state,
+    savedAt: Date.now(),
+  });
+
+  let hasPersisted = false;
+
+  try {
+    sessionStorage.setItem(storageKey, state);
+    sessionStorage.setItem(OAUTH_STATE_LAST_KEY, debugSnapshot);
+    hasPersisted = true;
+  } catch {
+    // sessionStorage 접근이 차단된 환경을 대비해 localStorage를 추가 시도한다.
+  }
+
+  try {
+    localStorage.setItem(storageKey, state);
+    localStorage.setItem(OAUTH_STATE_LAST_KEY, debugSnapshot);
+    hasPersisted = true;
+  } catch {
+    // localStorage 접근이 차단된 환경에서는 sessionStorage 결과를 사용한다.
+  }
+
+  if (!hasPersisted) {
+    throw new Error("브라우저 저장소에 OAuth state를 저장할 수 없습니다.");
+  }
 };
 
 export const getSavedOAuthState = (provider: OAuthProvider) => {
