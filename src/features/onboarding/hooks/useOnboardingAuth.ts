@@ -29,7 +29,24 @@ const useOnboardingAuth = ({
     try {
       const state = createOAuthState();
       saveOAuthState(provider, state);
-      window.location.assign(buildOAuthAuthorizeUrl(provider, { state }));
+      const authorizeUrl = buildOAuthAuthorizeUrl(provider, { state });
+
+      if (!authorizeUrl.includes("state=")) {
+        throw new Error(
+          "OAuth Authorization URL에 state 파라미터가 누락되었습니다.",
+        );
+      }
+
+      if (import.meta.env.DEV) {
+        // 디버깅 편의를 위한 개발 환경 로그
+        console.info("[OAuth] redirect", {
+          provider,
+          state,
+          authorizeUrl,
+        });
+      }
+
+      window.location.assign(authorizeUrl);
     } catch (error) {
       const message =
         error instanceof Error

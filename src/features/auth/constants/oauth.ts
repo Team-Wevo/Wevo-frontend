@@ -130,6 +130,7 @@ export const saveOAuthState = (provider: OAuthProvider, state: string) => {
   }
 
   sessionStorage.setItem(getOAuthStateStorageKey(provider), state);
+  localStorage.setItem(getOAuthStateStorageKey(provider), state);
 };
 
 export const getSavedOAuthState = (provider: OAuthProvider) => {
@@ -137,7 +138,10 @@ export const getSavedOAuthState = (provider: OAuthProvider) => {
     return null;
   }
 
-  return sessionStorage.getItem(getOAuthStateStorageKey(provider));
+  return (
+    sessionStorage.getItem(getOAuthStateStorageKey(provider)) ??
+    localStorage.getItem(getOAuthStateStorageKey(provider))
+  );
 };
 
 export const clearSavedOAuthState = (provider: OAuthProvider) => {
@@ -146,6 +150,7 @@ export const clearSavedOAuthState = (provider: OAuthProvider) => {
   }
 
   sessionStorage.removeItem(getOAuthStateStorageKey(provider));
+  localStorage.removeItem(getOAuthStateStorageKey(provider));
 };
 
 interface BuildOAuthAuthorizeUrlOptions {

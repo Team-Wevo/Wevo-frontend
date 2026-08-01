@@ -56,13 +56,15 @@ const OAuthCallbackPage = () => {
     ? "지원하지 않는 로그인 제공자입니다."
     : oauthError
       ? (oauthErrorDescription ?? oauthError)
-      : !callbackState || !savedState
-        ? "OAuth state 정보가 없어 로그인할 수 없습니다. 다시 시도해주세요."
-        : !isStateValid
-          ? "OAuth state 검증에 실패했습니다. 다시 시도해주세요."
-          : !code
-            ? "인가 코드가 없어 로그인할 수 없습니다."
-            : null;
+      : !callbackState
+        ? "OAuth 제공자가 state 파라미터를 반환하지 않아 로그인할 수 없습니다. 다시 시도해주세요."
+        : !savedState
+          ? "브라우저 저장소에 OAuth state 정보가 없어 로그인할 수 없습니다. 다시 시도해주세요."
+          : !isStateValid
+            ? "OAuth state 검증에 실패했습니다. 다시 시도해주세요."
+            : !code
+              ? "인가 코드가 없어 로그인할 수 없습니다."
+              : null;
 
   useEffect(() => {
     if (!provider || !callbackState || !savedState) {
