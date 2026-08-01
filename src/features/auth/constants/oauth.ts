@@ -116,6 +116,31 @@ const getOAuthStateStorageKey = (provider: OAuthProvider) => {
   return `${OAUTH_STATE_KEY_PREFIX}:${provider}`;
 };
 
+const trySetStorageItem = (storage: Storage, key: string, value: string) => {
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const tryGetStorageItem = (storage: Storage, key: string) => {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const tryRemoveStorageItem = (storage: Storage, key: string) => {
+  try {
+    storage.removeItem(key);
+  } catch {
+    // 저장소 접근 실패는 비정상 환경에서만 발생하며 로그인 흐름을 즉시 중단하지 않는다.
+  }
+};
+
 export const createOAuthState = () => {
   if (typeof window !== "undefined" && window.crypto?.randomUUID) {
     return window.crypto.randomUUID();
@@ -129,7 +154,16 @@ export const saveOAuthState = (provider: OAuthProvider, state: string) => {
     return;
   }
 
-  sessionStorage.setItem(getOAuthStateStorageKey(provider), state);
+  const storageKey = getOAuthStateStorageKey(provider);
+  const savedInSession = trySetStorageItem(sessionStorage, storageKey, state);
+
+  if (!savedInSession) {
+    trySetStorageItem(localStorage, storageKey, state);
+    return;
+  }
+
+  // 브라우저별 저장소 정책 차이를 고려해 localStorage에도 백업한다.
+  trySetStorageItem(localStorage, storageKey, state);
 };
 
 export const getSavedOAuthState = (provider: OAuthProvider) => {
@@ -137,7 +171,12 @@ export const getSavedOAuthState = (provider: OAuthProvider) => {
     return null;
   }
 
-  return sessionStorage.getItem(getOAuthStateStorageKey(provider));
+  const storageKey = getOAuthStateStorageKey(provider);
+
+  return (
+    tryGetStorageItem(sessionStorage, storageKey) ??
+    tryGetStorageItem(localStorage, storageKey)
+  );
 };
 
 export const clearSavedOAuthState = (provider: OAuthProvider) => {
@@ -145,7 +184,10 @@ export const clearSavedOAuthState = (provider: OAuthProvider) => {
     return;
   }
 
-  sessionStorage.removeItem(getOAuthStateStorageKey(provider));
+  const storageKey = getOAuthStateStorageKey(provider);
+
+  tryRemoveStorageItem(sessionStorage, storageKey);
+  tryRemoveStorageItem(localStorage, storageKey);
 };
 
 interface BuildOAuthAuthorizeUrlOptions {

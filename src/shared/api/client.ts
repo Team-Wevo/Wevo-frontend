@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const resolvedBaseUrl =
+  configuredBaseUrl || (import.meta.env.DEV ? "" : "https://api.wevo.kr");
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL?.trim(),
+  baseURL: resolvedBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },

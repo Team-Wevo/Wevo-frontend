@@ -1,16 +1,12 @@
 import { apiClient } from "../../../shared/api/client";
 import type { ApiResponse } from "../../../shared/api/types";
-import type { OAuthProvider } from "../constants/oauth";
+import { getOAuthRedirectUri, type OAuthProvider } from "../constants/oauth";
 import type { AuthTokens } from "../utils/tokenStorage";
 
 interface LoginWithOAuthPayload {
   provider: OAuthProvider;
   code: string;
 }
-
-const toBackendProvider = (provider: OAuthProvider) => {
-  return provider.toLowerCase();
-};
 
 export const loginWithOAuth = async ({
   provider,
@@ -19,8 +15,9 @@ export const loginWithOAuth = async ({
   const response = await apiClient.post<ApiResponse<AuthTokens>>(
     "/api/auth/login",
     {
-      provider: toBackendProvider(provider),
+      provider,
       code,
+      redirectUri: getOAuthRedirectUri(provider),
     },
   );
 
