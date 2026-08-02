@@ -1,5 +1,5 @@
 export type WorkspaceSectionStatus =
-  "COLLECTING" | "SYNTHESIZING" | "DRAFTING" | "REVIEWING" | "COMPLETED";
+  "COLLECTING" | "SYNTHESIZING" | "DRAFTING" | "REVIEWING" | "CONFIRMED";
 
 export type WorkspaceSectionNo = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -29,12 +29,12 @@ const DEFAULT_SECTION_STATUS_BY_SECTION_NO: Record<
   WorkspaceSectionNo,
   WorkspaceSectionStatus
 > = {
-  1: "COMPLETED",
+  1: "CONFIRMED",
   2: "COLLECTING",
   3: "SYNTHESIZING",
   4: "REVIEWING",
   5: "DRAFTING",
-  6: "COMPLETED",
+  6: "CONFIRMED",
 };
 
 const toWorkspaceSectionNo = (value: number): WorkspaceSectionNo | null => {
