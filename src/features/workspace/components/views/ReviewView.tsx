@@ -8,6 +8,8 @@ import {
   confirmSection,
   getConfirmSectionErrorMessage,
 } from "../../api/confirmSection";
+import { getUnsatisfiedReasons } from "../../api/getSectionConfirmReadiness";
+import { useSectionConfirmReadiness } from "../../hooks/useSectionConfirmReadiness";
 import type { WorkspaceSection } from "../../constants/sections";
 
 type SectionReviewStatus = "AGREED" | "CHANGES_REQUESTED" | "PENDING";
@@ -58,12 +60,6 @@ const countAgreedReviewers = (reviewers: SectionReviewer[]): number => {
     .length;
 };
 
-const hasUnresolvedChangeRequest = (reviewers: SectionReviewer[]): boolean => {
-  return reviewers.some(
-    (reviewer) => reviewer.reviewStatus === "CHANGES_REQUESTED",
-  );
-};
-
 interface ReviewViewProps {
   section: WorkspaceSection;
 }
@@ -75,11 +71,22 @@ const ReviewView = ({ section }: ReviewViewProps) => {
     null,
   );
 
-  const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
-  const isChangeRequestUnresolved =
-    hasUnresolvedChangeRequest(SECTION_REVIEWERS);
   // TODO: 서버는 확정 상태를 CONFIRMED로 내려주므로 목 데이터 제거 시 함께 수정
   const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
+
+  // 확정 버튼이 있는 화면(팀장 시점 · 확정 전)에서만 조회한다.
+  const { readiness, refetch: refetchReadiness } = useSectionConfirmReadiness(
+    section.projectSectionId,
+    IS_TEAM_LEADER && !isSectionConfirmed,
+  );
+
+  const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
+
+  const unsatisfiedReasons = getUnsatisfiedReasons(readiness);
+  // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
+  const isConfirmBlocked = readiness?.canConfirm === false;
+  const confirmGuideMessage =
+    confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
   const handleConfirmSection = async () => {
     setIsConfirming(true);
@@ -92,6 +99,8 @@ const ReviewView = ({ section }: ReviewViewProps) => {
       await revalidator.revalidate();
     } catch (error) {
       setConfirmErrorMessage(getConfirmSectionErrorMessage(error));
+      // 확정 조건이 바뀌었을 수 있으므로 최신 상태를 다시 조회한다.
+      refetchReadiness();
     } finally {
       setIsConfirming(false);
     }
@@ -228,22 +237,21 @@ const ReviewView = ({ section }: ReviewViewProps) => {
 
           {IS_TEAM_LEADER ? (
             <div className="flex w-full items-end justify-between">
-              {confirmErrorMessage ? (
-                <div className="text-error text-xs leading-4 font-normal">
-                  {confirmErrorMessage}
+              {confirmGuideMessage && (
+                <div
+                  className={cn(
+                    "text-xs leading-4 font-normal",
+                    confirmErrorMessage ? "text-error" : "text-gray-600",
+                  )}
+                >
+                  {confirmGuideMessage}
                 </div>
-              ) : (
-                isChangeRequestUnresolved && (
-                  <div className="text-xs leading-4 font-normal text-gray-600">
-                    미해결 수정 요청이 있어요. 해결하면 섹션을 확정할 수 있어요.
-                  </div>
-                )
               )}
               <Button
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"
                 onClick={handleConfirmSection}
-                disabled={isConfirming}
+                disabled={isConfirming || isConfirmBlocked}
               >
                 {isConfirming ? "확정 중..." : "섹션 확정"}
               </Button>
