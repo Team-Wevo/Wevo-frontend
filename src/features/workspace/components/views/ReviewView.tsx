@@ -88,7 +88,8 @@ const ReviewView = ({ section }: ReviewViewProps) => {
     try {
       await confirmSection(section.projectSectionId);
       // 확정 성공 시 loader를 다시 실행해 갱신된 섹션 상태를 반영한다.
-      revalidator.revalidate();
+      // 재검증이 끝날 때까지 기다려야 버튼이 다시 열려 중복 확정 요청이 나가지 않는다.
+      await revalidator.revalidate();
     } catch (error) {
       setConfirmErrorMessage(getConfirmSectionErrorMessage(error));
     } finally {
