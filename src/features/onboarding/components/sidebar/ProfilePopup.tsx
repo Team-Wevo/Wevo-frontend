@@ -375,7 +375,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <button
               type="button"
               onClick={handleOpenSettings}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#596579] transition-colors hover:bg-[#F4F2FF]"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#596579] transition-colors hover:bg-[#F4F2FF]"
             >
               <div className="flex items-center gap-1">
                 <SettingsIcon size={16} />
@@ -390,7 +390,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 onClose?.();
                 onLogoutClick?.();
               }}
-              className="flex w-full items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
+              className="flex w-full cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
             >
               <LogoutIcon
                 size={16}
