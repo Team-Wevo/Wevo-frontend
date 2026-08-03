@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { X } from "lucide-react";
 
 interface LoginModalProps {
   onClose: () => void;
@@ -21,60 +22,85 @@ const LoginModal = ({
       onClick={handleOverlayClick}
     >
       <div
-        className="animate-in zoom-in-95 flex w-96 flex-col items-center justify-start gap-5 overflow-hidden rounded-3xl border border-zinc-200 bg-white px-9 py-10 shadow-[0px_12px_48px_0px_rgba(124,111,247,0.14)] duration-150"
+        className="animate-in zoom-in-95 relative flex w-[400px] flex-col items-center gap-6 overflow-hidden rounded-lg bg-white p-8 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)] duration-150"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
       >
-        <div className="flex flex-col items-center justify-start gap-3 self-stretch overflow-hidden">
-          <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-indigo-500">
-            <span className="text-xl font-bold tracking-tighter text-white">
-              <img
-                src="/Wevo-logo.svg"
-                alt="Logo"
-                className="h-12 w-12 stroke-[2.5]"
-              />
-            </span>
-          </div>
-          <div className="justify-start font-['Noto_Sans_KR'] text-xl font-bold text-neutral-800">
-            로그인
-          </div>
-          <div className="justify-start font-['Noto_Sans_KR'] text-sm font-normal text-slate-500">
-            함께 만드는 팀 프로젝트, Wevo
-          </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-[22px] right-8 flex size-5 cursor-pointer items-center justify-center text-gray-600"
+          aria-label="로그인 창 닫기"
+        >
+          <X
+            className="size-5"
+            strokeWidth={1.5}
+          />
+        </button>
+
+        <div className="flex w-full flex-col items-center gap-2 overflow-hidden">
+          <img
+            src="/Wevo-logo.svg"
+            alt="Wevo"
+            className="size-12 shrink-0"
+          />
+          <h2
+            id="login-modal-title"
+            className="w-full text-center text-lg leading-7 font-semibold text-[#171A23]"
+          >
+            Wevo에 로그인
+          </h2>
         </div>
 
-        <div className="flex flex-col items-start justify-start gap-2.5 self-stretch overflow-hidden">
+        <div className="flex w-full flex-col items-start gap-3 overflow-hidden">
           <button
+            type="button"
             onClick={onKakaoLogin}
-            className="flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch overflow-hidden rounded-2xl bg-yellow-300 transition-opacity hover:bg-yellow-400"
+            className="flex h-12 w-full cursor-pointer items-center justify-center gap-[14px] overflow-hidden rounded-sm bg-[#FEE500] px-4"
           >
-            <div className="flex h-4 w-4 items-center justify-center">
+            <div className="flex size-[18px] shrink-0 items-center justify-center overflow-hidden">
               <img
                 src="/kakao_icon.png"
                 alt="Kakao Logo"
-                className="h-4 w-4"
+                className="size-[18px] object-contain"
               />
             </div>
-            <div className="justify-start font-['Noto_Sans_KR'] text-base font-medium text-zinc-900">
+            <span className="text-[13px] leading-[18px] font-medium whitespace-nowrap text-[#171A23]">
               카카오로 시작하기
-            </div>
+            </span>
           </button>
 
           <button
+            type="button"
             onClick={onGoogleLogin}
-            className="flex h-12 cursor-pointer items-center justify-center gap-2 self-stretch overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-colors hover:bg-slate-50"
+            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-sm border border-gray-400 bg-gray-50 px-4"
           >
-            <div className="flex h-4 w-4 items-center justify-center">
+            <div className="flex size-[18px] shrink-0 items-center justify-center overflow-hidden bg-white">
               <img
                 src="/google_icon.jpg"
                 alt="Google Logo"
-                className="h-4 w-4"
+                className="size-[18px] object-contain"
               />
             </div>
-            <div className="justify-start font-['Noto_Sans_KR'] text-base font-medium text-neutral-800">
+            <span className="text-[13px] leading-[18px] font-medium whitespace-nowrap text-gray-900">
               Google로 시작하기
-            </div>
+            </span>
           </button>
         </div>
+
+        <p className="w-full text-center text-[11px] leading-[14px] font-normal text-gray-700">
+          계속하면 서비스 약관 및 개인정보 처리방침에 동의하게 됩니다
+        </p>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="cursor-pointer text-xs leading-[15px] font-normal text-gray-500 transition-colors hover:text-gray-700 active:text-gray-700"
+        >
+          뒤로가기
+        </button>
       </div>
     </div>
   );
