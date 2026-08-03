@@ -20,7 +20,7 @@ const NavigationMenu = () => {
           isActive("/home") ? "bg-main-50" : "hover:bg-gray-100"
         }`}
       >
-        <HomeIcon size={24} />
+        <HomeIcon size={16} />
         <span
           className={`font-semibold ${
             isActive("/home")
@@ -39,7 +39,7 @@ const NavigationMenu = () => {
           isActive("/list/project") ? "bg-main-50" : "hover:bg-gray-100"
         }`}
       >
-        <ProjectIcon size={24} />
+        <ProjectIcon size={16} />
         <span
           className={`font-semibold ${
             isActive("/list/project")
@@ -58,7 +58,7 @@ const NavigationMenu = () => {
           isActive("/list/completed") ? "bg-main-50" : "hover:bg-gray-100"
         }`}
       >
-        <CompleteFileIcon size={24} />
+        <CompleteFileIcon size={16} />
         <span
           className={`font-semibold ${
             isActive("/list/completed")

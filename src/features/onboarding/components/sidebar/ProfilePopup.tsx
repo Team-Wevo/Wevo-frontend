@@ -46,8 +46,6 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSettingsOpen]);
 
-  // 💡 사용하지 않는 stopModalPropagation 함수는 제거했습니다!
-
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
     setIsSettingsOpen(false);
@@ -352,7 +350,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <div className="flex w-full flex-col gap-2 rounded-lg bg-[#F5F7FA] px-3 py-2">
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <CreditIcon size={20} />
+                  <CreditIcon size={17} />
                   <span className="text-[13px] leading-5 font-normal text-[#596579]">
                     크레딧
                   </span>
@@ -383,7 +381,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 <SettingsIcon size={16} />
                 <span>계정 설정</span>
               </div>
-              <ChevronRightIcon size={12} />
+              <ChevronRightIcon size={10} />
             </button>
 
             <button
