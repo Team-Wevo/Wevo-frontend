@@ -1,4 +1,5 @@
-import { Pencil, Presentation, FileText, Check } from "lucide-react";
+import { Check } from "lucide-react";
+import { EditNameIcon, PresentationOutlineIcon, ProposalIcon } from "./icons";
 import { cn } from "../utils/cn";
 
 export type ProjectCategory = "발표 구성안" | "제안서";
@@ -17,9 +18,21 @@ interface ProjectCardProps {
   onToggleSelect?: () => void;
 }
 
-const CATEGORY_ICON = {
-  "발표 구성안": Presentation,
-  제안서: FileText,
+const CATEGORY_CONFIG = {
+  "발표 구성안": {
+    badgeClassName: "bg-main-100 text-main-700",
+    icon: PresentationOutlineIcon,
+    iconSize: 30,
+    iconWrapperClassName: "size-10",
+    thumbnailClassName: "bg-main-50",
+  },
+  제안서: {
+    badgeClassName: "bg-blue-100 text-blue-700",
+    icon: ProposalIcon,
+    iconSize: 32,
+    iconWrapperClassName: "size-11",
+    thumbnailClassName: "bg-blue-50",
+  },
 } as const;
 
 export const ProjectCard = ({
@@ -34,19 +47,30 @@ export const ProjectCard = ({
   isSelected = false,
   onToggleSelect,
 }: ProjectCardProps) => {
-  const CategoryIcon = CATEGORY_ICON[category];
+  const categoryConfig = CATEGORY_CONFIG[category];
+  const CategoryIcon = categoryConfig.icon;
 
   return (
     <div
       className={cn(
-        "flex h-52 w-full flex-col overflow-hidden rounded-xl bg-gray-50",
+        "flex w-full flex-col overflow-hidden rounded-xl bg-gray-50",
         isSelected ? "border-main-600 border-[2px]" : "border border-gray-400",
       )}
     >
       {/* 카드 상단 썸네일 영역 */}
-      <div className="bg-main-50 flex h-32 flex-col items-start justify-start overflow-hidden p-3">
+      <div
+        className={cn(
+          "flex h-[124px] shrink-0 flex-col items-start justify-start overflow-hidden p-3",
+          categoryConfig.thumbnailClassName,
+        )}
+      >
         <div className="flex w-full items-start justify-between overflow-hidden">
-          <span className="bg-main-100 text-main-700 flex items-center justify-center rounded-full px-2 py-1 text-xs font-normal">
+          <span
+            className={cn(
+              "flex items-center justify-center rounded-full px-2 py-1 text-[11px] leading-[14px] font-normal",
+              categoryConfig.badgeClassName,
+            )}
+          >
             {category}
           </span>
           {isSelectionMode ? (
@@ -63,17 +87,21 @@ export const ProjectCard = ({
             </button>
           ) : (
             role && (
-              <span className="flex items-center justify-center rounded-full bg-gray-100 px-2 py-1 text-xs font-normal text-gray-700">
+              <span className="bg-main-100 text-main-700 flex items-center justify-center rounded-full px-2 py-1 text-[11px] leading-[14px] font-normal">
                 {role}
               </span>
             )
           )}
         </div>
         <div className="flex w-full flex-1 items-center justify-center overflow-hidden">
-          <CategoryIcon
-            className="text-main-200 h-10 w-10"
-            strokeWidth={1.5}
-          />
+          <div
+            className={cn(
+              "flex items-center justify-center",
+              categoryConfig.iconWrapperClassName,
+            )}
+          >
+            <CategoryIcon size={categoryConfig.iconSize} />
+          </div>
         </div>
       </div>
 
@@ -84,18 +112,23 @@ export const ProjectCard = ({
             {title}
           </h3>
           {showEditIcon && !isSelectionMode && (
-            <Pencil className="h-3.5 w-3.5 shrink-0 text-gray-600" />
+            <EditNameIcon
+              size={16}
+              className="shrink-0"
+            />
           )}
         </div>
         <div className="flex w-full items-center justify-between overflow-hidden">
           {statusText && (
-            <span className="truncate text-xs leading-5 text-gray-700">
+            <span className="truncate text-[13px] leading-5 text-gray-700">
               {statusText}
             </span>
           )}
           <div className="flex shrink-0 items-start justify-start gap-1 overflow-hidden">
-            <span className="text-xs leading-4 text-gray-600">{date}</span>
-            <span className="text-xs leading-4 text-gray-600">{dateLabel}</span>
+            <span className="text-xs leading-[15px] text-gray-600">{date}</span>
+            <span className="text-xs leading-[15px] text-gray-600">
+              {dateLabel}
+            </span>
           </div>
         </div>
       </div>
