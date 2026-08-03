@@ -333,7 +333,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   return (
     <>
       {!isSettingsOpen && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 left-1/2 z-50 flex w-64 origin-bottom -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-[#C6CEDA] bg-[#FCFCFD] shadow-[0px_12px_32px_-4px_rgba(0,0,0,0.1)] transition-all duration-200 ease-out">
+        <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 left-1/2 z-50 flex w-full origin-bottom -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-[#C6CEDA] bg-[#FCFCFD] shadow-[0px_12px_32px_-4px_rgba(0,0,0,0.1)] transition-all duration-200 ease-out">
           <div className="flex w-full flex-col gap-3 border-b border-[#C6CEDA] px-4 pt-4 pb-3">
             <div className="flex w-full items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#6B5EF0] text-xs font-medium text-[#FCFCFD]">
@@ -377,13 +377,13 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <button
               type="button"
               onClick={handleOpenSettings}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#596579] transition-colors hover:bg-[#F5F7FA]"
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#596579] transition-colors hover:bg-[#F4F2FF]"
             >
               <div className="flex items-center gap-1">
                 <SettingsIcon size={16} />
                 <span>계정 설정</span>
               </div>
-              <ChevronRightIcon size={16} />
+              <ChevronRightIcon size={12} />
             </button>
 
             <button
@@ -392,7 +392,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 onClose?.();
                 onLogoutClick?.();
               }}
-              className="flex w-full items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-red-50/50"
+              className="flex w-full items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
             >
               <LogoutIcon
                 size={16}
