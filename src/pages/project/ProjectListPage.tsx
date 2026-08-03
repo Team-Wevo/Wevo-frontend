@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
 import ListLayout from "../../app/layouts/ListLayout";
+import CreateFlowModal from "../../features/onboarding/components/modal/CreateFlowModal";
 import {
   ProjectCard,
   type ProjectRole,
 } from "../../shared/components/ProjectCard";
 import { ConfirmModal } from "../../shared/components/ConfirmModal";
 import { Button } from "../../shared/components/Button";
+import { ProjectIcon } from "../../shared/components/icons";
+import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../shared/styles/buttonStateStyles";
 
 const FILTERS = [
   { label: "전체", count: 8 },
@@ -91,6 +93,8 @@ export const ProjectListPage = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createModalKey, setCreateModalKey] = useState(0);
 
   const activeFilter = FILTERS[activeFilterIndex].label;
   const filteredProjects =
@@ -131,73 +135,103 @@ export const ProjectListPage = () => {
     setIsDeleteModalOpen(false);
   };
 
+  const handleOpenCreateModal = () => {
+    setCreateModalKey((prev) => prev + 1);
+    setIsCreateModalOpen(true);
+  };
+
   return (
-    <ListLayout
-      title="프로젝트"
-      filters={FILTERS}
-      activeFilterIndex={activeFilterIndex}
-      onFilterChange={setActiveFilterIndex}
-      actions={
-        isSelectionMode ? (
-          <>
-            <Button onClick={handleSelectAll}>
-              <span>전체 선택</span>
-            </Button>
-            <Button
-              type="outline"
-              className="text-error"
-              onClick={() => setIsDeleteModalOpen(true)}
-              disabled={selectedIds.size === 0}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>삭제</span>
-            </Button>
-            <Button onClick={handleCancelSelection}>
-              <span>취소</span>
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button type="main">
-              <Plus className="h-4 w-4 stroke-[2.5]" />
-              <span>새 프로젝트</span>
-            </Button>
-            <Button onClick={() => setIsSelectionMode(true)}>
-              <span>선택 삭제</span>
-            </Button>
-          </>
-        )
-      }
-    >
-      {filteredProjects.map((project) => (
-        <ProjectCard
-          key={project.id}
-          category={project.category}
-          role={project.role}
-          title={project.title}
-          statusText={project.status}
-          date={project.date}
-          dateLabel="수정"
-          isSelectionMode={isSelectionMode}
-          isSelected={selectedIds.has(project.id)}
-          onToggleSelect={() => toggleSelect(project.id)}
-        />
-      ))}
-      {isDeleteModalOpen && (
-        <ConfirmModal
-          title="프로젝트를 삭제할까요?"
-          description={
+    <>
+      <ListLayout
+        title="프로젝트"
+        filters={FILTERS}
+        activeFilterIndex={activeFilterIndex}
+        onFilterChange={setActiveFilterIndex}
+        actions={
+          isSelectionMode ? (
             <>
-              선택한 {selectedIds.size}개의 프로젝트가 삭제돼요. 이 작업은
-              되돌릴 수 없어요.
+              <Button
+                type="pressableStrong"
+                onClick={handleSelectAll}
+              >
+                <span>전체 선택</span>
+              </Button>
+              <Button
+                type="pressableDanger"
+                onClick={() => setIsDeleteModalOpen(true)}
+                disabled={selectedIds.size === 0}
+              >
+                <span>삭제</span>
+              </Button>
+              <Button
+                type="pressable"
+                onClick={handleCancelSelection}
+              >
+                <span>취소</span>
+              </Button>
             </>
-          }
-          confirmLabel="삭제"
-          onCancel={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
-    </ListLayout>
+          ) : (
+            <>
+              <Button
+                type="pressableStrong"
+                onClick={handleOpenCreateModal}
+              >
+                <span className="flex size-4 items-center justify-center">
+                  <ProjectIcon
+                    size={10}
+                    className={PRESSABLE_STROKE_ICON_STATE_CLASS}
+                  />
+                </span>
+                <span>새 프로젝트</span>
+              </Button>
+              <Button
+                type="pressableStrong"
+                onClick={() => setIsSelectionMode(true)}
+              >
+                <span>선택 삭제</span>
+              </Button>
+            </>
+          )
+        }
+      >
+        {filteredProjects.map((project) => (
+          <ProjectCard
+            key={project.id}
+            category={project.category}
+            role={project.role}
+            title={project.title}
+            statusText={project.status}
+            date={project.date}
+            dateLabel="수정"
+            isSelectionMode={isSelectionMode}
+            isSelected={selectedIds.has(project.id)}
+            onToggleSelect={() => toggleSelect(project.id)}
+          />
+        ))}
+        {isDeleteModalOpen && (
+          <ConfirmModal
+            title="프로젝트를 삭제할까요?"
+            description={
+              <>
+                선택한 {selectedIds.size}개의 프로젝트가 삭제돼요. 이 작업은
+                되돌릴 수 없어요.
+              </>
+            }
+            confirmLabel="삭제"
+            onCancel={() => setIsDeleteModalOpen(false)}
+            onConfirm={handleConfirmDelete}
+          />
+        )}
+      </ListLayout>
+
+      <CreateFlowModal
+        key={createModalKey}
+        isOpen={isCreateModalOpen}
+        initialDocumentType={null}
+        initialIdea=""
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+    </>
   );
 };
 
