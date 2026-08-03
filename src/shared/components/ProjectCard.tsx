@@ -24,6 +24,7 @@ const CATEGORY_CONFIG = {
     icon: PresentationOutlineIcon,
     iconSize: 30,
     iconWrapperClassName: "size-10",
+    hoverThumbnailClassName: "group-hover:bg-[#E4DFFF]",
     thumbnailClassName: "bg-main-50",
   },
   제안서: {
@@ -31,6 +32,7 @@ const CATEGORY_CONFIG = {
     icon: ProposalIcon,
     iconSize: 32,
     iconWrapperClassName: "size-11",
+    hoverThumbnailClassName: "group-hover:bg-[#E2E1FF]",
     thumbnailClassName: "bg-blue-50",
   },
 } as const;
@@ -49,19 +51,36 @@ export const ProjectCard = ({
 }: ProjectCardProps) => {
   const categoryConfig = CATEGORY_CONFIG[category];
   const CategoryIcon = categoryConfig.icon;
+  const isHoverable = isSelectionMode && !isSelected;
 
   return (
     <div
+      onClick={isSelectionMode ? onToggleSelect : undefined}
+      onKeyDown={
+        isSelectionMode
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onToggleSelect?.();
+              }
+            }
+          : undefined
+      }
+      role={isSelectionMode ? "button" : undefined}
+      tabIndex={isSelectionMode ? 0 : undefined}
+      aria-pressed={isSelectionMode ? isSelected : undefined}
       className={cn(
-        "flex w-full flex-col overflow-hidden rounded-xl bg-gray-50",
-        isSelected ? "border-main-600 border-[2px]" : "border border-gray-400",
+        "flex w-full flex-col overflow-hidden rounded-xl border bg-gray-50 transition-colors",
+        isSelectionMode && "group cursor-pointer",
+        isSelected ? "border-main-600" : "border-gray-400",
       )}
     >
       {/* 카드 상단 썸네일 영역 */}
       <div
         className={cn(
-          "flex h-[124px] shrink-0 flex-col items-start justify-start overflow-hidden p-3",
+          "flex h-[124px] shrink-0 flex-col items-start justify-start overflow-hidden p-3 transition-colors",
           categoryConfig.thumbnailClassName,
+          isHoverable && categoryConfig.hoverThumbnailClassName,
         )}
       >
         <div className="flex w-full items-start justify-between overflow-hidden">
@@ -75,12 +94,17 @@ export const ProjectCard = ({
           </span>
           {isSelectionMode ? (
             <button
-              onClick={onToggleSelect}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleSelect?.();
+              }}
+              aria-label={isSelected ? "프로젝트 선택 해제" : "프로젝트 선택"}
               className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full border-[0.8px]",
+                "flex size-5 cursor-pointer items-center justify-center rounded-full border",
                 isSelected
                   ? "border-main-600 bg-main-600"
-                  : "border-gray-300 bg-white/90",
+                  : "border-gray-400 bg-gray-50",
               )}
             >
               {isSelected && <Check className="h-[15px] w-[15px] text-white" />}
@@ -106,12 +130,22 @@ export const ProjectCard = ({
       </div>
 
       {/* 카드 하단 정보 영역 */}
-      <div className="flex flex-1 flex-col items-start justify-start gap-2 overflow-hidden border-t border-gray-400 p-4">
+      <div
+        className={cn(
+          "flex flex-1 flex-col items-start justify-start gap-2 overflow-hidden border-t border-gray-400 p-4 transition-colors",
+          isHoverable && "group-hover:bg-[#E8E4FE]",
+        )}
+      >
         <div className="flex w-full items-center justify-between overflow-hidden">
-          <h3 className="line-clamp-1 flex-1 text-sm leading-5 font-medium text-gray-900">
+          <h3
+            className={cn(
+              "line-clamp-1 flex-1 text-sm leading-5 font-medium text-gray-900 transition-colors",
+              isHoverable && "group-hover:text-main-700",
+            )}
+          >
             {title}
           </h3>
-          {showEditIcon && !isSelectionMode && (
+          {showEditIcon && (
             <EditNameIcon
               size={16}
               className="shrink-0"
@@ -120,13 +154,30 @@ export const ProjectCard = ({
         </div>
         <div className="flex w-full items-center justify-between overflow-hidden">
           {statusText && (
-            <span className="truncate text-[13px] leading-5 text-gray-700">
+            <span
+              className={cn(
+                "truncate text-[13px] leading-5 text-gray-700 transition-colors",
+                isHoverable && "group-hover:text-main-700",
+              )}
+            >
               {statusText}
             </span>
           )}
           <div className="flex shrink-0 items-start justify-start gap-1 overflow-hidden">
-            <span className="text-xs leading-[15px] text-gray-600">{date}</span>
-            <span className="text-xs leading-[15px] text-gray-600">
+            <span
+              className={cn(
+                "text-xs leading-[15px] text-gray-600 transition-colors",
+                isHoverable && "group-hover:text-main-600",
+              )}
+            >
+              {date}
+            </span>
+            <span
+              className={cn(
+                "text-xs leading-[15px] text-gray-600 transition-colors",
+                isHoverable && "group-hover:text-main-600",
+              )}
+            >
               {dateLabel}
             </span>
           </div>
