@@ -273,40 +273,36 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg leading-7 font-semibold text-gray-900">
-                      로그아웃
-                    </h3>
-                    <p className="mt-2 text-base leading-6 font-normal text-slate-600">
-                      현재 로그인한 계정에서 로그아웃을 진행합니다.
-                    </p>
-                  </div>
+              <div className="flex w-full flex-col gap-4 overflow-hidden">
+                <div className="relative h-[100px] w-full shrink-0 overflow-hidden">
+                  <h3 className="absolute top-[9px] left-0 text-lg leading-7 font-semibold text-gray-900">
+                    로그아웃
+                  </h3>
+                  <p className="absolute top-[41px] left-0 text-base leading-[26px] font-normal text-gray-700">
+                    현재 로그인한 계정에서 로그아웃을 진행합니다.
+                  </p>
                   <button
                     type="button"
                     onClick={() => setShowLogoutModal(true)}
-                    className="shrink-0 rounded-lg border border-red-500 bg-white px-4 py-2 text-xs font-medium text-red-500 transition hover:bg-red-50"
+                    className="border-error text-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:bg-gray-100"
                   >
                     로그아웃
                   </button>
                 </div>
 
-                <div className="h-px bg-slate-200" />
+                <div className="h-px w-full shrink-0 bg-gray-400" />
 
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg leading-7 font-semibold text-gray-900">
-                      계정 탈퇴
-                    </h3>
-                    <p className="mt-2 text-base leading-6 font-normal text-slate-600">
-                      탈퇴 시 내가 만든 프로젝트와 작성 데이터가 삭제됩니다.
-                    </p>
-                  </div>
+                <div className="relative h-[100px] w-full shrink-0 overflow-hidden">
+                  <h3 className="absolute top-[9px] left-0 text-lg leading-7 font-semibold text-gray-900">
+                    계정 탈퇴
+                  </h3>
+                  <p className="absolute top-[41px] left-0 text-base leading-[26px] font-normal text-gray-700">
+                    탈퇴 시 내가 만든 프로젝트와 작성 데이터가 삭제됩니다.
+                  </p>
                   <button
                     type="button"
                     onClick={() => setShowWithdrawModal(true)}
-                    className="shrink-0 rounded-lg border border-red-500 bg-white px-4 py-2 text-xs font-medium text-red-500 transition hover:bg-red-50"
+                    className="border-error text-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:bg-gray-100"
                   >
                     탈퇴하기
                   </button>
