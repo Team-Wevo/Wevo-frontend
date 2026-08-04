@@ -134,6 +134,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     <div
       data-profile-popup="true"
       className={`fixed inset-0 z-[9999] flex items-center justify-center ${MODAL_SCRIM_CLASS}`}
+      onClick={handleCloseSettings}
     >
       <div
         className="relative inline-flex h-[500px] w-[800px] items-start justify-start overflow-hidden rounded-lg bg-gray-50 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
