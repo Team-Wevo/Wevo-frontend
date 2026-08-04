@@ -1,0 +1,20 @@
+export type { IconProps } from "./types";
+
+export { HomeIcon } from "./HomeIcon";
+export { FileIcon } from "./FileIcon";
+export { ProjectIcon } from "./ProjectIcon";
+export { CompleteFileIcon } from "./CompleteFileIcon";
+export { ChevronRightIcon } from "./ChevronRightIcon";
+export { SettingsIcon } from "./SettingsIcon";
+export { LogoutIcon } from "./LogoutIcon";
+export { CreditIcon } from "./CreditIcon";
+export { TeamInviteIcon } from "./TeamInviteIcon";
+export { BlockedSentenceIcon } from "./BlockedSentenceIcon";
+export { HiddenAssumptionIcon } from "./HiddenAssumptionIcon";
+export { ReaderQuestionIcon } from "./ReaderQuestionIcon";
+export { ProposalIcon } from "./ProposalIcon";
+export { PresentationOutlineIcon } from "./PresentationOutlineIcon";
+export { FreeTopicIcon } from "./FreeTopicIcon";
+export { EditNameIcon } from "./EditNameIcon";
+export { CreditLoadingIcon } from "./CreditLoadingIcon";
+export { LogoIcon } from "./LogoIcon";

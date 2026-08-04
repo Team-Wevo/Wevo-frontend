@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight, Link2, LogOut, Settings } from "lucide-react";
+import {
+  ChevronRightIcon,
+  CreditIcon,
+  LogoutIcon,
+  SettingsIcon,
+} from "@/shared/components/icons";
 
 interface ProfilePopupProps {
   onClose?: () => void;
@@ -40,8 +45,6 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSettingsOpen]);
-
-  // 💡 사용하지 않는 stopModalPropagation 함수는 제거했습니다!
 
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
@@ -328,49 +331,57 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   return (
     <>
       {!isSettingsOpen && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 left-3 z-50 h-56 w-56 origin-bottom overflow-hidden rounded-2xl border border-slate-300/80 bg-white shadow-xl transition-all duration-200 ease-out">
-          <div className="flex h-32 w-full flex-col justify-between border-b border-slate-200 bg-white p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 min-w-[40px] items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">
+        <div className="animate-in fade-in slide-in-from-bottom-2 absolute bottom-17 left-1/2 z-50 flex w-full origin-bottom -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-[#C6CEDA] bg-[#FCFCFD] shadow-[0px_12px_32px_-4px_rgba(0,0,0,0.1)] transition-all duration-200 ease-out">
+          <div className="flex w-full flex-col gap-3 border-b border-[#C6CEDA] px-4 pt-4 pb-3">
+            <div className="flex w-full items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#6B5EF0] text-xs font-medium text-[#FCFCFD]">
                 현
               </div>
-              <div className="flex min-w-0 flex-col justify-center">
-                <span className="truncate text-sm leading-tight font-semibold text-gray-950">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate text-sm leading-5 font-medium text-[#1C2230]">
                   지현구
                 </span>
-                <span className="mt-1 truncate text-[11px] leading-none font-normal text-slate-400">
+                <span className="truncate text-xs leading-[15px] font-normal text-[#7D889C]">
                   alexjoe85@gmail.com
                 </span>
               </div>
             </div>
 
-            <div className="flex h-12 w-full flex-col justify-between rounded-2xl bg-gray-100 p-2.5">
-              <div className="flex items-center justify-between text-xs font-normal">
-                <div className="flex items-center gap-1 text-gray-500">
-                  <Link2 className="h-3.5 w-3.5 rotate-45 text-indigo-500" />
-                  <span className="text-gray-500">크레딧</span>
+            <div className="flex w-full flex-col gap-2 rounded-lg bg-[#F5F7FA] px-3 py-2">
+              <div className="flex w-full items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <CreditIcon size={17} />
+                  <span className="text-[13px] leading-5 font-normal text-[#596579]">
+                    크레딧
+                  </span>
                 </div>
-                <div className="font-medium text-gray-900">
-                  18 <span className="text-gray-400">/</span> 25
+                <div className="flex items-center gap-1 leading-5">
+                  <span className="text-sm font-medium text-[#7C6FF7]">18</span>
+                  <span className="text-[13px] font-normal text-[#1C2230]">
+                    /
+                  </span>
+                  <span className="text-[13px] font-normal text-[#1C2230]">
+                    25
+                  </span>
                 </div>
               </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-white">
-                <div className="h-full w-[72%] rounded-full bg-indigo-500" />
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#C6CEDA]">
+                <div className="h-full w-[72%] rounded-full bg-[#6B5EF0]" />
               </div>
             </div>
           </div>
 
-          <div className="flex h-24 w-full flex-col justify-center bg-white p-1.5">
+          <div className="flex w-full flex-col gap-1 bg-[#FCFCFD] p-2">
             <button
               type="button"
               onClick={handleOpenSettings}
-              className="flex h-10 w-full items-center justify-between rounded-2xl px-3 text-sm font-normal text-gray-500 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#596579] transition-colors hover:bg-[#F4F2FF]"
             >
-              <div className="flex items-center gap-2.5">
-                <Settings className="h-3.5 w-3.5 text-slate-400" />
+              <div className="flex items-center gap-1">
+                <SettingsIcon size={16} />
                 <span>계정 설정</span>
               </div>
-              <ChevronRight className="h-3 w-3 text-slate-400" />
+              <ChevronRightIcon size={10} />
             </button>
 
             <button
@@ -379,9 +390,12 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 onClose?.();
                 onLogoutClick?.();
               }}
-              className="flex h-10 w-full items-center gap-2.5 rounded-2xl px-3 text-sm font-normal text-red-500 transition-colors hover:bg-red-50/50"
+              className="flex w-full cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
             >
-              <LogOut className="h-3.5 w-3.5 text-red-400" />
+              <LogoutIcon
+                size={16}
+                color="#DC3E26"
+              />
               <span>로그아웃</span>
             </button>
           </div>

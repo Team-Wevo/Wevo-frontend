@@ -38,7 +38,7 @@ const ListLayout = ({
             key={filter.label}
             onClick={() => onFilterChange(index)}
             className={cn(
-              "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-normal transition-colors",
+              "flex cursor-pointer items-center gap-1 rounded-full px-4 py-2 text-sm font-normal transition-colors",
               index === activeFilterIndex
                 ? "bg-main-600"
                 : "bg-gray-50 outline outline-gray-400",
