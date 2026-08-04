@@ -78,6 +78,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
     setIsSettingsOpen(false);
+    onClose?.();
     onLogoutClick?.();
   };
 
@@ -381,10 +382,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
             <button
               type="button"
-              onClick={() => {
-                onClose?.();
-                onLogoutClick?.();
-              }}
+              onClick={() => setShowLogoutModal(true)}
               className="flex w-full cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
             >
               <LogoutIcon
