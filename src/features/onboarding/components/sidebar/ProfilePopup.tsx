@@ -36,6 +36,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
+  const [saveToastNonce, setSaveToastNonce] = useState(0);
   const [savedProfileForm, setSavedProfileForm] =
     useState(INITIAL_PROFILE_FORM);
   const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
@@ -56,14 +57,25 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     if (!isSettingsOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleCloseSettings();
+      if (event.key !== "Escape") return;
+
+      // 확인 모달이 열려 있으면 설정 모달이 아닌 확인 모달을 먼저 닫음
+      if (showWithdrawModal) {
+        setShowWithdrawModal(false);
+        return;
       }
+
+      if (showLogoutModal) {
+        setShowLogoutModal(false);
+        return;
+      }
+
+      handleCloseSettings();
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleCloseSettings, isSettingsOpen]);
+  }, [handleCloseSettings, isSettingsOpen, showLogoutModal, showWithdrawModal]);
 
   useEffect(() => {
     if (!showSaveToast) return;
@@ -73,7 +85,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     }, SAVE_TOAST_DURATION_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [showSaveToast]);
+  }, [showSaveToast, saveToastNonce]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
@@ -128,6 +140,8 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     setSavedProfileForm(nextProfileForm);
     setProfileForm(nextProfileForm);
     setShowSaveToast(true);
+    // 토스트가 이미 떠 있어도 저장할 때마다 3초 타이머를 다시 시작
+    setSaveToastNonce((prev) => prev + 1);
   };
 
   const modalContent = (
@@ -339,7 +353,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                   지현구
                 </span>
                 <span className="truncate text-xs leading-[15px] font-normal text-[#7D889C]">
-                  alexjoe85@gmail.com
+                  alexjee85@gmail.com
                 </span>
               </div>
             </div>
