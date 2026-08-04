@@ -1,5 +1,8 @@
-import { useId, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button, type ButtonType } from "./Button";
+
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 interface ConfirmModalProps {
   title: string;
@@ -22,6 +25,49 @@ export const ConfirmModal = ({
 }: ConfirmModalProps) => {
   const titleId = useId();
   const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const getFocusableElements = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ??
+          [],
+      );
+
+    previousActiveElementRef.current =
+      document.activeElement as HTMLElement | null;
+    getFocusableElements()[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (document.activeElement === lastElement) {
+        firstElement.focus();
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousActiveElementRef.current?.focus();
+    };
+  }, []);
 
   return (
     <div
@@ -30,6 +76,7 @@ export const ConfirmModal = ({
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
         className="flex w-[380px] flex-col items-start gap-5 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
         role="alertdialog"
