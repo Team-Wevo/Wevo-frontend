@@ -7,6 +7,7 @@ import {
   SettingsIcon,
 } from "@/shared/components/icons";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
+import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
   PRESSABLE_BUTTON_STATE_CLASS,
   PRESSABLE_RECT_BUTTON_STATE_CLASS,
@@ -21,6 +22,8 @@ interface ProfilePopupProps {
 
 type TabKey = "profile" | "general";
 
+const SAVE_TOAST_DURATION_MS = 3000;
+
 const INITIAL_PROFILE_FORM = {
   email: "alexjee85@gmail.com",
   loginMethod: "카카오",
@@ -32,17 +35,20 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showSaveToast, setShowSaveToast] = useState(false);
   const [savedProfileForm, setSavedProfileForm] =
     useState(INITIAL_PROFILE_FORM);
   const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
 
   const handleOpenSettings = () => {
     setProfileForm(savedProfileForm);
+    setShowSaveToast(false);
     setIsSettingsOpen(true);
   };
 
   const handleCloseSettings = useCallback(() => {
     setProfileForm(savedProfileForm);
+    setShowSaveToast(false);
     setIsSettingsOpen(false);
   }, [savedProfileForm]);
 
@@ -58,6 +64,16 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleCloseSettings, isSettingsOpen]);
+
+  useEffect(() => {
+    if (!showSaveToast) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSaveToast(false);
+    }, SAVE_TOAST_DURATION_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showSaveToast]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
@@ -110,7 +126,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
     setSavedProfileForm(nextProfileForm);
     setProfileForm(nextProfileForm);
-    setIsSettingsOpen(false);
+    setShowSaveToast(true);
   };
 
   const modalContent = (
@@ -297,6 +313,13 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
           )}
         </div>
       </div>
+
+      {showSaveToast && (
+        <SuccessToast
+          message="프로필이 저장되었습니다"
+          className="absolute bottom-[40px] left-1/2 z-10 -translate-x-1/2"
+        />
+      )}
     </div>
   );
 
