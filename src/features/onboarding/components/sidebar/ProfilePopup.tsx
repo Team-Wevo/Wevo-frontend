@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronRightIcon,
@@ -7,7 +7,12 @@ import {
   SettingsIcon,
 } from "@/shared/components/icons";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
+import {
+  PRESSABLE_BUTTON_STATE_CLASS,
+  PRESSABLE_RECT_BUTTON_STATE_CLASS,
+} from "@/shared/styles/buttonStateStyles";
 import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
+import { cn } from "@/shared/utils/cn";
 
 interface ProfilePopupProps {
   onClose?: () => void;
@@ -27,15 +32,19 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [savedProfileForm, setSavedProfileForm] =
+    useState(INITIAL_PROFILE_FORM);
   const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
 
   const handleOpenSettings = () => {
+    setProfileForm(savedProfileForm);
     setIsSettingsOpen(true);
   };
 
-  const handleCloseSettings = () => {
+  const handleCloseSettings = useCallback(() => {
+    setProfileForm(savedProfileForm);
     setIsSettingsOpen(false);
-  };
+  }, [savedProfileForm]);
 
   useEffect(() => {
     if (!isSettingsOpen) return;
@@ -48,7 +57,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isSettingsOpen]);
+  }, [handleCloseSettings, isSettingsOpen]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
@@ -86,9 +95,23 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     }));
   };
 
+  const normalizedProfileName = profileForm.name.trim();
   const canSaveProfile =
-    profileForm.name.trim().length > 0 &&
-    profileForm.name !== INITIAL_PROFILE_FORM.name;
+    normalizedProfileName.length > 0 &&
+    normalizedProfileName !== savedProfileForm.name.trim();
+
+  const handleSaveProfile = () => {
+    if (!canSaveProfile) return;
+
+    const nextProfileForm = {
+      ...profileForm,
+      name: normalizedProfileName,
+    };
+
+    setSavedProfileForm(nextProfileForm);
+    setProfileForm(nextProfileForm);
+    setIsSettingsOpen(false);
+  };
 
   const modalContent = (
     <div
@@ -209,7 +232,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                       onChange={(e) =>
                         handleProfileChange("name", e.target.value)
                       }
-                      className="inline-flex items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 transition-colors outline-none focus:bg-white"
+                      className="inline-flex items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 outline-none focus:bg-gray-100"
                     />
                   </div>
                 </div>
@@ -257,9 +280,14 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <div className="inline-flex items-center justify-end self-stretch overflow-hidden">
               <button
                 type="button"
-                onClick={handleCloseSettings}
+                onClick={handleSaveProfile}
                 disabled={!canSaveProfile}
-                className="bg-main-600 hover:bg-main-700 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm px-5 py-3 text-gray-50 transition-colors disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-600"
+                className={cn(
+                  "flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border px-5 py-3 disabled:cursor-not-allowed disabled:opacity-100",
+                  PRESSABLE_BUTTON_STATE_CLASS,
+                  PRESSABLE_RECT_BUTTON_STATE_CLASS,
+                  "disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600",
+                )}
               >
                 <div className="text-[13px] leading-[18px] font-medium">
                   저장
