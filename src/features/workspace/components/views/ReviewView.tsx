@@ -243,7 +243,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"
                 onClick={handleConfirmSection}
-                disabled={isConfirming || isChangeRequestUnresolved}
+                disabled={isConfirming}
               >
                 {isConfirming ? "확정 중..." : "섹션 확정"}
               </Button>
