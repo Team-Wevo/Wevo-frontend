@@ -10,7 +10,7 @@ const WORKSPACE_PHASE_BY_STATUS: Record<
   SYNTHESIZING: "정리·초안",
   DRAFTING: "정리·초안",
   REVIEWING: "검토·확정",
-  COMPLETED: "검토·확정",
+  CONFIRMED: "검토·확정",
 };
 
 export const getWorkspacePhase = (

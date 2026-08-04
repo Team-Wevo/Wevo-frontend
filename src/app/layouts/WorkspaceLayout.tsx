@@ -9,7 +9,7 @@ import WorkspaceRightSidebar, {
 } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
 import type { DocumentProgress } from "../../shared/types/documentType";
 
-// TODO: 협업자/프로젝트 부가 정보 API 연동 전까지 사용하는 기본값
+// TODO: 협업자 API 연동 전까지 사용하는 기본값 (상세 API는 memberCount만 주고 개별 멤버 정보는 안 줌)
 const DEFAULT_COLLABORATORS: Collaborator[] = [
   { id: "1", color: "bg-complete", name: "구다연" },
   { id: "2", color: "bg-success", name: "신연우" },
@@ -17,15 +17,10 @@ const DEFAULT_COLLABORATORS: Collaborator[] = [
   { id: "4", color: "bg-main", name: "유금진" },
 ];
 
-const DEFAULT_PROJECT_INFO: ProjectInfoItem[] = [
-  { label: "결과물 유형", value: "제안서" },
-  { label: "전달 대상", value: "팀원" },
-  { label: "시작 아이디어", value: "장학금 매칭 서비스" },
-];
-
 interface WorkspaceLayoutProps {
   title: string;
   projectId: string;
+  projectInfo: ProjectInfoItem[];
   progress: DocumentProgress;
   activeStepId: number;
   children: ReactNode;
@@ -34,6 +29,7 @@ interface WorkspaceLayoutProps {
 const WorkspaceLayout = ({
   title,
   projectId,
+  projectInfo,
   progress,
   activeStepId,
   children,
@@ -73,7 +69,7 @@ const WorkspaceLayout = ({
           </div>
         </div>
 
-        <WorkspaceRightSidebar projectInfo={DEFAULT_PROJECT_INFO} />
+        <WorkspaceRightSidebar projectInfo={projectInfo} />
       </div>
     </div>
   );

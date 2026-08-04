@@ -66,7 +66,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
   const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
   const isChangeRequestUnresolved =
     hasUnresolvedChangeRequest(SECTION_REVIEWERS);
-  const isSectionConfirmed = section.sectionStatus === "COMPLETED";
+  const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
 
   return (
     <>
@@ -204,7 +204,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
                   미해결 수정 요청이 있어요. 해결하면 섹션을 확정할 수 있어요.
                 </div>
               )}
-              {/* TODO: 섹션 확정 API 연동 후 sectionStatus를 COMPLETED로 갱신 */}
+              {/* TODO: 섹션 확정 API 연동 후 sectionStatus를 CONFIRMED로 갱신 */}
               <Button
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"

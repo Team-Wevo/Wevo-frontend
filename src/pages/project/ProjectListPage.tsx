@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ListLayout from "../../app/layouts/ListLayout";
 import CreateFlowModal from "../../features/onboarding/components/modal/CreateFlowModal";
 import { getMyProjects } from "../../features/project/api/projectList";
@@ -21,6 +22,7 @@ const ROLE_BY_FILTER: Record<string, ProjectRole> = {
 };
 
 export const ProjectListPage = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -185,6 +187,7 @@ export const ProjectListPage = () => {
               isSelectionMode={isSelectionMode}
               isSelected={selectedIds.has(project.id)}
               onToggleSelect={() => toggleSelect(project.id)}
+              onOpen={() => navigate(`/workspace/${project.id}/sections/1`)}
             />
           ))}
         {isDeleteModalOpen && (

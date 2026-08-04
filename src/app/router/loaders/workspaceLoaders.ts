@@ -1,6 +1,10 @@
 import { redirect, type LoaderFunctionArgs } from "react-router-dom";
 import {
-  getWorkspaceSectionsByProjectId,
+  getProjectDetail,
+  type ProjectDetailResponse,
+} from "../../../features/project/api/getProjectDetail";
+import { getWorkspaceSectionsByProjectId } from "../../../features/workspace/api/getWorkspaceSections";
+import {
   isWorkspaceSectionNo,
   type WorkspaceSection,
   type WorkspaceSectionNo,
@@ -43,6 +47,7 @@ export interface WorkspaceSectionLoaderData {
   sectionNo: number;
   sections: WorkspaceSection[];
   currentSection: WorkspaceSection;
+  projectDetail: ProjectDetailResponse;
 }
 
 export const workspaceIndexLoader = ({ params }: LoaderFunctionArgs) => {
@@ -65,7 +70,10 @@ export const workspaceSectionLoader = async ({
     return redirect(DEFAULT_PROJECT_REDIRECT_PATH);
   }
 
-  const sections = await getWorkspaceSectionsByProjectId(projectId);
+  const [sections, projectDetail] = await Promise.all([
+    getWorkspaceSectionsByProjectId(projectId),
+    getProjectDetail(projectId),
+  ]);
   const fallbackSectionNo = getFallbackSectionNo(sections);
 
   if (!sectionNo) {
@@ -87,5 +95,6 @@ export const workspaceSectionLoader = async ({
     sectionNo,
     sections,
     currentSection,
+    projectDetail,
   };
 };

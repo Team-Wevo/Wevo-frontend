@@ -9,7 +9,7 @@ const SECTION_STATUS_VALUE_BY_WORKSPACE_STATUS: Record<
   SYNTHESIZING: "정리·초안",
   DRAFTING: "정리·초안",
   REVIEWING: "검토·확정",
-  COMPLETED: "작성 완료",
+  CONFIRMED: "작성 완료",
 };
 
 export const toSectionStatusValue = (
