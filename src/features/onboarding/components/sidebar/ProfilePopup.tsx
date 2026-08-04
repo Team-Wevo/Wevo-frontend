@@ -6,6 +6,7 @@ import {
   LogoutIcon,
   SettingsIcon,
 } from "@/shared/components/icons";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 
 interface ProfilePopupProps {
@@ -56,82 +57,23 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   };
 
   const logoutConfirmModal = (
-    <div
-      data-profile-popup="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
-    >
-      <div
-        className="w-96 rounded-2xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex flex-col gap-2">
-          <h2 className="text-lg leading-7 font-semibold text-gray-900">
-            로그아웃 할까요?
-          </h2>
-          <p className="text-xs leading-5 font-normal text-slate-600">
-            현재 계정에서 로그아웃됩니다.
-          </p>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setShowLogoutModal(false)}
-            className="rounded-lg px-4 py-2 text-xs leading-4 font-medium text-slate-600 transition hover:bg-slate-100"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={handleLogoutConfirm}
-            className="rounded-lg bg-red-500 px-4 py-2 text-xs leading-4 font-medium text-white transition hover:bg-red-600"
-          >
-            로그아웃
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      title="로그아웃 할까요?"
+      description="현재 계정에서 로그아웃됩니다."
+      confirmLabel="로그아웃"
+      onCancel={() => setShowLogoutModal(false)}
+      onConfirm={handleLogoutConfirm}
+    />
   );
 
   const withdrawConfirmModal = (
-    <div
-      data-profile-popup="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
-    >
-      <div
-        className="w-96 rounded-xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex flex-col gap-2">
-          <h2 className="text-lg leading-7 font-semibold text-gray-900">
-            정말 탈퇴할까요?
-          </h2>
-          <p className="text-xs leading-5 font-normal text-slate-600">
-            탈퇴 시 내가 만든 프로젝트와 작성 데이터가 모두 삭제되며, 되돌릴 수
-            없습니다.
-          </p>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setShowWithdrawModal(false)}
-            className="rounded-lg px-4 py-2 text-xs leading-4 font-medium text-slate-600 transition hover:bg-slate-100"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setShowWithdrawModal(false);
-            }}
-            className="rounded-lg bg-red-500 px-4 py-2 text-xs leading-4 font-medium text-white transition hover:bg-red-600"
-          >
-            탈퇴하기
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      title="정말 탈퇴할까요?"
+      description="탈퇴 시 내가 만든 프로젝트와 작성 데이터가 모두 삭제되며, 되돌릴 수 없습니다."
+      confirmLabel="탈퇴하기"
+      onCancel={() => setShowWithdrawModal(false)}
+      onConfirm={() => setShowWithdrawModal(false)}
+    />
   );
 
   const handleProfileChange = (
