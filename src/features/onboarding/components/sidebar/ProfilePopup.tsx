@@ -6,6 +6,7 @@ import {
   LogoutIcon,
   SettingsIcon,
 } from "@/shared/components/icons";
+import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 
 interface ProfilePopupProps {
   onClose?: () => void;
@@ -150,7 +151,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const modalContent = (
     <div
       data-profile-popup="true"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px]"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${MODAL_SCRIM_CLASS}`}
     >
       <div
         className="relative inline-flex h-[500px] w-[800px] items-start justify-start overflow-hidden rounded-lg bg-gray-50 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
