@@ -148,7 +148,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`inline-flex items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
+              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
                 activeTab === "profile"
                   ? "bg-gray-100 font-medium text-gray-900"
                   : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
@@ -160,7 +160,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`inline-flex items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
+              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
                 activeTab === "general"
                   ? "bg-gray-100 font-medium text-gray-900"
                   : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
@@ -265,7 +265,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                   <button
                     type="button"
                     onClick={() => setShowLogoutModal(true)}
-                    className="border-error text-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:bg-gray-100"
+                    className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     로그아웃
                   </button>
@@ -283,7 +283,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                   <button
                     type="button"
                     onClick={() => setShowWithdrawModal(true)}
-                    className="border-error text-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:bg-gray-100"
+                    className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     탈퇴하기
                   </button>
