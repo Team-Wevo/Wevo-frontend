@@ -53,7 +53,10 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   };
 
   const logoutConfirmModal = (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
+    <div
+      data-profile-popup="true"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
+    >
       <div
         className="w-96 rounded-2xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(e) => e.stopPropagation()}
@@ -88,7 +91,10 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   );
 
   const withdrawConfirmModal = (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
+    <div
+      data-profile-popup="true"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
+    >
       <div
         className="w-96 rounded-xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(e) => e.stopPropagation()}

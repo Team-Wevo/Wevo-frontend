@@ -11,10 +11,14 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as HTMLElement;
+
+      // 포털로 body에 렌더링되는 모달 내부 클릭은 외부 클릭으로 처리하지 않음
+      if (target.closest('[data-profile-popup="true"]')) {
+        return;
+      }
+
+      if (profileRef.current && !profileRef.current.contains(target)) {
         setIsProfileOpen(false);
       }
     };
