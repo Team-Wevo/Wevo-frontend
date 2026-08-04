@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ListLayout from "../../app/layouts/ListLayout";
 import CreateFlowModal from "../../features/onboarding/components/modal/CreateFlowModal";
+import { getMyProjects } from "../../features/project/api/projectList";
+import {
+  toProjectListItem,
+  type ProjectListItem,
+} from "../../features/project/utils/toProjectListItem";
 import {
   ProjectCard,
   type ProjectRole,
@@ -10,85 +15,15 @@ import { Button } from "../../shared/components/Button";
 import { ProjectIcon } from "../../shared/components/icons";
 import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../shared/styles/buttonStateStyles";
 
-const FILTERS = [
-  { label: "전체", count: 8 },
-  { label: "내가 만든", count: 4 },
-  { label: "공유받은", count: 4 },
-];
-
 const ROLE_BY_FILTER: Record<string, ProjectRole> = {
   "내가 만든": "팀장",
   공유받은: "팀원",
 };
 
-const PROJECTS = [
-  {
-    id: 1,
-    category: "발표 구성안",
-    role: "팀장",
-    title: "PM Day 발표 준비",
-    status: "해결 방향 작성 중",
-    date: "2026.07.06",
-  },
-  {
-    id: 2,
-    category: "제안서",
-    role: "팀장",
-    title: "캡스톤 서비스 제안서",
-    status: "아이디어 구체화 중",
-    date: "2026.07.04",
-  },
-  {
-    id: 3,
-    category: "제안서",
-    role: "팀원",
-    title: "대외활동 기획안",
-    status: "추가 근거 요청받음",
-    date: "2026.07.06",
-  },
-  {
-    id: 4,
-    category: "발표 구성안",
-    role: "팀원",
-    title: "팀플 발표 구성안",
-    status: "검토 진행 중",
-    date: "2026.07.05",
-  },
-  {
-    id: 5,
-    category: "제안서",
-    role: "팀원",
-    title: "동아리 지원사업 제안서",
-    status: "모든 섹션 확정 완료",
-    date: "2026.07.02",
-  },
-  {
-    id: 6,
-    category: "발표 구성안",
-    role: "팀장",
-    title: "논문 발표 자료",
-    status: "핵심 기능 작성 중",
-    date: "2026.06.30",
-  },
-  {
-    id: 7,
-    category: "제안서",
-    role: "팀원",
-    title: "창업 아이디어 제안서",
-    status: "아이디어 구체화 중",
-    date: "2026.06.28",
-  },
-  {
-    id: 8,
-    category: "발표 구성안",
-    role: "팀장",
-    title: "해커톤 발표 준비",
-    status: "쟁점 조율 중",
-    date: "2026.07.05",
-  },
-] as const;
-
 export const ProjectListPage = () => {
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeFilterIndex, setActiveFilterIndex] = useState(0);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -96,11 +31,45 @@ export const ProjectListPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createModalKey, setCreateModalKey] = useState(0);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    getMyProjects()
+      .then((response) => {
+        if (isCancelled) return;
+        setProjects(response.map(toProjectListItem));
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setErrorMessage("프로젝트 목록을 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (isCancelled) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const FILTERS = [
+    { label: "전체", count: projects.length },
+    {
+      label: "내가 만든",
+      count: projects.filter((project) => project.role === "팀장").length,
+    },
+    {
+      label: "공유받은",
+      count: projects.filter((project) => project.role === "팀원").length,
+    },
+  ];
+
   const activeFilter = FILTERS[activeFilterIndex].label;
   const filteredProjects =
     activeFilter === "전체"
-      ? PROJECTS
-      : PROJECTS.filter(
+      ? projects
+      : projects.filter(
           (project) => project.role === ROLE_BY_FILTER[activeFilter],
         );
 
@@ -194,20 +163,30 @@ export const ProjectListPage = () => {
           )
         }
       >
-        {filteredProjects.map((project) => (
-          <ProjectCard
-            key={project.id}
-            category={project.category}
-            role={project.role}
-            title={project.title}
-            statusText={project.status}
-            date={project.date}
-            dateLabel="수정"
-            isSelectionMode={isSelectionMode}
-            isSelected={selectedIds.has(project.id)}
-            onToggleSelect={() => toggleSelect(project.id)}
-          />
-        ))}
+        {isLoading && (
+          <p className="col-span-4 text-sm text-gray-600">
+            프로젝트 목록을 불러오는 중이에요...
+          </p>
+        )}
+        {errorMessage && (
+          <p className="text-error col-span-4 text-sm">{errorMessage}</p>
+        )}
+        {!isLoading &&
+          !errorMessage &&
+          filteredProjects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              category={project.category}
+              role={project.role}
+              title={project.title}
+              statusText={project.statusText}
+              date={project.date}
+              dateLabel="생성"
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedIds.has(project.id)}
+              onToggleSelect={() => toggleSelect(project.id)}
+            />
+          ))}
         {isDeleteModalOpen && (
           <ConfirmModal
             title="프로젝트를 삭제할까요?"

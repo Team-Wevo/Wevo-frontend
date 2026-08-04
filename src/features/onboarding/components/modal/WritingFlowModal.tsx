@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 interface WritingFlowModalProps {
   isOpen: boolean;
-  documentType: "proposal" | "presentation" | "free";
+  documentType: "proposal" | "presentation";
   onClose: () => void;
   onStart: () => void;
 }
@@ -16,12 +16,10 @@ const flowSteps = [
   { id: 6, title: "기대 효과" },
 ];
 
-const documentTypeLabel: Record<"proposal" | "presentation" | "free", string> =
-  {
-    proposal: "제안서",
-    presentation: "발표 구성안",
-    free: "자유주제",
-  };
+const documentTypeLabel: Record<"proposal" | "presentation", string> = {
+  proposal: "제안서",
+  presentation: "발표 구성안",
+};
 
 const WritingFlowModal = ({
   isOpen,

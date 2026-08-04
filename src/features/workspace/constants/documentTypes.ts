@@ -9,11 +9,6 @@ export const WORKSPACE_DOCUMENT_TYPES = {
     label: "발표 구성안",
     description: "전달 흐름과 핵심 메시지를 중심으로 구성해요.",
   },
-  free: {
-    key: "free",
-    label: "자유 주제",
-    description: "형식 제한 없이 목적에 맞게 작성해요.",
-  },
 } as const;
 
 export type WorkspaceDocumentType = keyof typeof WORKSPACE_DOCUMENT_TYPES;
