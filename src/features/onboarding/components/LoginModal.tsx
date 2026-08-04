@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 interface LoginModalProps {
@@ -12,6 +12,50 @@ const LoginModal = ({
   onGoogleLogin,
   onKakaoLogin,
 }: LoginModalProps) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    previousActiveElementRef.current = document.activeElement as HTMLElement;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusableElements = dialogRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement?.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement?.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousActiveElementRef.current?.focus();
+    };
+  }, [onClose]);
+
   const handleOverlayClick = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -22,6 +66,7 @@ const LoginModal = ({
       onClick={handleOverlayClick}
     >
       <div
+        ref={dialogRef}
         className="animate-in zoom-in-95 relative flex w-[400px] flex-col items-center gap-6 overflow-hidden rounded-lg bg-white p-8 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)] duration-150"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -29,6 +74,7 @@ const LoginModal = ({
         aria-labelledby="login-modal-title"
       >
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           className="absolute top-[22px] right-8 flex size-5 cursor-pointer items-center justify-center text-gray-600"
