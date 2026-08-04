@@ -22,7 +22,7 @@ const AudienceSection = ({
 }: AudienceSectionProps) => {
   return (
     <div className="flex w-full flex-col items-start gap-2 overflow-hidden">
-      <div className="text-xs leading-4 font-medium text-[#8b8d99]">
+      <div className="text-xs leading-4 font-medium text-gray-700">
         누가 읽나요?
       </div>
 
@@ -42,8 +42,8 @@ const AudienceSection = ({
           type="text"
           value={customAudience}
           onChange={(event) => onCustomAudienceChange(event.target.value)}
-          placeholder="예) 스타트업 대표"
-          className="w-full rounded-lg border border-[#d4d4d8] bg-[#fbfaff] px-4 py-3 text-sm text-[#3d3d3d] transition-all duration-200 placeholder:text-[#8b8d99] focus:border-[#6b5aff] focus:ring-2 focus:ring-[#e0d7f5] focus:outline-none"
+          placeholder="예) 스타트업 대표, 동아리 부원"
+          className="focus:border-main-600 w-full rounded-md border border-gray-400 bg-gray-50 px-4 py-3 text-xs text-gray-800 transition-all duration-200 placeholder:text-gray-700 focus:outline-none"
         />
       )}
     </div>

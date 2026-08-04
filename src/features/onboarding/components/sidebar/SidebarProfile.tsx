@@ -11,10 +11,14 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as HTMLElement;
+
+      // 포털로 body에 렌더링되는 모달 내부 클릭은 외부 클릭으로 처리하지 않음
+      if (target.closest('[data-profile-popup="true"]')) {
+        return;
+      }
+
+      if (profileRef.current && !profileRef.current.contains(target)) {
         setIsProfileOpen(false);
       }
     };
@@ -42,7 +46,7 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
 
       <div
         onClick={() => setIsProfileOpen((prev) => !prev)}
-        className={`flex cursor-pointer items-center gap-3 rounded-xl p-1.5 transition-colors ${isProfileOpen ? "bg-slate-50" : "hover:bg-slate-50"}`}
+        className={`flex cursor-pointer items-center gap-3 rounded-xl p-1.5 transition-colors ${isProfileOpen ? "bg-gray-100" : "hover:bg-gray-100"}`}
       >
         <div className="flex items-center justify-center rounded-full text-xs font-bold text-white shadow-sm">
           <img
@@ -51,7 +55,7 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
             className="h-8 w-8 rounded-full"
           />
         </div>
-        <span className="text-xs font-semibold text-slate-700">지현구</span>
+        <span className="text-sm font-semibold text-slate-700">지현구</span>
       </div>
     </div>
   );

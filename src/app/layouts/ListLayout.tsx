@@ -27,9 +27,7 @@ const ListLayout = ({
     <div className="my-12 p-16">
       {/* 헤더: 타이틀 + 페이지별 액션 버튼 슬롯 */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="color-[#1A1D2E] text-3xl font-semibold text-gray-900">
-          {title}
-        </h1>
+        <h1 className="text-3xl font-semibold text-gray-900">{title}</h1>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
 
@@ -40,7 +38,7 @@ const ListLayout = ({
             key={filter.label}
             onClick={() => onFilterChange(index)}
             className={cn(
-              "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-normal transition-colors",
+              "flex cursor-pointer items-center gap-1 rounded-full px-4 py-2 text-sm font-normal transition-colors",
               index === activeFilterIndex
                 ? "bg-main-600"
                 : "bg-gray-50 outline outline-gray-400",

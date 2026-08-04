@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button, type ButtonType } from "./Button";
+
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 interface ConfirmModalProps {
   title: string;
@@ -20,36 +23,94 @@ export const ConfirmModal = ({
   onCancel,
   onConfirm,
 }: ConfirmModalProps) => {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const getFocusableElements = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ??
+          [],
+      );
+
+    previousActiveElementRef.current =
+      document.activeElement as HTMLElement | null;
+    getFocusableElements()[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (document.activeElement === lastElement) {
+        firstElement.focus();
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousActiveElementRef.current?.focus();
+    };
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      data-profile-popup="true"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
       onClick={onCancel}
     >
       <div
-        className="flex w-96 flex-col gap-4 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
+        ref={dialogRef}
+        className="flex w-[380px] flex-col items-start gap-5 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
+        onClick={(event) => event.stopPropagation()}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
       >
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg leading-7 font-semibold text-gray-900">
+        <div className="flex w-full flex-col items-start gap-2 overflow-hidden">
+          <h2
+            id={titleId}
+            className="text-lg leading-7 font-semibold text-[#171A23]"
+          >
             {title}
           </h2>
-          <p className="text-[13px] leading-5 font-normal text-gray-700">
+          <p
+            id={descriptionId}
+            className="w-full text-[13px] leading-5 font-normal text-gray-700"
+          >
             {description}
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex w-full items-center justify-end gap-2 overflow-hidden">
           <Button
             type="transparent"
             onClick={onCancel}
-            className="rounded-sm text-xs leading-4 font-medium"
+            className="h-auto rounded-sm border-transparent px-4 py-2 text-[13px] leading-[18px] font-medium hover:bg-gray-100"
           >
             {cancelLabel}
           </Button>
           <Button
             type={confirmType}
             onClick={onConfirm}
-            className="rounded-sm text-xs leading-4 font-medium"
+            className="h-auto rounded-sm border-transparent px-4 py-2 text-[13px] leading-[18px] font-medium"
           >
             {confirmLabel}
           </Button>
