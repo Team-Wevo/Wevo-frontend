@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 import { createWorkspaceBoard } from "../../api/createWorkspaceBoard";
 import AudienceSection from "./AudienceSection";
 import CreatingWorkspaceModal from "./CreatingWorkspaceModal";
@@ -98,9 +99,7 @@ const CreateFlowModal = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center px-4 ${
-        isCreatingWorkspace ? "bg-slate-300" : "bg-slate-900/40"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center px-4 ${MODAL_SCRIM_CLASS}`}
       onClick={() => {
         if (!isCreatingWorkspace) {
           onClose();

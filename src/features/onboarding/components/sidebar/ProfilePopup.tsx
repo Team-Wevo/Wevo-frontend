@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronRightIcon,
@@ -6,6 +6,14 @@ import {
   LogoutIcon,
   SettingsIcon,
 } from "@/shared/components/icons";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
+import { SuccessToast } from "@/shared/components/SuccessToast";
+import {
+  PRESSABLE_BUTTON_STATE_CLASS,
+  PRESSABLE_RECT_BUTTON_STATE_CLASS,
+} from "@/shared/styles/buttonStateStyles";
+import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
+import { cn } from "@/shared/utils/cn";
 
 interface ProfilePopupProps {
   onClose?: () => void;
@@ -14,115 +22,96 @@ interface ProfilePopupProps {
 
 type TabKey = "profile" | "general";
 
+const SAVE_TOAST_DURATION_MS = 3000;
+
+const INITIAL_PROFILE_FORM = {
+  email: "alexjee85@gmail.com",
+  loginMethod: "카카오",
+  name: "지현구",
+};
+
 const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    email: "alexjoe85@gmail.com",
-    loginMethod: "카카오",
-    name: "지현구",
-  });
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  const [saveToastNonce, setSaveToastNonce] = useState(0);
+  const [savedProfileForm, setSavedProfileForm] =
+    useState(INITIAL_PROFILE_FORM);
+  const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
 
   const handleOpenSettings = () => {
+    setProfileForm(savedProfileForm);
+    setShowSaveToast(false);
     setIsSettingsOpen(true);
   };
 
-  const handleCloseSettings = () => {
+  const handleCloseSettings = useCallback(() => {
+    setProfileForm(savedProfileForm);
+    setShowSaveToast(false);
     setIsSettingsOpen(false);
-  };
+  }, [savedProfileForm]);
 
   useEffect(() => {
     if (!isSettingsOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleCloseSettings();
+      if (event.key !== "Escape") return;
+
+      // 확인 모달이 열려 있으면 설정 모달이 아닌 확인 모달을 먼저 닫음
+      if (showWithdrawModal) {
+        setShowWithdrawModal(false);
+        return;
       }
+
+      if (showLogoutModal) {
+        setShowLogoutModal(false);
+        return;
+      }
+
+      handleCloseSettings();
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isSettingsOpen]);
+  }, [handleCloseSettings, isSettingsOpen, showLogoutModal, showWithdrawModal]);
+
+  useEffect(() => {
+    if (!showSaveToast) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSaveToast(false);
+    }, SAVE_TOAST_DURATION_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showSaveToast, saveToastNonce]);
 
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
     setIsSettingsOpen(false);
+    onClose?.();
     onLogoutClick?.();
   };
 
   const logoutConfirmModal = (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
-      <div
-        className="w-96 rounded-2xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex flex-col gap-2">
-          <h2 className="text-lg leading-7 font-semibold text-gray-900">
-            로그아웃 할까요?
-          </h2>
-          <p className="text-xs leading-5 font-normal text-slate-600">
-            현재 계정에서 로그아웃됩니다.
-          </p>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setShowLogoutModal(false)}
-            className="rounded-lg px-4 py-2 text-xs leading-4 font-medium text-slate-600 transition hover:bg-slate-100"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={handleLogoutConfirm}
-            className="rounded-lg bg-red-500 px-4 py-2 text-xs leading-4 font-medium text-white transition hover:bg-red-600"
-          >
-            로그아웃
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      title="로그아웃 할까요?"
+      description="현재 계정에서 로그아웃됩니다."
+      confirmLabel="로그아웃"
+      onCancel={() => setShowLogoutModal(false)}
+      onConfirm={handleLogoutConfirm}
+    />
   );
 
   const withdrawConfirmModal = (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20">
-      <div
-        className="w-96 rounded-xl bg-white p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex flex-col gap-2">
-          <h2 className="text-lg leading-7 font-semibold text-gray-900">
-            정말 탈퇴할까요?
-          </h2>
-          <p className="text-xs leading-5 font-normal text-slate-600">
-            탈퇴 시 내가 만든 프로젝트와 작성 데이터가 모두 삭제되며, 되돌릴 수
-            없습니다.
-          </p>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setShowWithdrawModal(false)}
-            className="rounded-lg px-4 py-2 text-xs leading-4 font-medium text-slate-600 transition hover:bg-slate-100"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setShowWithdrawModal(false);
-            }}
-            className="rounded-lg bg-red-500 px-4 py-2 text-xs leading-4 font-medium text-white transition hover:bg-red-600"
-          >
-            탈퇴하기
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      title="정말 탈퇴할까요?"
+      description="탈퇴 시 내가 만든 프로젝트와 작성 데이터가 모두 삭제되며, 되돌릴 수 없습니다."
+      confirmLabel="탈퇴하기"
+      onCancel={() => setShowWithdrawModal(false)}
+      onConfirm={() => setShowWithdrawModal(false)}
+    />
   );
 
   const handleProfileChange = (
@@ -135,64 +124,81 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     }));
   };
 
+  const normalizedProfileName = profileForm.name.trim();
+  const canSaveProfile =
+    normalizedProfileName.length > 0 &&
+    normalizedProfileName !== savedProfileForm.name.trim();
+
+  const handleSaveProfile = () => {
+    if (!canSaveProfile) return;
+
+    const nextProfileForm = {
+      ...profileForm,
+      name: normalizedProfileName,
+    };
+
+    setSavedProfileForm(nextProfileForm);
+    setProfileForm(nextProfileForm);
+    setShowSaveToast(true);
+    // 토스트가 이미 떠 있어도 저장할 때마다 3초 타이머를 다시 시작
+    setSaveToastNonce((prev) => prev + 1);
+  };
+
   const modalContent = (
     <div
       data-profile-popup="true"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-[2px]"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${MODAL_SCRIM_CLASS}`}
+      onClick={handleCloseSettings}
     >
       <div
-        className="relative inline-flex h-[500px] w-[800px] items-start justify-start overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
+        className="relative inline-flex h-[500px] w-[800px] items-start justify-start overflow-hidden rounded-lg bg-gray-50 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="inline-flex w-60 flex-col items-start justify-start gap-4 self-stretch overflow-hidden bg-white px-4 py-6">
-          <div className="text-Black justify-start font-['Pretendard'] text-lg leading-7 font-semibold">
+        <div className="inline-flex w-60 flex-col items-start justify-start gap-4 self-stretch overflow-hidden bg-gray-50 px-4 py-6">
+          <div className="text-lg leading-7 font-semibold text-[#171A23]">
             설정
           </div>
           <div className="flex flex-col items-start justify-start gap-1 self-stretch overflow-hidden">
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`inline-flex items-center justify-start self-stretch overflow-hidden rounded-lg px-3 py-2 transition ${
+              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
                 activeTab === "profile"
                   ? "bg-gray-100 font-medium text-gray-900"
-                  : "bg-white font-normal text-gray-600 hover:bg-gray-50"
+                  : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
               }`}
             >
-              <div className="justify-start font-['Pretendard'] text-base leading-6">
-                프로필
-              </div>
+              <div className="text-base leading-[26px]">프로필</div>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`inline-flex items-center justify-start self-stretch overflow-hidden rounded-lg px-3 py-2 transition ${
+              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
                 activeTab === "general"
                   ? "bg-gray-100 font-medium text-gray-900"
-                  : "bg-white font-normal text-gray-600 hover:bg-gray-50"
+                  : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
               }`}
             >
-              <div className="justify-start font-['Pretendard'] text-base leading-6">
-                일반
-              </div>
+              <div className="text-base leading-[26px]">일반</div>
             </button>
           </div>
         </div>
 
-        <div className="bg-Gray-5 w-px self-stretch" />
+        <div className="w-px self-stretch bg-gray-400" />
 
         <div className="inline-flex flex-1 flex-col items-start justify-start gap-6 self-stretch overflow-hidden p-6">
           {activeTab === "profile" && (
             <div className="inline-flex items-center justify-between self-stretch overflow-hidden">
-              <div className="text-Gray-10 justify-start font-['Pretendard'] text-lg leading-7 font-semibold">
+              <div className="text-lg leading-7 font-semibold text-gray-900">
                 프로필
               </div>
               <button
                 type="button"
                 onClick={handleCloseSettings}
-                className="text-Gray-8 justify-start font-['Pretendard'] text-sm leading-5 font-normal transition hover:text-black"
+                className="cursor-pointer text-sm leading-[22px] font-normal text-gray-700 transition-colors hover:text-gray-900"
               >
                 ✕
               </button>
@@ -201,13 +207,13 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
           {activeTab === "general" && (
             <div className="inline-flex items-center justify-between self-stretch overflow-hidden">
-              <div className="text-Gray-10 justify-start font-['Pretendard'] text-lg leading-7 font-semibold">
+              <div className="text-lg leading-7 font-semibold text-gray-900">
                 일반
               </div>
               <button
                 type="button"
                 onClick={handleCloseSettings}
-                className="text-Gray-8 justify-start font-['Pretendard'] text-sm leading-5 font-normal transition hover:text-black"
+                className="cursor-pointer text-sm leading-[22px] font-normal text-gray-700 transition-colors hover:text-gray-900"
               >
                 ✕
               </button>
@@ -217,43 +223,39 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
           <div className="flex-1 self-stretch overflow-y-auto">
             {activeTab === "profile" ? (
               <div className="inline-flex w-full items-start justify-start gap-6 overflow-hidden">
-                <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-[999px] bg-indigo-600 font-['Pretendard'] text-3xl font-bold text-white">
+                <div className="bg-main-600 flex size-[88px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[32px] leading-[42px] font-bold text-gray-50">
                   지
                 </div>
                 <div className="inline-flex flex-1 flex-col items-start justify-start gap-5 overflow-hidden">
                   <div className="flex flex-col items-start justify-start gap-2 self-stretch overflow-hidden">
-                    <div className="text-Gray-8 justify-start font-['Pretendard'] text-xs leading-4 font-medium">
+                    <div className="text-xs leading-4 font-medium text-gray-700">
                       이메일
                     </div>
                     <input
                       type="email"
                       value={profileForm.email}
-                      onChange={(e) =>
-                        handleProfileChange("email", e.target.value)
-                      }
-                      className="text-Gray-7 inline-flex items-center justify-start self-stretch rounded-lg bg-gray-100 px-4 py-3 font-['Pretendard'] text-sm leading-5 font-normal transition outline-none focus:bg-white"
+                      readOnly
+                      className="inline-flex cursor-default items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-600 outline-none"
                     />
-                    <div className="text-Gray-8 justify-start font-['Pretendard'] text-xs leading-4 font-normal">
+                    <div className="text-xs leading-[15px] font-normal text-gray-700">
                       소셜 로그인 이메일은 변경할 수 없습니다.
                     </div>
                   </div>
 
                   <div className="flex flex-col items-start justify-start gap-2 self-stretch overflow-hidden">
-                    <div className="text-Gray-8 justify-start font-['Pretendard'] text-xs leading-4 font-medium">
+                    <div className="text-xs leading-4 font-medium text-gray-700">
                       로그인 방식
                     </div>
                     <input
                       type="text"
                       value={profileForm.loginMethod}
-                      onChange={(e) =>
-                        handleProfileChange("loginMethod", e.target.value)
-                      }
-                      className="text-Gray-10 inline-flex items-center justify-start self-stretch rounded-lg bg-gray-100 px-4 py-3 font-['Pretendard'] text-sm leading-5 font-normal transition outline-none focus:bg-white"
+                      readOnly
+                      className="inline-flex cursor-default items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 outline-none"
                     />
                   </div>
 
                   <div className="flex flex-col items-start justify-start gap-2 self-stretch overflow-hidden">
-                    <div className="text-Gray-8 justify-start font-['Pretendard'] text-xs leading-4 font-medium">
+                    <div className="text-xs leading-4 font-medium text-gray-700">
                       이름
                     </div>
                     <input
@@ -262,46 +264,42 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                       onChange={(e) =>
                         handleProfileChange("name", e.target.value)
                       }
-                      className="text-Gray-10 inline-flex items-center justify-start self-stretch rounded-lg bg-gray-100 px-4 py-3 font-['Pretendard'] text-sm leading-5 font-normal transition outline-none focus:bg-white"
+                      className="inline-flex items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 outline-none focus:bg-gray-100"
                     />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg leading-7 font-semibold text-gray-900">
-                      로그아웃
-                    </h3>
-                    <p className="mt-2 text-base leading-6 font-normal text-slate-600">
-                      현재 로그인한 계정에서 로그아웃을 진행합니다.
-                    </p>
-                  </div>
+              <div className="flex w-full flex-col gap-4 overflow-hidden">
+                <div className="relative h-[100px] w-full shrink-0 overflow-hidden">
+                  <h3 className="absolute top-[9px] left-0 text-lg leading-7 font-semibold text-gray-900">
+                    로그아웃
+                  </h3>
+                  <p className="absolute top-[41px] left-0 text-base leading-[26px] font-normal text-gray-700">
+                    현재 로그인한 계정에서 로그아웃을 진행합니다.
+                  </p>
                   <button
                     type="button"
                     onClick={() => setShowLogoutModal(true)}
-                    className="shrink-0 rounded-lg border border-red-500 bg-white px-4 py-2 text-xs font-medium text-red-500 transition hover:bg-red-50"
+                    className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     로그아웃
                   </button>
                 </div>
 
-                <div className="h-px bg-slate-200" />
+                <div className="h-px w-full shrink-0 bg-gray-400" />
 
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg leading-7 font-semibold text-gray-900">
-                      계정 탈퇴
-                    </h3>
-                    <p className="mt-2 text-base leading-6 font-normal text-slate-600">
-                      탈퇴 시 내가 만든 프로젝트와 작성 데이터가 삭제됩니다.
-                    </p>
-                  </div>
+                <div className="relative h-[100px] w-full shrink-0 overflow-hidden">
+                  <h3 className="absolute top-[9px] left-0 text-lg leading-7 font-semibold text-gray-900">
+                    계정 탈퇴
+                  </h3>
+                  <p className="absolute top-[41px] left-0 text-base leading-[26px] font-normal text-gray-700">
+                    탈퇴 시 내가 만든 프로젝트와 작성 데이터가 삭제됩니다.
+                  </p>
                   <button
                     type="button"
                     onClick={() => setShowWithdrawModal(true)}
-                    className="shrink-0 rounded-lg border border-red-500 bg-white px-4 py-2 text-xs font-medium text-red-500 transition hover:bg-red-50"
+                    className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     탈퇴하기
                   </button>
@@ -314,10 +312,16 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             <div className="inline-flex items-center justify-end self-stretch overflow-hidden">
               <button
                 type="button"
-                onClick={handleCloseSettings}
-                className="flex items-center justify-center overflow-hidden rounded-lg bg-gray-100 px-5 py-3 transition hover:bg-gray-200"
+                onClick={handleSaveProfile}
+                disabled={!canSaveProfile}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border px-5 py-3 disabled:cursor-not-allowed disabled:opacity-100",
+                  PRESSABLE_BUTTON_STATE_CLASS,
+                  PRESSABLE_RECT_BUTTON_STATE_CLASS,
+                  "disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600",
+                )}
               >
-                <div className="text-Gray-7 justify-start font-['Pretendard'] text-xs leading-4 font-medium">
+                <div className="text-[13px] leading-[18px] font-medium">
                   저장
                 </div>
               </button>
@@ -325,6 +329,13 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
           )}
         </div>
       </div>
+
+      {showSaveToast && (
+        <SuccessToast
+          message="프로필이 저장되었습니다"
+          className="absolute bottom-[40px] left-1/2 z-10 -translate-x-1/2"
+        />
+      )}
     </div>
   );
 
@@ -342,7 +353,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                   지현구
                 </span>
                 <span className="truncate text-xs leading-[15px] font-normal text-[#7D889C]">
-                  alexjoe85@gmail.com
+                  alexjee85@gmail.com
                 </span>
               </div>
             </div>
@@ -386,10 +397,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
             <button
               type="button"
-              onClick={() => {
-                onClose?.();
-                onLogoutClick?.();
-              }}
+              onClick={() => setShowLogoutModal(true)}
               className="flex w-full cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm leading-[22px] font-normal text-[#DC3E26] transition-colors hover:bg-[#F4F2FF]"
             >
               <LogoutIcon
