@@ -1,5 +1,5 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
 import type { ApiResponse } from "../../../shared/api/types";
 
 // 서버의 섹션 상태 값. 프론트 목 데이터의 WorkspaceSectionStatus와 별개로 관리한다.
@@ -35,20 +35,5 @@ export const confirmSection = async (
  * 확정 조건 미충족(C003)인 경우 errors[]의 사유를 우선 사용한다.
  */
 export const getConfirmSectionErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return CONFIRM_SECTION_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? CONFIRM_SECTION_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, CONFIRM_SECTION_FALLBACK_MESSAGE);
 };

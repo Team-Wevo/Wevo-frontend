@@ -7,7 +7,7 @@ import {
   saveOAuthState,
   type OAuthProvider,
 } from "../../auth/constants/oauth";
-import { clearAuthTokens } from "../../auth/utils/tokenStorage";
+import { clearAuthTokens, getAccessToken } from "../../auth/utils/tokenStorage";
 
 interface UseOnboardingAuthOptions {
   initialIsLoggedIn?: boolean;
@@ -19,7 +19,7 @@ const useOnboardingAuth = ({
   const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     return Boolean(token) || initialIsLoggedIn;
   });
 

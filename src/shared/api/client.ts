@@ -1,91 +1,81 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  saveAuthTokens,
+  type AuthTokens,
+} from "./tokenStorage";
+import type { ApiResponse } from "./types";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 const resolvedBaseUrl =
   configuredBaseUrl || (import.meta.env.DEV ? "" : "https://api.wevo.kr");
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
-const LOGIN_PATH = "/api/auth/login";
-const REISSUE_PATH = "/api/auth/reissue";
+export const apiClient = axios.create({
+  baseURL: resolvedBaseUrl,
+});
 
-interface RetryableRequestConfig {
+const tokenClient = axios.create({
+  baseURL: resolvedBaseUrl,
+});
+
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-interface ReissueResponse {
-  success: boolean;
-  data?: {
-    accessToken?: string;
-    refreshToken?: string;
-  };
-}
+let tokenRefreshRequest: Promise<AuthTokens> | null = null;
 
-let isReissuing = false;
-let pendingRequests: Array<(newToken: string | null) => void> = [];
-
-const clearPendingRequests = (newToken: string | null) => {
-  pendingRequests.forEach((callback) => callback(newToken));
-  pendingRequests = [];
-};
-
-const clearAuthTokens = () => {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-};
-
-const redirectToLogin = () => {
-  window.location.replace("/");
-};
-
-const isAuthRefreshExcludedRequest = (url?: string) => {
-  if (!url) {
-    return false;
-  }
-
-  return url.includes(LOGIN_PATH) || url.includes(REISSUE_PATH);
-};
-
-const requestTokenReissue = async () => {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+const requestNewTokens = async () => {
+  const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
-    return null;
+    throw new Error("Refresh Token이 없습니다.");
   }
 
-  const response = await axios.post<ReissueResponse>(
-    REISSUE_PATH,
+  const response = await tokenClient.post<ApiResponse<AuthTokens>>(
+    "/api/auth/reissue",
     { refreshToken },
-    {
-      baseURL: resolvedBaseUrl,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
   );
 
-  const nextAccessToken = response.data.data?.accessToken;
-  const nextRefreshToken = response.data.data?.refreshToken;
-
-  if (!nextAccessToken || !nextRefreshToken) {
-    return null;
+  if (!response.data.success) {
+    throw new Error(response.data.message);
   }
 
-  localStorage.setItem(ACCESS_TOKEN_KEY, nextAccessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken);
-
-  return nextAccessToken;
+  saveAuthTokens(response.data.data);
+  return response.data.data;
 };
 
-export const apiClient = axios.create({
-  baseURL: resolvedBaseUrl,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const refreshTokens = () => {
+  tokenRefreshRequest ??= requestNewTokens().finally(() => {
+    tokenRefreshRequest = null;
+  });
+
+  return tokenRefreshRequest;
+};
+
+const isAuthRequest = (url: string | undefined) =>
+  ["/api/auth/login", "/api/auth/logout", "/api/auth/reissue"].some((path) =>
+    url?.endsWith(path),
+  );
+
+const redirectToLogin = () => {
+  if (window.location.pathname !== "/") {
+    window.location.replace("/");
+  }
+};
+
+const clearSession = (shouldRedirect: boolean) => {
+  clearAuthTokens();
+
+  if (shouldRedirect) {
+    redirectToLogin();
+  }
+};
 
 apiClient.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  const accessToken = getAccessToken();
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -96,72 +86,34 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config as RetryableRequestConfig & {
-      headers?: Record<string, string>;
-      url?: string;
-    };
-
-    if (error.response?.status !== 401 || !originalRequest) {
+  async (error: unknown) => {
+    if (!isAxiosError(error) || error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
-    if (isAuthRefreshExcludedRequest(originalRequest.url)) {
-      return Promise.reject(error);
-    }
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
+    const isLogoutRequest = originalRequest?.url?.endsWith("/api/auth/logout");
 
-    if (originalRequest._retry) {
-      clearAuthTokens();
-      redirectToLogin();
+    if (
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthRequest(originalRequest.url) ||
+      !getRefreshToken()
+    ) {
+      clearSession(!isAuthRequest(originalRequest?.url) && !isLogoutRequest);
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
-    if (isReissuing) {
-      return new Promise((resolve, reject) => {
-        pendingRequests.push((newToken) => {
-          if (!newToken) {
-            reject(error);
-            return;
-          }
-
-          originalRequest.headers = {
-            ...originalRequest.headers,
-            Authorization: `Bearer ${newToken}`,
-          };
-
-          resolve(apiClient(originalRequest));
-        });
-      });
-    }
-
-    isReissuing = true;
-
     try {
-      const newToken = await requestTokenReissue();
-
-      if (!newToken) {
-        clearPendingRequests(null);
-        clearAuthTokens();
-        redirectToLogin();
-        return Promise.reject(error);
-      }
-
-      clearPendingRequests(newToken);
-      originalRequest.headers = {
-        ...originalRequest.headers,
-        Authorization: `Bearer ${newToken}`,
-      };
+      const { accessToken } = await refreshTokens();
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       return apiClient(originalRequest);
     } catch {
-      clearPendingRequests(null);
-      clearAuthTokens();
-      redirectToLogin();
+      clearSession(true);
       return Promise.reject(error);
-    } finally {
-      isReissuing = false;
     }
   },
 );

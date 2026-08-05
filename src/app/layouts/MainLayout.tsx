@@ -1,10 +1,11 @@
 import { Outlet } from "react-router-dom";
-import { OnBoardingSideBar } from "../../shared/components/OnBoardingSideBar";
-import useOnboardingAuth from "../../features/onboarding/hooks/useOnboardingAuth";
 import LoginModal from "../../features/onboarding/components/LoginModal";
+import useOnboardingAuth from "../../features/onboarding/hooks/useOnboardingAuth";
+import { getAccessToken } from "../../shared/api/tokenStorage";
+import { OnBoardingSideBar } from "../../shared/components/OnBoardingSideBar";
 
 const MainLayout = () => {
-  const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
+  const isLoggedIn = Boolean(getAccessToken());
   const {
     isLoggedIn: authLoggedIn,
     isLoginModalOpen,
