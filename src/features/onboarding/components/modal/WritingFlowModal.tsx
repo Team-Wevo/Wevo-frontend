@@ -3,6 +3,7 @@ import { useEffect } from "react";
 interface WritingFlowModalProps {
   isOpen: boolean;
   documentType: "proposal" | "presentation";
+  isStarting: boolean;
   onClose: () => void;
   onStart: () => void;
 }
@@ -24,6 +25,7 @@ const documentTypeLabel: Record<"proposal" | "presentation", string> = {
 const WritingFlowModal = ({
   isOpen,
   documentType,
+  isStarting,
   onClose,
   onStart,
 }: WritingFlowModalProps) => {
@@ -130,9 +132,10 @@ const WritingFlowModal = ({
         <button
           type="button"
           onClick={onStart}
+          disabled={isStarting}
           className="bg-main-600 hover:bg-main-700 flex-1 cursor-pointer rounded-md px-5 py-3 text-xs leading-4 font-medium text-gray-50 transition-colors"
         >
-          <span>이 흐름으로 시작</span>
+          <span>{isStarting ? "생성 중..." : "이 흐름으로 시작"}</span>
           <span className="ml-1">→</span>
         </button>
       </div>
