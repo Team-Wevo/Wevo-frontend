@@ -16,6 +16,7 @@ interface ProjectCardProps {
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
+  onOpen?: () => void;
 }
 
 const CATEGORY_CONFIG = {
@@ -48,30 +49,34 @@ export const ProjectCard = ({
   isSelectionMode = false,
   isSelected = false,
   onToggleSelect,
+  onOpen,
 }: ProjectCardProps) => {
   const categoryConfig = CATEGORY_CONFIG[category];
   const CategoryIcon = categoryConfig.icon;
   const isHoverable = isSelectionMode && !isSelected;
+  const handleActivate = isSelectionMode ? onToggleSelect : onOpen;
+  const isClickable = Boolean(handleActivate);
 
   return (
     <div
-      onClick={isSelectionMode ? onToggleSelect : undefined}
+      onClick={handleActivate}
       onKeyDown={
-        isSelectionMode
+        isClickable
           ? (event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onToggleSelect?.();
+                handleActivate?.();
               }
             }
           : undefined
       }
-      role={isSelectionMode ? "button" : undefined}
-      tabIndex={isSelectionMode ? 0 : undefined}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
       aria-pressed={isSelectionMode ? isSelected : undefined}
       className={cn(
         "flex w-full flex-col overflow-hidden rounded-xl border bg-gray-50 transition-colors",
-        isSelectionMode && "group cursor-pointer",
+        isClickable && "cursor-pointer",
+        isSelectionMode && "group",
         isSelected ? "border-main-600" : "border-gray-400",
       )}
     >
