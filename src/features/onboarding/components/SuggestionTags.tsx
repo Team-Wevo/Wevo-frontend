@@ -1,12 +1,11 @@
 import type { ComponentType } from "react";
 import {
-  FreeTopicIcon,
   PresentationOutlineIcon,
   ProposalIcon,
 } from "@/shared/components/icons";
 import SuggestionTagButton from "./SuggestionTagButton";
 
-type DocumentType = "proposal" | "presentation" | "free";
+type DocumentType = "proposal" | "presentation";
 
 interface Suggestion {
   documentType: DocumentType;
@@ -26,11 +25,6 @@ const suggestions: Suggestion[] = [
     documentType: "presentation",
     icon: PresentationOutlineIcon,
     label: "발표 구성안",
-  },
-  {
-    documentType: "free",
-    icon: FreeTopicIcon,
-    label: "자유 주제",
   },
 ];
 

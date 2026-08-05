@@ -6,7 +6,7 @@ import CreateFlowModal from "./modal/CreateFlowModal";
 const MainContent = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocumentType, setSelectedDocumentType] = useState<
-    "proposal" | "presentation" | "free" | null
+    "proposal" | "presentation" | null
   >(null);
   const [ideaFromPromptInput, setIdeaFromPromptInput] = useState("");
   const [modalOpenKey, setModalOpenKey] = useState(0);

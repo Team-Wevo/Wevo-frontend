@@ -1,14 +1,13 @@
 import Chip from "./Chip";
 
 interface DocumentTypeSectionProps {
-  value: "proposal" | "presentation" | "free" | null;
-  onChange: (value: "proposal" | "presentation" | "free" | null) => void;
+  value: "proposal" | "presentation" | null;
+  onChange: (value: "proposal" | "presentation" | null) => void;
 }
 
 const documentOptions = [
   { value: "proposal", label: "제안서" },
   { value: "presentation", label: "발표 구성안" },
-  { value: "free", label: "자유주제" },
 ] as const;
 
 const DocumentTypeSection = ({ value, onChange }: DocumentTypeSectionProps) => {

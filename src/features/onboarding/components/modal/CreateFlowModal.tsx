@@ -1,8 +1,12 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  createProject,
+  getCreateProjectErrorMessage,
+  type ProjectResultType,
+} from "../../../project/api/projects";
 import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
-import { createWorkspaceBoard } from "../../api/createWorkspaceBoard";
 import AudienceSection from "./AudienceSection";
 import CreatingWorkspaceModal from "./CreatingWorkspaceModal";
 import DocumentTypeSection from "./DocumentTypeSection";
@@ -14,10 +18,25 @@ const WORKSPACE_NAVIGATION_DELAY_MS = 2000;
 
 interface CreateFlowModalProps {
   isOpen: boolean;
-  initialDocumentType: "proposal" | "presentation" | "free" | null;
+  initialDocumentType: "proposal" | "presentation" | null;
   initialIdea: string;
   onClose: () => void;
 }
+
+const RESULT_TYPE_BY_DOCUMENT_TYPE: Record<
+  "proposal" | "presentation",
+  ProjectResultType
+> = {
+  proposal: "PROPOSAL",
+  presentation: "PRESENTATION",
+};
+
+const AUDIENCE_TEXT_BY_TYPE: Record<"judge" | "professor" | "member", string> =
+  {
+    judge: "심사위원",
+    professor: "교수",
+    member: "팀원",
+  };
 
 const CreateFlowModal = ({
   isOpen,
@@ -29,7 +48,7 @@ const CreateFlowModal = ({
   const [idea, setIdea] = useState(initialIdea);
   const [isEditingIdea, setIsEditingIdea] = useState(true);
   const [documentType, setDocumentType] = useState<
-    "proposal" | "presentation" | "free" | null
+    "proposal" | "presentation" | null
   >(initialDocumentType);
   const [audience, setAudience] = useState<
     "judge" | "professor" | "member" | "custom" | null
@@ -37,6 +56,7 @@ const CreateFlowModal = ({
   const [customAudience, setCustomAudience] = useState("");
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -75,23 +95,30 @@ const CreateFlowModal = ({
       return;
     }
 
+    const audienceText =
+      audience === "custom"
+        ? customAudience.trim()
+        : AUDIENCE_TEXT_BY_TYPE[audience];
+
     setIsFlowModalOpen(false);
     setIsCreatingWorkspace(true);
+    setErrorMessage(null);
 
     try {
-      const result = await createWorkspaceBoard({
-        idea: idea.trim(),
-        documentType,
-        audience,
-        customAudience: audience === "custom" ? customAudience.trim() : "",
+      const result = await createProject({
+        title: "",
+        ideaText: idea.trim(),
+        resultType: RESULT_TYPE_BY_DOCUMENT_TYPE[documentType],
+        audience: audienceText,
       });
 
       await new Promise((resolve) => {
         setTimeout(resolve, WORKSPACE_NAVIGATION_DELAY_MS);
       });
 
-      navigate(`/workspace/${result.projectId}/sections/1`);
-    } catch {
+      navigate(`/workspace/${result.data.projectId}/sections/1`);
+    } catch (error) {
+      setErrorMessage(getCreateProjectErrorMessage(error));
       setIsCreatingWorkspace(false);
       setIsFlowModalOpen(true);
     }
@@ -151,8 +178,17 @@ const CreateFlowModal = ({
 
             <FooterButton
               disabled={!isReady}
-              onClick={() => setIsFlowModalOpen(true)}
+              onClick={() => {
+                setErrorMessage(null);
+                setIsFlowModalOpen(true);
+              }}
             />
+
+            {errorMessage && (
+              <p className="text-xs leading-5 font-medium text-red-600">
+                {errorMessage}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -162,6 +198,7 @@ const CreateFlowModal = ({
         <WritingFlowModal
           isOpen={isFlowModalOpen}
           documentType={documentType}
+          isStarting={isCreatingWorkspace}
           onClose={() => setIsFlowModalOpen(false)}
           onStart={handleStartWorkspaceFlow}
         />
