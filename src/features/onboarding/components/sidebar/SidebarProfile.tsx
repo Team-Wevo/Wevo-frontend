@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import ProfilePopup from "./ProfilePopup";
+import ProfilePopup from "../ProfilePopup";
 
 interface SidebarProfileProps {
   onLogoutClick?: () => void;
@@ -11,6 +11,11 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-profile-popup="true"]')) {
+        return;
+      }
+
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)

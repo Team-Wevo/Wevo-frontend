@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { useEffect } from "react";
 
 type TabType = "profile" | "general";
 
@@ -21,8 +20,6 @@ export const SettingsModal = ({
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
 
-  // ❌ 에러를 일으키던 첫 번째 useEffect는 제거했습니다!
-
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -39,11 +36,14 @@ export const SettingsModal = ({
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/15 px-4 py-6 backdrop-blur-[2px]"
-      onClick={onClose}
+      role="presentation"
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
     >
       <div
         className="relative flex h-[500px] w-full max-w-[800px] overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
