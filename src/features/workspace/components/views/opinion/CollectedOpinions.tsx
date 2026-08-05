@@ -1,47 +1,52 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
+import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
 import CloseCollectionModal from "./CloseCollectionModal";
+import {
+  closeOpinionGate,
+  getCloseOpinionGateErrorMessage,
+} from "../../../api/closeOpinionGate";
+import type { SectionOpinion } from "../../../api/getSectionOpinions";
 
-interface CollectedOpinion {
-  id: string;
-  name: string;
-  avatarColor: string;
-  content: string;
-}
-
-// TODO: 실제 의견 제출 API 연동 후 서버에서 받아온 목록으로 교체
-const MOCK_OPINIONS: CollectedOpinion[] = [
-  {
-    id: "1",
-    name: "지현구",
-    avatarColor: "bg-main-500",
-    content:
-      "장학금 정보가 여러 사이트에 흩어져 있어서 찾는 데 시간이 오래 걸려요. 한곳에서 모아보면 좋겠어요.",
-  },
-  {
-    id: "2",
-    name: "수빈",
-    avatarColor: "bg-blue-500",
-    content:
-      "공고마다 지원 자격이 달라서 매번 비교하는 게 번거로워요. 자격에 맞는 것만 보여주면 편할 것 같아요.",
-  },
-  {
-    id: "3",
-    name: "민수",
-    avatarColor: "bg-success",
-    content:
-      "관심 장학금 마감일을 놓치는 경우가 많아요. 마감을 미리 알려주는 기능이 있으면 좋겠어요.",
-  },
-];
+const AVATAR_COLORS = ["bg-main-500", "bg-blue-500", "bg-success"];
 
 interface CollectedOpinionsProps {
+  projectSectionId: number;
+  opinions: SectionOpinion[];
+  totalSubmittedCount: number;
   onEditOpinion: () => void;
 }
 
-const CollectedOpinions = ({ onEditOpinion }: CollectedOpinionsProps) => {
+const CollectedOpinions = ({
+  projectSectionId,
+  opinions,
+  totalSubmittedCount,
+  onEditOpinion,
+}: CollectedOpinionsProps) => {
+  const revalidator = useRevalidator();
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [closeErrorMessage, setCloseErrorMessage] = useState<string | null>(
+    null,
+  );
+
+  const handleConfirmClose = async () => {
+    setIsClosing(true);
+    setCloseErrorMessage(null);
+
+    try {
+      await closeOpinionGate(projectSectionId);
+      setIsCloseConfirmOpen(false);
+      // 마감 성공 시 loader를 다시 실행해 섹션 상태(SYNTHESIZING)를 반영한다.
+      await revalidator.revalidate();
+    } catch (error) {
+      setCloseErrorMessage(getCloseOpinionGateErrorMessage(error));
+    } finally {
+      setIsClosing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,11 +73,11 @@ const CollectedOpinions = ({ onEditOpinion }: CollectedOpinionsProps) => {
       </div>
 
       <h2 className="text-[14px] font-medium text-gray-900">
-        모인 의견 {MOCK_OPINIONS.length}개
+        모인 의견 {totalSubmittedCount}개
       </h2>
 
       <div className="flex flex-col gap-3">
-        {MOCK_OPINIONS.map((opinion) => (
+        {opinions.map((opinion, index) => (
           <div
             key={opinion.id}
             className="flex flex-col gap-2 rounded-[12px] border border-gray-400 bg-gray-50 p-4"
@@ -81,13 +86,13 @@ const CollectedOpinions = ({ onEditOpinion }: CollectedOpinionsProps) => {
               <span
                 className={cn(
                   "flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-gray-50",
-                  opinion.avatarColor,
+                  AVATAR_COLORS[index % AVATAR_COLORS.length],
                 )}
               >
-                {opinion.name[0]}
+                {opinion.author.name[0]}
               </span>
               <span className="text-[13px] font-medium text-gray-700">
-                {opinion.name}
+                {opinion.author.name}
               </span>
             </div>
             <p className="text-[16px] text-gray-900">{opinion.content}</p>
@@ -103,24 +108,27 @@ const CollectedOpinions = ({ onEditOpinion }: CollectedOpinionsProps) => {
       <div className="flex items-center justify-between">
         {/* TODO: 알림 발송 API 연동 */}
         <Button type="outline">예진에게 알림</Button>
-        <Button
-          type="outline"
-          className="h-11 text-[18px] leading-[28px] font-semibold"
-          onClick={() => setIsCloseConfirmOpen(true)}
-        >
-          <Sparkles className="h-4 w-4" />
-          현재 의견으로 AI 정리 시작
-        </Button>
+        <div className="flex items-center gap-3">
+          {closeErrorMessage && (
+            <span className="text-error text-xs">{closeErrorMessage}</span>
+          )}
+          <Button
+            type="outline"
+            className="h-11 text-[18px] leading-[28px] font-semibold"
+            onClick={() => setIsCloseConfirmOpen(true)}
+          >
+            <Sparkles className="h-4 w-4" />
+            현재 의견으로 AI 정리 시작
+          </Button>
+        </div>
       </div>
 
       {isCloseConfirmOpen && (
         <CloseCollectionModal
-          opinionCount={MOCK_OPINIONS.length}
+          opinionCount={totalSubmittedCount}
+          isClosing={isClosing}
           onCancel={() => setIsCloseConfirmOpen(false)}
-          onConfirm={() => {
-            // TODO: AI 정리 시작 API/라우팅 연동
-            setIsCloseConfirmOpen(false);
-          }}
+          onConfirm={handleConfirmClose}
         />
       )}
     </div>

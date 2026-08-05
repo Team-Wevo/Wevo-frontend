@@ -1,15 +1,27 @@
 import { useState } from "react";
+import { useRevalidator } from "react-router-dom";
 import SectionBlock from "../blocks/SectionBlock";
 import CollectedOpinions from "./opinion/CollectedOpinions";
 import OpinionForm from "./opinion/OpinionForm";
 import type { WorkspaceSection } from "../../constants/sections";
+import type { SectionOpinionsResponse } from "../../api/getSectionOpinions";
 
 interface OpinionViewProps {
   section: WorkspaceSection;
+  opinions: SectionOpinionsResponse | null;
 }
 
-const OpinionView = ({ section }: OpinionViewProps) => {
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+const OpinionView = ({ section, opinions }: OpinionViewProps) => {
+  const revalidator = useRevalidator();
+  const [isEditingOwnOpinion, setIsEditingOwnOpinion] = useState(false);
+
+  const handleOpinionSubmitted = () => {
+    setIsEditingOwnOpinion(false);
+    // 제출 성공 시 loader를 다시 실행해 최신 의견 목록을 반영한다.
+    revalidator.revalidate();
+  };
+
+  const showForm = !opinions?.everSubmitted || isEditingOwnOpinion;
 
   return (
     <div
@@ -29,10 +41,18 @@ const OpinionView = ({ section }: OpinionViewProps) => {
         </ul>
       </SectionBlock>
 
-      {hasSubmitted ? (
-        <CollectedOpinions onEditOpinion={() => setHasSubmitted(false)} />
+      {showForm ? (
+        <OpinionForm
+          projectSectionId={section.projectSectionId}
+          onSubmit={handleOpinionSubmitted}
+        />
       ) : (
-        <OpinionForm onSubmit={() => setHasSubmitted(true)} />
+        <CollectedOpinions
+          projectSectionId={section.projectSectionId}
+          opinions={opinions?.opinions ?? []}
+          totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
+          onEditOpinion={() => setIsEditingOwnOpinion(true)}
+        />
       )}
     </div>
   );

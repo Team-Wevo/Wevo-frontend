@@ -45,9 +45,10 @@ export const getConfirmSectionErrorMessage = (error: unknown): string => {
   const reasons =
     errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
 
-  if (reasons.length > 0) {
-    return reasons.join(" ");
-  }
+  const text =
+    reasons.length > 0
+      ? reasons.join(" ")
+      : (errorResponse?.message ?? CONFIRM_SECTION_FALLBACK_MESSAGE);
 
-  return errorResponse?.message ?? CONFIRM_SECTION_FALLBACK_MESSAGE;
+  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
 };
