@@ -1,7 +1,13 @@
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
 import { cn } from "../../../../shared/utils/cn";
 import SectionBlock from "../blocks/SectionBlock";
+import {
+  confirmSection,
+  getConfirmSectionErrorMessage,
+} from "../../api/confirmSection";
 import type { WorkspaceSection } from "../../constants/sections";
 
 type SectionReviewStatus = "AGREED" | "CHANGES_REQUESTED" | "PENDING";
@@ -63,10 +69,33 @@ interface ReviewViewProps {
 }
 
 const ReviewView = ({ section }: ReviewViewProps) => {
+  const revalidator = useRevalidator();
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmErrorMessage, setConfirmErrorMessage] = useState<string | null>(
+    null,
+  );
+
   const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
   const isChangeRequestUnresolved =
     hasUnresolvedChangeRequest(SECTION_REVIEWERS);
+  // TODO: 서버는 확정 상태를 CONFIRMED로 내려주므로 목 데이터 제거 시 함께 수정
   const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
+
+  const handleConfirmSection = async () => {
+    setIsConfirming(true);
+    setConfirmErrorMessage(null);
+
+    try {
+      await confirmSection(section.projectSectionId);
+      // 확정 성공 시 loader를 다시 실행해 갱신된 섹션 상태를 반영한다.
+      // 재검증이 끝날 때까지 기다려야 버튼이 다시 열려 중복 확정 요청이 나가지 않는다.
+      await revalidator.revalidate();
+    } catch (error) {
+      setConfirmErrorMessage(getConfirmSectionErrorMessage(error));
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   return (
     <>
@@ -199,18 +228,24 @@ const ReviewView = ({ section }: ReviewViewProps) => {
 
           {IS_TEAM_LEADER ? (
             <div className="flex w-full items-end justify-between">
-              {isChangeRequestUnresolved && (
-                <div className="text-xs leading-4 font-normal text-gray-600">
-                  미해결 수정 요청이 있어요. 해결하면 섹션을 확정할 수 있어요.
+              {confirmErrorMessage ? (
+                <div className="text-error text-xs leading-4 font-normal">
+                  {confirmErrorMessage}
                 </div>
+              ) : (
+                isChangeRequestUnresolved && (
+                  <div className="text-xs leading-4 font-normal text-gray-600">
+                    미해결 수정 요청이 있어요. 해결하면 섹션을 확정할 수 있어요.
+                  </div>
+                )
               )}
-              {/* TODO: 섹션 확정 API 연동 후 sectionStatus를 CONFIRMED로 갱신 */}
               <Button
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"
-                disabled={isChangeRequestUnresolved}
+                onClick={handleConfirmSection}
+                disabled={isConfirming}
               >
-                섹션 확정
+                {isConfirming ? "확정 중..." : "섹션 확정"}
               </Button>
             </div>
           ) : (
