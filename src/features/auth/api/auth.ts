@@ -30,3 +30,16 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 
   return response.data;
 };
+
+export const reissueAuthToken = async (
+  refreshToken: string,
+): Promise<ApiResponse<AuthTokens>> => {
+  const response = await apiClient.post<ApiResponse<AuthTokens>>(
+    "/api/auth/reissue",
+    {
+      refreshToken,
+    },
+  );
+
+  return response.data;
+};
