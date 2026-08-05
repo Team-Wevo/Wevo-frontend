@@ -2,7 +2,9 @@
 
 ## 공통 사용법
 
-- 모든 JSON API 요청은 `apiClient`를 사용한다.
+- 일반 JSON API 요청은 `apiClient`를 사용한다. 단, 401 자동 재발급 과정의
+  `/api/auth/reissue` 요청은 인터셉터 재진입을 막기 위해 내부 `tokenClient`를
+  사용한다.
 - 서버 응답은 `ApiResponse<T>`로 선언한다.
 - 기능 API 함수는 `unwrapApiResponse`로 검증한 도메인 데이터만 반환한다.
 - 서버 오류 문구는 `getApiErrorMessage`로 추출한다.

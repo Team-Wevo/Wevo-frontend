@@ -18,14 +18,12 @@ import {
 
 const getErrorMessage = (error: unknown) => {
   const response = getApiErrorResponse(error);
+  const message = getApiErrorMessage(
+    error,
+    "로그인 처리 중 오류가 발생했습니다.",
+  );
 
-  if (response) {
-    return response.code
-      ? `[${response.code}] ${response.message}`
-      : response.message;
-  }
-
-  return getApiErrorMessage(error, "로그인 처리 중 오류가 발생했습니다.");
+  return response?.code ? `[${response.code}] ${message}` : message;
 };
 
 const getOAuthRequestKey = (provider: OAuthProvider, code: string) => {
