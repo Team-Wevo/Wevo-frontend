@@ -7,6 +7,7 @@ import FlowPreviewModal, {
   type FlowPreviewSection,
 } from "../../features/workspace/components/layout/FlowPreviewModal";
 import WorkspaceLeftSidebar from "../../features/workspace/components/layout/WorkspaceLeftSidebar";
+import WorkspaceOnboarding from "../../features/workspace/components/onboarding/WorkspaceOnboarding";
 import WorkspacePhaseStepper from "../../features/workspace/components/layout/WorkspacePhaseStepper";
 import WorkspaceRightSidebar, {
   type ProjectInfoItem,
@@ -59,6 +60,8 @@ const WorkspaceLayout = ({
   const navigate = useNavigate();
   const [isFlowPreviewOpen, setIsFlowPreviewOpen] = useState(false);
   const activeSection = progress[activeStepId - 1];
+  // TODO: 로그인/API 연동 후 "다시 보지 않기" 서버 저장으로 교체. 지금은 매번 노출.
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const documentTypeLabel =
     DEFAULT_PROJECT_INFO.find((item) => item.label === "결과물 유형")?.value ??
     "제안서";
@@ -84,27 +87,26 @@ const WorkspaceLayout = ({
           projectId={projectId}
         />
 
-        <div className="flex flex-1 flex-col bg-gray-100 px-12 py-8">
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
           <div
-            className="min-h-0 flex-1 overflow-y-auto"
-            data-workspace-scroll-container="true"
+            data-onboarding-highlight="opinion-box"
+            className="flex flex-col gap-6"
           >
-            <div className="flex flex-col gap-6">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {activeStepId}. {activeSection?.section}
-              </h1>
-              <WorkspacePhaseStepper
-                currentStatus={activeSection?.status ?? "시작 전"}
-              />
-            </div>
-
-            <div className="mt-6">{children}</div>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {activeStepId}. {activeSection?.section}
+            </h1>
+            <WorkspacePhaseStepper
+              currentStatus={activeSection?.status ?? "시작 전"}
+            />
+            {children}
           </div>
         </div>
 
         <WorkspaceRightSidebar projectInfo={DEFAULT_PROJECT_INFO} />
       </div>
 
+      {showOnboarding && (
+        <WorkspaceOnboarding onFinish={() => setShowOnboarding(false)} />
       {isFlowPreviewOpen && (
         <FlowPreviewModal
           documentTitle={title}
