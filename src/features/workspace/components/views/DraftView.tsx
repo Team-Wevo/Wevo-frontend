@@ -1,4 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react";
+import { useRevalidator } from "react-router-dom";
 import AiDraftProgressCard from "../blocks/AiDraftProgressCard";
 import DraftDebugStageControls from "../draft/DraftDebugStageControls";
 import DraftEditedView from "../draft/DraftEditedView";
@@ -13,6 +14,10 @@ import type {
   DebugDraftStage,
 } from "../draft/types";
 import type { WorkspaceSection } from "../../constants/sections";
+import {
+  requestReview,
+  getRequestReviewErrorMessage,
+} from "../../api/requestReview";
 
 interface DraftViewProps {
   section: WorkspaceSection;
@@ -30,8 +35,12 @@ const DRAFT_STAGE_VIEW_COMPONENTS: Record<
 };
 
 const DraftView = ({ section }: DraftViewProps) => {
+  const revalidator = useRevalidator();
   const [debugStage, setDebugStage] =
     useState<DebugDraftStage>("opinion-analyzing");
+  const [isMovingToReviewRequest, setIsMovingToReviewRequest] = useState(false);
+  const [moveToReviewRequestErrorMessage, setMoveToReviewRequestErrorMessage] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const scrollContainer = document.querySelector<HTMLElement>(
@@ -61,8 +70,19 @@ const DraftView = ({ section }: DraftViewProps) => {
     setDebugStage("edited");
   };
 
-  const handleMoveToReviewRequest = () => {
-    // TODO: section 단계 이동 규칙 확정 후 검토·확정 이동 연결
+  const handleMoveToReviewRequest = async () => {
+    setIsMovingToReviewRequest(true);
+    setMoveToReviewRequestErrorMessage(null);
+
+    try {
+      await requestReview(section.projectSectionId);
+      // 검토 요청 성공 시 loader를 다시 실행해 섹션 상태(REVIEWING)를 반영한다.
+      await revalidator.revalidate();
+    } catch (error) {
+      setMoveToReviewRequestErrorMessage(getRequestReviewErrorMessage(error));
+    } finally {
+      setIsMovingToReviewRequest(false);
+    }
   };
 
   const isOpinionAnalyzingStage = debugStage === "opinion-analyzing";
@@ -97,6 +117,8 @@ const DraftView = ({ section }: DraftViewProps) => {
               onRequestReadabilityCheck={handleRequestReadabilityCheck}
               onFinishEditing={handleFinishEditing}
               onMoveToReviewRequest={handleMoveToReviewRequest}
+              isMovingToReviewRequest={isMovingToReviewRequest}
+              moveToReviewRequestErrorMessage={moveToReviewRequestErrorMessage}
             />
           );
         })()

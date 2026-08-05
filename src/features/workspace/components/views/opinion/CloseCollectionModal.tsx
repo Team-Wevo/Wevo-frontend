@@ -3,19 +3,21 @@ import { Button } from "../../../../../shared/components/Button";
 
 interface CloseCollectionModalProps {
   opinionCount: number;
+  isClosing?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
 
 const CloseCollectionModal = ({
   opinionCount,
+  isClosing = false,
   onCancel,
   onConfirm,
 }: CloseCollectionModalProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onCancel}
+      onClick={isClosing ? undefined : onCancel}
     >
       <div
         className="flex w-110 flex-col gap-5 overflow-hidden rounded-[16px] bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
@@ -37,6 +39,7 @@ const CloseCollectionModal = ({
           <Button
             type="transparent"
             onClick={onCancel}
+            disabled={isClosing}
             className="text-xs leading-4 font-medium"
           >
             조금 더 기다리기
@@ -44,10 +47,11 @@ const CloseCollectionModal = ({
           <Button
             type="main"
             onClick={onConfirm}
+            disabled={isClosing}
             className="text-xs leading-4 font-medium"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            마감하고 AI 정리 시작
+            {isClosing ? "마감 중..." : "마감하고 AI 정리 시작"}
           </Button>
         </div>
       </div>

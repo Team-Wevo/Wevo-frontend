@@ -9,6 +9,8 @@ const DraftReviewableView = ({
   onOpenEvidence,
   onRequestReadabilityCheck,
   onMoveToReviewRequest,
+  isMovingToReviewRequest,
+  moveToReviewRequestErrorMessage,
 }: DraftStageViewProps) => {
   const preReviewData = state.preReview ?? {
     perspectiveLabel: "처음 읽는 사람 관점",
@@ -37,13 +39,19 @@ const DraftReviewableView = ({
         onCreateRevision={handleCreateRevision}
       />
 
-      <div className="flex w-full justify-end">
+      <div className="flex w-full items-center justify-end gap-3">
+        {moveToReviewRequestErrorMessage && (
+          <span className="text-error text-xs">
+            {moveToReviewRequestErrorMessage}
+          </span>
+        )}
         <Button
           type="main"
           onClick={onMoveToReviewRequest}
+          disabled={isMovingToReviewRequest}
           className="h-10 rounded-sm px-4 py-2 text-sm leading-7"
         >
-          검토 요청으로 이동 →
+          {isMovingToReviewRequest ? "이동 중..." : "검토 요청으로 이동 →"}
         </Button>
       </div>
     </>

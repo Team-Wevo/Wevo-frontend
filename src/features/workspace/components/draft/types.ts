@@ -72,4 +72,6 @@ export interface DraftStageViewProps {
   onRequestReadabilityCheck: () => void;
   onFinishEditing?: () => void;
   onMoveToReviewRequest?: () => void;
+  isMovingToReviewRequest?: boolean;
+  moveToReviewRequestErrorMessage?: string | null;
 }
