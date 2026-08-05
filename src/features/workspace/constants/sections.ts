@@ -1,3 +1,9 @@
+import {
+  getCachedCreatedProject,
+  type CreateProjectSection,
+  type ProjectSectionStatus,
+} from "../../project/api/projects";
+
 export type WorkspaceSectionStatus =
   "COLLECTING" | "SYNTHESIZING" | "DRAFTING" | "REVIEWING" | "CONFIRMED";
 
@@ -22,6 +28,8 @@ export interface WorkspaceSection {
   orderNo: WorkspaceSectionNo;
   title: string;
   sectionStatus: WorkspaceSectionStatus;
+  keyQuestion?: string;
+  guide?: string;
 }
 
 // 여러 상태를 한 번에 확인해볼 수 있도록 섹션마다 다른 status를 채워둔 테스트용 기본값
@@ -72,6 +80,35 @@ const buildDefaultSections = (projectId: number): WorkspaceSection[] => {
   });
 };
 
+const toWorkspaceSectionStatus = (
+  status: ProjectSectionStatus,
+): WorkspaceSectionStatus => {
+  return status;
+};
+
+const mapCreatedProjectSections = (
+  sections: CreateProjectSection[],
+): WorkspaceSection[] => {
+  return sections
+    .map<WorkspaceSection | null>((section) => {
+      const sectionNo = toWorkspaceSectionNo(section.order);
+
+      if (!sectionNo) {
+        return null;
+      }
+
+      return {
+        projectSectionId: section.sectionId,
+        orderNo: sectionNo,
+        title: section.title || getWorkspaceSectionTitle(sectionNo),
+        sectionStatus: toWorkspaceSectionStatus(section.sectionStatus),
+        keyQuestion: section.keyQuestion,
+        guide: section.guide,
+      };
+    })
+    .filter((section): section is WorkspaceSection => Boolean(section));
+};
+
 const normalizeSections = (
   sections: WorkspaceSection[],
 ): WorkspaceSection[] => {
@@ -95,7 +132,12 @@ const normalizeSections = (
 export const getWorkspaceSectionsByProjectId = async (
   projectId: number,
 ): Promise<WorkspaceSection[]> => {
-  // TODO: 프로젝트 상세 API 연동 후 서버 sections를 normalizeSections로 정규화하세요.
+  const cachedProject = getCachedCreatedProject(projectId);
+
+  if (cachedProject && cachedProject.sections.length > 0) {
+    return normalizeSections(mapCreatedProjectSections(cachedProject.sections));
+  }
+
   const defaultSections = buildDefaultSections(projectId);
   return normalizeSections(defaultSections);
 };
