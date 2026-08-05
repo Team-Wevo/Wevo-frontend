@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { isAxiosError } from "axios";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loginWithOAuth } from "../../features/auth/api/auth";
 import {
@@ -12,24 +11,21 @@ import {
   clearAuthTokens,
   saveAuthTokens,
 } from "../../features/auth/utils/tokenStorage";
+import {
+  getApiErrorMessage,
+  getApiErrorResponse,
+} from "../../shared/api/error";
 
 const getErrorMessage = (error: unknown) => {
-  if (isAxiosError(error)) {
-    const responseData = error.response?.data as
-      { code?: string; message?: string } | undefined;
+  const response = getApiErrorResponse(error);
 
-    if (responseData?.message) {
-      return responseData.code
-        ? `[${responseData.code}] ${responseData.message}`
-        : responseData.message;
-    }
+  if (response) {
+    return response.code
+      ? `[${response.code}] ${response.message}`
+      : response.message;
   }
 
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return "로그인 처리 중 오류가 발생했습니다.";
+  return getApiErrorMessage(error, "로그인 처리 중 오류가 발생했습니다.");
 };
 
 const getOAuthRequestKey = (provider: OAuthProvider, code: string) => {
@@ -88,22 +84,16 @@ const OAuthCallbackPage = () => {
 
     const handleOAuthCallback = async (oauthProvider: OAuthProvider) => {
       try {
-        const response = await loginWithOAuth({
+        const tokens = await loginWithOAuth({
           provider: oauthProvider,
           code,
         });
 
-        if (
-          !response.success ||
-          !response.data?.accessToken ||
-          !response.data?.refreshToken
-        ) {
-          throw new Error(
-            response.message || "로그인 응답이 올바르지 않습니다.",
-          );
+        if (!tokens.accessToken || !tokens.refreshToken) {
+          throw new Error("로그인 응답이 올바르지 않습니다.");
         }
 
-        saveAuthTokens(response.data);
+        saveAuthTokens(tokens);
         sessionStorage.setItem(requestKey, "done");
         navigate("/home", { replace: true });
       } catch (error) {

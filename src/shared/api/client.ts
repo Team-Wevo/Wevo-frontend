@@ -7,6 +7,7 @@ import {
   saveAuthTokens,
   type AuthTokens,
 } from "./tokenStorage";
+import { unwrapApiResponse } from "./response";
 import type { ApiResponse } from "./types";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
@@ -39,12 +40,9 @@ const requestNewTokens = async () => {
     { refreshToken },
   );
 
-  if (!response.data.success) {
-    throw new Error(response.data.message);
-  }
-
-  saveAuthTokens(response.data.data);
-  return response.data.data;
+  const tokens = unwrapApiResponse(response.data);
+  saveAuthTokens(tokens);
+  return tokens;
 };
 
 const refreshTokens = () => {

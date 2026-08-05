@@ -1,5 +1,6 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 import type { WorkspaceSectionStatus } from "../constants/sections";
 
@@ -17,29 +18,16 @@ const REQUEST_REVIEW_FALLBACK_MESSAGE = "검토 요청에 실패했습니다.";
  */
 export const requestReview = async (
   sectionId: number,
-): Promise<ApiResponse<RequestReviewResponse>> => {
+): Promise<RequestReviewResponse> => {
   const response = await apiClient.post<ApiResponse<RequestReviewResponse>>(
     `/api/project-sections/${sectionId}/review-request`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 export const getRequestReviewErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return REQUEST_REVIEW_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? REQUEST_REVIEW_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, REQUEST_REVIEW_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };

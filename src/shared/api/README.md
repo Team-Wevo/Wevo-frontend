@@ -4,12 +4,18 @@
 
 - 모든 JSON API 요청은 `apiClient`를 사용한다.
 - 서버 응답은 `ApiResponse<T>`로 선언한다.
+- 기능 API 함수는 `unwrapApiResponse`로 검증한 도메인 데이터만 반환한다.
 - 서버 오류 문구는 `getApiErrorMessage`로 추출한다.
 - 서버 상태는 TanStack Query로 관리하고, 앱에 등록된 공통 `queryClient`를 사용한다.
 - 토큰을 직접 읽거나 수정하지 않고 `tokenStorage` 함수를 사용한다.
 
 ```ts
-import { apiClient, getApiErrorMessage, type ApiResponse } from "@/shared/api";
+import {
+  apiClient,
+  getApiErrorMessage,
+  unwrapApiResponse,
+  type ApiResponse,
+} from "@/shared/api";
 
 interface Project {
   projectId: number;
@@ -21,11 +27,7 @@ export const getProject = async (projectId: number) => {
     `/api/projects/${projectId}`,
   );
 
-  if (!response.data.success) {
-    throw new Error(response.data.message);
-  }
-
-  return response.data.data;
+  return unwrapApiResponse(response.data);
 };
 
 try {

@@ -1,4 +1,5 @@
 import { apiClient } from "../../../shared/api/client";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 import {
   isWorkspaceSectionNo,
@@ -40,7 +41,7 @@ export const getWorkspaceSectionsByProjectId = async (
     `/api/projects/${projectId}/sections`,
   );
 
-  return response.data.data
+  return unwrapApiResponse(response.data)
     .map(toWorkspaceSection)
     .filter((section): section is WorkspaceSection => section !== null);
 };

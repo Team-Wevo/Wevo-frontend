@@ -1,5 +1,6 @@
 import { apiClient } from "../../../shared/api/client";
 import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 // 서버의 섹션 상태 값. 프론트 목 데이터의 WorkspaceSectionStatus와 별개로 관리한다.
@@ -22,12 +23,12 @@ const CONFIRM_SECTION_FALLBACK_MESSAGE = "섹션 확정에 실패했습니다.";
  */
 export const confirmSection = async (
   sectionId: number,
-): Promise<ApiResponse<ConfirmSectionResponse>> => {
+): Promise<ConfirmSectionResponse> => {
   const response = await apiClient.post<ApiResponse<ConfirmSectionResponse>>(
     `/api/project-sections/${sectionId}/confirm`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 /**
@@ -35,5 +36,7 @@ export const confirmSection = async (
  * 확정 조건 미충족(C003)인 경우 errors[]의 사유를 우선 사용한다.
  */
 export const getConfirmSectionErrorMessage = (error: unknown): string => {
-  return getApiErrorMessage(error, CONFIRM_SECTION_FALLBACK_MESSAGE);
+  return getApiErrorMessage(error, CONFIRM_SECTION_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };

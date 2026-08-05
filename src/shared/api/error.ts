@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { ApiResponseError } from "./response";
 import type { ApiErrorResponse } from "./types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -14,6 +15,10 @@ export const isApiErrorResponse = (value: unknown): value is ApiErrorResponse =>
 export const getApiErrorResponse = (
   error: unknown,
 ): ApiErrorResponse | null => {
+  if (error instanceof ApiResponseError) {
+    return error.response;
+  }
+
   if (!isAxiosError(error)) {
     return null;
   }
@@ -24,23 +29,21 @@ export const getApiErrorResponse = (
 export const getApiErrorMessage = (
   error: unknown,
   fallbackMessage = "요청 처리 중 오류가 발생했습니다.",
+  options: { includeCode?: boolean } = {},
 ) => {
   const response = getApiErrorResponse(error);
   const reasons = response?.errors
     ?.map(({ reason }) => reason.trim())
     .filter(Boolean);
 
-  if (reasons?.length) {
-    return reasons.join(" ");
-  }
+  const message = reasons?.length
+    ? reasons.join(" ")
+    : (response?.message ??
+      (error instanceof Error && error.message
+        ? error.message
+        : fallbackMessage));
 
-  if (response?.message) {
-    return response.message;
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return fallbackMessage;
+  return options.includeCode && response?.code
+    ? `${message} (${response.code})`
+    : message;
 };

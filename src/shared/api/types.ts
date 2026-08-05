@@ -17,7 +17,7 @@ export interface ApiSuccessResponse<T> extends ApiResponseBase {
 
 export interface ApiErrorResponse extends ApiResponseBase {
   success: false;
-  data?: never;
+  data?: null;
   errors?: FieldError[] | null;
 }
 

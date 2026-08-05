@@ -5,6 +5,7 @@ export {
   isApiErrorResponse,
 } from "./error";
 export { queryClient } from "./queryClient";
+export { ApiResponseError, unwrapApiResponse } from "./response";
 export {
   clearAuthTokens,
   getAccessToken,
