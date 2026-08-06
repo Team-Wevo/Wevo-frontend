@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMainLayoutContext } from "../../../app/layouts/mainLayoutContext";
 import { useMyProfile } from "../../auth/hooks/useMyProfile";
 import PromptInput from "./PromptInput";
 import SuggestionTags from "./SuggestionTags";
@@ -9,6 +10,7 @@ interface MainContentProps {
 }
 
 const MainContent = ({ isLoggedIn = false }: MainContentProps) => {
+  const { openLoginModal } = useMainLayoutContext();
   const { data: profile } = useMyProfile(isLoggedIn);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocumentType, setSelectedDocumentType] = useState<
@@ -17,9 +19,29 @@ const MainContent = ({ isLoggedIn = false }: MainContentProps) => {
   const [ideaFromPromptInput, setIdeaFromPromptInput] = useState("");
   const [modalOpenKey, setModalOpenKey] = useState(0);
 
+  // 비로그인 상태에서는 생성 플로우 대신 로그인 모달로 유도한다.
   const handleSubmitPrompt = (value: string) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
     setIdeaFromPromptInput(value);
     setSelectedDocumentType(null);
+    setModalOpenKey((prev) => prev + 1);
+    setIsModalOpen(true);
+  };
+
+  const handleSelectDocumentType = (
+    documentType: "proposal" | "presentation",
+  ) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
+    setIdeaFromPromptInput("");
+    setSelectedDocumentType(documentType);
     setModalOpenKey((prev) => prev + 1);
     setIsModalOpen(true);
   };
@@ -56,14 +78,7 @@ const MainContent = ({ isLoggedIn = false }: MainContentProps) => {
 
           <PromptInput onSubmit={handleSubmitPrompt} />
 
-          <SuggestionTags
-            onSelectDocumentType={(documentType) => {
-              setIdeaFromPromptInput("");
-              setSelectedDocumentType(documentType);
-              setModalOpenKey((prev) => prev + 1);
-              setIsModalOpen(true);
-            }}
-          />
+          <SuggestionTags onSelectDocumentType={handleSelectDocumentType} />
         </div>
       </div>
 
