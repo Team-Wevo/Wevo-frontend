@@ -116,7 +116,7 @@ const CreateFlowModal = ({
         setTimeout(resolve, WORKSPACE_NAVIGATION_DELAY_MS);
       });
 
-      navigate(`/workspace/${result.data.projectId}/sections/1`);
+      navigate(`/workspace/${result.projectId}/sections/1`);
     } catch (error) {
       setErrorMessage(getCreateProjectErrorMessage(error));
       setIsCreatingWorkspace(false);

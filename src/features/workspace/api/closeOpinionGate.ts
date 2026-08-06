@@ -1,5 +1,6 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 import type { WorkspaceSectionStatus } from "../constants/sections";
 
@@ -17,29 +18,16 @@ const CLOSE_OPINION_GATE_FALLBACK_MESSAGE = "의견 수집 마감에 실패했�
  */
 export const closeOpinionGate = async (
   sectionId: number,
-): Promise<ApiResponse<OpinionGateCloseResponse>> => {
+): Promise<OpinionGateCloseResponse> => {
   const response = await apiClient.post<ApiResponse<OpinionGateCloseResponse>>(
     `/api/project-sections/${sectionId}/opinion-gate/close`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 export const getCloseOpinionGateErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return CLOSE_OPINION_GATE_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? CLOSE_OPINION_GATE_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, CLOSE_OPINION_GATE_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };

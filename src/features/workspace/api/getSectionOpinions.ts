@@ -1,5 +1,6 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 export interface OpinionAuthor {
@@ -30,29 +31,16 @@ const GET_SECTION_OPINIONS_FALLBACK_MESSAGE =
  */
 export const getSectionOpinions = async (
   sectionId: number,
-): Promise<ApiResponse<SectionOpinionsResponse>> => {
+): Promise<SectionOpinionsResponse> => {
   const response = await apiClient.get<ApiResponse<SectionOpinionsResponse>>(
     `/api/project-sections/${sectionId}/opinions`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 export const getSectionOpinionsErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return GET_SECTION_OPINIONS_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? GET_SECTION_OPINIONS_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, GET_SECTION_OPINIONS_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };

@@ -1,9 +1,9 @@
 import { apiClient } from "../../../shared/api/client";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 export type ProjectResultType = "PROPOSAL" | "PRESENTATION";
-export type ProjectStatus =
-  "COLLECTING" | "SYNTHESIZING" | "DRAFTING" | "REVIEWING" | "CONFIRMED";
+export type ProjectStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
 export type ProjectMemberRole = "OWNER" | "MEMBER";
 
 export interface ProjectSummaryResponse {
@@ -20,5 +20,5 @@ export const getMyProjects = async (): Promise<ProjectSummaryResponse[]> => {
   const response =
     await apiClient.get<ApiResponse<ProjectSummaryResponse[]>>("/api/projects");
 
-  return response.data.data;
+  return unwrapApiResponse(response.data);
 };

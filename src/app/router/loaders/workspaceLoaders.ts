@@ -98,7 +98,7 @@ export const workspaceSectionLoader = async ({
   // 의견 모으기 단계에서만 필요한 데이터이므로, 다른 단계에서는 불필요한 요청을 보내지 않는다.
   const opinions =
     currentSection.sectionStatus === "COLLECTING"
-      ? (await getSectionOpinions(currentSection.projectSectionId)).data
+      ? await getSectionOpinions(currentSection.projectSectionId)
       : null;
 
   return {

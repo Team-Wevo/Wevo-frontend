@@ -1,5 +1,6 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 export interface OpinionDraftResponse {
@@ -24,32 +25,19 @@ const SUBMIT_OPINION_FALLBACK_MESSAGE = "의견 제출에 실패했습니다.";
 export const saveOpinionDraft = async (
   sectionId: number,
   content: string,
-): Promise<ApiResponse<OpinionDraftResponse>> => {
+): Promise<OpinionDraftResponse> => {
   const response = await apiClient.patch<ApiResponse<OpinionDraftResponse>>(
     `/api/project-sections/${sectionId}/my-opinion/draft`,
     { content },
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 export const getSaveOpinionDraftErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return SAVE_OPINION_DRAFT_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? SAVE_OPINION_DRAFT_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, SAVE_OPINION_DRAFT_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };
 
 /**
@@ -58,29 +46,16 @@ export const getSaveOpinionDraftErrorMessage = (error: unknown): string => {
  */
 export const submitOpinion = async (
   sectionId: number,
-): Promise<ApiResponse<OpinionSubmitResponse>> => {
+): Promise<OpinionSubmitResponse> => {
   const response = await apiClient.post<ApiResponse<OpinionSubmitResponse>>(
     `/api/project-sections/${sectionId}/my-opinion/submit`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 export const getSubmitOpinionErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return SUBMIT_OPINION_FALLBACK_MESSAGE;
-  }
-
-  const errorResponse = error.response?.data as
-    ApiResponse<unknown> | undefined;
-
-  const reasons =
-    errorResponse?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  const text =
-    reasons.length > 0
-      ? reasons.join(" ")
-      : (errorResponse?.message ?? SUBMIT_OPINION_FALLBACK_MESSAGE);
-
-  return errorResponse?.code ? `${text} (${errorResponse.code})` : text;
+  return getApiErrorMessage(error, SUBMIT_OPINION_FALLBACK_MESSAGE, {
+    includeCode: true,
+  });
 };

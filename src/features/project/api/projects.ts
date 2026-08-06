@@ -1,10 +1,11 @@
-import { isAxiosError } from "axios";
 import { apiClient } from "../../../shared/api/client";
+import { getApiErrorMessage } from "../../../shared/api/error";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 export type ProjectResultType = "PROPOSAL" | "PRESENTATION";
 
-export type ProjectStatus = "ACTIVE" | "COMPLETED";
+export type ProjectStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
 
 export type ProjectRole = "OWNER" | "MEMBER";
 
@@ -82,29 +83,17 @@ export const getCachedCreatedProject = (
 
 export const createProject = async (
   payload: CreateProjectRequest,
-): Promise<ApiResponse<CreateProjectResponseData>> => {
+): Promise<CreateProjectResponseData> => {
   const response = await apiClient.post<ApiResponse<CreateProjectResponseData>>(
     CREATE_PROJECT_PATH,
     payload,
   );
 
-  writeCreatedProjectCache(response.data.data);
-  return response.data;
+  const project = unwrapApiResponse(response.data);
+  writeCreatedProjectCache(project);
+  return project;
 };
 
 export const getCreateProjectErrorMessage = (error: unknown): string => {
-  if (!isAxiosError(error)) {
-    return CREATE_PROJECT_FALLBACK_ERROR_MESSAGE;
-  }
-
-  const responseData = error.response?.data as ApiResponse<unknown> | undefined;
-
-  const reasons =
-    responseData?.errors?.map((fieldError) => fieldError.reason) ?? [];
-
-  if (reasons.length > 0) {
-    return reasons.join(" ");
-  }
-
-  return responseData?.message ?? CREATE_PROJECT_FALLBACK_ERROR_MESSAGE;
+  return getApiErrorMessage(error, CREATE_PROJECT_FALLBACK_ERROR_MESSAGE);
 };

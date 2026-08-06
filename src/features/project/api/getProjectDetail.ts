@@ -1,4 +1,5 @@
 import { apiClient } from "../../../shared/api/client";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 import type {
   ProjectMemberRole,
@@ -32,5 +33,5 @@ export const getProjectDetail = async (
     `/api/projects/${projectId}`,
   );
 
-  return response.data.data;
+  return unwrapApiResponse(response.data);
 };
