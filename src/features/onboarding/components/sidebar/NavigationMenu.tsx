@@ -5,27 +5,31 @@ import {
   CompleteFileIcon,
 } from "@/shared/components/icons";
 
-const NavigationMenu = () => {
+interface NavigationMenuProps {
+  isLoggedIn?: boolean;
+}
+
+const NavigationMenu = ({ isLoggedIn = false }: NavigationMenuProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // 홈은 비로그인 "/", 로그인 "/home" 두 경로를 쓰므로 "/"는 정확히 일치로 판정한다.
+  const isHomeActive = pathname === "/" || pathname.startsWith("/home");
   const isActive = (path: string) => pathname.startsWith(path);
 
   return (
     <nav className="space-y-1 px-3 py-5">
       <button
         type="button"
-        onClick={() => navigate("/home")}
+        onClick={() => navigate(isLoggedIn ? "/home" : "/")}
         className={`flex h-10 w-full cursor-pointer items-center gap-3 rounded-lg px-3 transition-colors ${
-          isActive("/home") ? "bg-main-50" : "hover:bg-gray-100"
+          isHomeActive ? "bg-main-50" : "hover:bg-gray-100"
         }`}
       >
         <HomeIcon size={16} />
         <span
           className={`font-semibold ${
-            isActive("/home")
-              ? "text-lg text-slate-900"
-              : "text-base text-gray-600"
+            isHomeActive ? "text-lg text-slate-900" : "text-base text-gray-600"
           }`}
         >
           홈

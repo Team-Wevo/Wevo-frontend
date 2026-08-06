@@ -3,6 +3,7 @@ import LoginModal from "../../features/onboarding/components/LoginModal";
 import useOnboardingAuth from "../../features/onboarding/hooks/useOnboardingAuth";
 import { getAccessToken } from "../../shared/api/tokenStorage";
 import { OnBoardingSideBar } from "../../shared/components/OnBoardingSideBar";
+import type { MainLayoutContext } from "./mainLayoutContext";
 
 const MainLayout = () => {
   const isLoggedIn = Boolean(getAccessToken());
@@ -27,7 +28,14 @@ const MainLayout = () => {
       />
 
       <div className="flex-1">
-        <Outlet />
+        <Outlet
+          context={
+            {
+              isLoggedIn: sidebarIsLoggedIn,
+              openLoginModal: () => setIsLoginModalOpen(true),
+            } satisfies MainLayoutContext
+          }
+        />
       </div>
 
       {isLoginModalOpen && (

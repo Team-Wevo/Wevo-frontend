@@ -12,6 +12,8 @@ interface ListLayoutProps {
   filters: ListFilter[];
   activeFilterIndex: number;
   onFilterChange: (index: number) => void;
+  /** 비로그인처럼 집계가 의미 없는 상황에서는 개수를 숨긴다. */
+  showFilterCounts?: boolean;
   children: ReactNode;
 }
 
@@ -21,6 +23,7 @@ const ListLayout = ({
   filters,
   activeFilterIndex,
   onFilterChange,
+  showFilterCounts = true,
   children,
 }: ListLayoutProps) => {
   return (
@@ -51,13 +54,15 @@ const ListLayout = ({
             >
               {filter.label}
             </span>
-            <span
-              className={
-                index === activeFilterIndex ? "text-gray-50" : "text-gray-600"
-              }
-            >
-              {filter.count}
-            </span>
+            {showFilterCounts && (
+              <span
+                className={
+                  index === activeFilterIndex ? "text-gray-50" : "text-gray-600"
+                }
+              >
+                {filter.count}
+              </span>
+            )}
           </button>
         ))}
       </div>

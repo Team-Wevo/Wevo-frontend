@@ -15,6 +15,7 @@ import {
   getApiErrorMessage,
   getApiErrorResponse,
 } from "../../shared/api/error";
+import { Button } from "../../shared/components/Button";
 
 const getErrorMessage = (error: unknown) => {
   const response = getApiErrorResponse(error);
@@ -106,31 +107,28 @@ const OAuthCallbackPage = () => {
 
   const visibleErrorMessage = callbackErrorMessage ?? errorMessage;
 
+  // 정상 처리 중에는 아무것도 그리지 않고 곧바로 홈으로 넘어간다.
+  // 로그인에 실패한 경우에만 원인을 알려준다.
+  if (!visibleErrorMessage) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="font-['Noto_Sans_KR'] text-xl font-bold text-slate-900">
-          OAuth 로그인
+      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+        <h1 className="text-lg leading-7 font-semibold text-gray-900">
+          로그인하지 못했어요
         </h1>
-
-        {visibleErrorMessage ? (
-          <div className="mt-4 space-y-4">
-            <p className="font-['Noto_Sans_KR'] text-sm leading-6 text-red-600">
-              {visibleErrorMessage}
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/", { replace: true })}
-              className="h-11 w-full rounded-xl bg-slate-900 font-['Noto_Sans_KR'] text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              홈으로 이동
-            </button>
-          </div>
-        ) : (
-          <p className="mt-4 font-['Noto_Sans_KR'] text-sm leading-6 text-slate-600">
-            로그인 처리 중입니다. 잠시만 기다려주세요.
-          </p>
-        )}
+        <p className="text-error mt-4 text-sm leading-6">
+          {visibleErrorMessage}
+        </p>
+        <Button
+          type="main"
+          onClick={() => navigate("/", { replace: true })}
+          className="mt-6 h-11 w-full"
+        >
+          <span>홈으로 이동</span>
+        </Button>
       </div>
     </div>
   );
