@@ -16,6 +16,7 @@ import {
   getApiErrorResponse,
 } from "../../shared/api/error";
 import { Button } from "../../shared/components/Button";
+import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
 
 const getErrorMessage = (error: unknown) => {
   const response = getApiErrorResponse(error);
@@ -42,7 +43,11 @@ const OAuthCallbackPage = () => {
   const code = searchParams.get("code");
   const callbackState = searchParams.get("state");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const savedState = provider ? getSavedOAuthState(provider) : null;
+  // 요청 시작 시 clearSavedOAuthState로 저장소가 비워지므로, 첫 렌더의 값을 고정해 둔다.
+  // 그러지 않으면 재렌더링에서 savedState가 null이 되어 검증 결과가 저장소 오류로 뒤바뀐다.
+  const [savedState] = useState(() =>
+    provider ? getSavedOAuthState(provider) : null,
+  );
   const isStateValid = Boolean(
     provider && callbackState && savedState && callbackState === savedState,
   );
@@ -105,12 +110,16 @@ const OAuthCallbackPage = () => {
     void handleOAuthCallback(provider);
   }, [callbackErrorMessage, code, isStateValid, navigate, provider]);
 
-  const visibleErrorMessage = callbackErrorMessage ?? errorMessage;
+  // 요청이 실제로 실패한 뒤에는 사전 검증 문구보다 서버가 알려준 원인을 우선 보여준다.
+  const visibleErrorMessage = errorMessage ?? callbackErrorMessage;
 
-  // 정상 처리 중에는 아무것도 그리지 않고 곧바로 홈으로 넘어간다.
-  // 로그인에 실패한 경우에만 원인을 알려준다.
+  // 처리 중에는 스피너만 보여주고, 완료되면 곧바로 홈으로 넘어간다.
   if (!visibleErrorMessage) {
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+        <LoadingSpinner size={80} />
+      </div>
+    );
   }
 
   return (
