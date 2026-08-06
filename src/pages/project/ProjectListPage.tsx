@@ -134,11 +134,6 @@ export const ProjectListPage = () => {
   };
 
   const handleOpenCreateModal = () => {
-    if (!isLoggedIn) {
-      openLoginModal();
-      return;
-    }
-
     setCreateModalKey((prev) => prev + 1);
     setIsCreateModalOpen(true);
   };
@@ -154,7 +149,7 @@ export const ProjectListPage = () => {
         onFilterChange={setActiveFilterIndex}
         showFilterCounts={isLoggedIn}
         actions={
-          isSelectionMode ? (
+          !isLoggedIn ? undefined : isSelectionMode ? (
             <>
               <Button
                 type="pressableStrong"
@@ -190,14 +185,12 @@ export const ProjectListPage = () => {
                 </span>
                 <span>새 프로젝트</span>
               </Button>
-              {isLoggedIn && (
-                <Button
-                  type="pressableStrong"
-                  onClick={() => setIsSelectionMode(true)}
-                >
-                  <span>선택 삭제</span>
-                </Button>
-              )}
+              <Button
+                type="pressableStrong"
+                onClick={() => setIsSelectionMode(true)}
+              >
+                <span>선택 삭제</span>
+              </Button>
             </>
           )
         }

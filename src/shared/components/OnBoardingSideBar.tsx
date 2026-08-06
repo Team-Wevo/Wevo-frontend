@@ -20,7 +20,7 @@ export const OnBoardingSideBar = ({
       <div>
         <Logo />
         <NavigationMenu isLoggedIn={isLoggedIn} />
-        <RecentProjectList />
+        <RecentProjectList isLoggedIn={isLoggedIn} />
       </div>
 
       {isLoggedIn ? (
