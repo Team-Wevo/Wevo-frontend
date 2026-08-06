@@ -36,7 +36,7 @@ const PromptInput = ({ onSubmit }: PromptInputProps) => {
   };
 
   return (
-    <div className="w-full rounded-md border border-slate-300 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100">
+    <div className="w-full rounded-md border border-slate-300 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
       <div className="relative">
         <textarea
           ref={textareaRef}

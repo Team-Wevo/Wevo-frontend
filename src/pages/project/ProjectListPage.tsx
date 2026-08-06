@@ -25,22 +25,28 @@ const ROLE_BY_FILTER: Record<string, ProjectRole> = {
 
 const GUEST_PREVIEW_BY_FILTER: Record<
   string,
-  { title: string; description: string }
+  { title: string; descriptions: string[] }
 > = {
   전체: {
     title: "팀과 함께 만드는 문서가 모이는 곳이에요",
-    description:
-      "아이디어를 정리하고 팀원의 의견을 모아 초안까지 완성해 나가는 공간입니다. 새 프로젝트를 만들고 팀원을 초대할 수 있어요.",
+    descriptions: [
+      "아이디어를 정리하고 팀원의 의견을 모아 초안까지 완성해 나가는 공간입니다.",
+      "새 프로젝트를 만들고 팀원을 초대할 수 있어요.",
+    ],
   },
   "내가 만든": {
     title: "내가 시작한 프로젝트만 모아 보는 곳이에요",
-    description:
-      "직접 만든 프로젝트가 이곳에 쌓입니다. 팀장으로서 팀원을 초대하고 문서가 완성되기까지의 흐름을 이끌어갈 수 있어요.",
+    descriptions: [
+      "직접 만든 프로젝트가 이곳에 쌓입니다.",
+      "팀장으로서 팀원을 초대하고 문서가 완성되기까지의 흐름을 이끌어갈 수 있어요.",
+    ],
   },
   공유받은: {
     title: "팀원이 초대한 프로젝트가 모이는 곳이에요",
-    description:
-      "다른 사람이 만든 프로젝트에 참여하면 이곳에서 확인할 수 있습니다. 의견을 남기고 함께 문서를 다듬어 나가요.",
+    descriptions: [
+      "다른 사람이 만든 프로젝트에 참여하면 이곳에서 확인할 수 있습니다.",
+      "의견을 남기고 함께 문서를 다듬어 나가요.",
+    ],
   },
 };
 
@@ -198,7 +204,7 @@ export const ProjectListPage = () => {
         {!isLoggedIn && (
           <GuestPreview
             title={guestPreview.title}
-            description={guestPreview.description}
+            descriptions={guestPreview.descriptions}
             onAction={openLoginModal}
           />
         )}

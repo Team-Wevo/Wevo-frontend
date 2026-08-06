@@ -6,22 +6,26 @@ import { ProjectCard } from "../../shared/components/ProjectCard";
 
 const GUEST_PREVIEW_BY_FILTER: Record<
   string,
-  { title: string; description: string }
+  { title: string; descriptions: string[] }
 > = {
   전체: {
     title: "완성한 문서를 보관하는 곳이에요",
-    description:
-      "작업을 마친 제안서와 발표 구성안이 이곳에 쌓입니다. 완성한 문서를 언제든 다시 열어보고 내보낼 수 있어요.",
+    descriptions: [
+      "작업을 마친 제안서와 발표 구성안이 이곳에 쌓입니다.",
+      "완성한 문서를 언제든 다시 열어보고 내보낼 수 있어요.",
+    ],
   },
   제안서: {
     title: "완성한 제안서를 모아 보는 곳이에요",
-    description:
+    descriptions: [
       "지원사업이나 후원 요청처럼 상대를 설득해야 하는 문서를 완성하면 이곳에 정리됩니다.",
+    ],
   },
   "발표 구성안": {
     title: "완성한 발표 구성안을 모아 보는 곳이에요",
-    description:
+    descriptions: [
       "발표 흐름과 슬라이드 구성을 정리한 문서를 완성하면 이곳에 정리됩니다.",
+    ],
   },
 };
 
@@ -92,7 +96,7 @@ export const CompletedListPage = () => {
       ) : (
         <GuestPreview
           title={guestPreview.title}
-          description={guestPreview.description}
+          descriptions={guestPreview.descriptions}
           onAction={openLoginModal}
         />
       )}
