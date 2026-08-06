@@ -4,12 +4,10 @@ interface OnBoardingPageProps {
   isLoggedIn?: boolean;
 }
 
-export const OnBoardingPage = (props: OnBoardingPageProps) => {
-  void props.isLoggedIn;
-
+export const OnBoardingPage = ({ isLoggedIn = false }: OnBoardingPageProps) => {
   return (
     <div className="relative flex min-h-screen w-full bg-gray-100 font-sans text-slate-800 select-none">
-      <MainContent />
+      <MainContent isLoggedIn={isLoggedIn} />
     </div>
   );
 };
