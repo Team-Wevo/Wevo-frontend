@@ -1,66 +1,60 @@
+import { CREDIT_ICON_PATH } from "./creditIconPath";
 import type { IconProps } from "./types";
 
-export const CreditLoadingIcon = ({
-  size = 24,
-  color = "currentColor",
-  className = "",
-}: IconProps) => (
+/**
+ * AI 처리 중임을 알리는 크레딧 아이콘 (Figma: 크레딧 로딩)
+ * 회색 글리프 위에 보라 글리프를 겹치고 위쪽 투명도를 반복 전환해,
+ * 색이 보라 ↔ 회색으로 깜빡이는 것처럼 보이게 한다.
+ */
+export const CreditLoadingIcon = ({ size = 24, className = "" }: IconProps) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 24 24"
+    viewBox="0 0 22 22"
     fill="none"
-    stroke={color}
-    strokeWidth="2"
     className={className}
+    role="img"
+    aria-label="AI 처리 중"
+    xmlns="http://www.w3.org/2000/svg"
   >
-    <line
-      x1="12"
-      y1="2"
-      x2="12"
-      y2="6"
+    <path
+      d={CREDIT_ICON_PATH}
+      fill="url(#paint_credit_loading_idle)"
     />
-    <line
-      x1="12"
-      y1="18"
-      x2="12"
-      y2="22"
+    <path
+      d={CREDIT_ICON_PATH}
+      fill="url(#paint_credit_loading_active)"
+      className="animate-credit-blink"
     />
-    <line
-      x1="4.22"
-      y1="4.22"
-      x2="7.07"
-      y2="7.07"
-    />
-    <line
-      x1="16.93"
-      y1="16.93"
-      x2="19.78"
-      y2="19.78"
-    />
-    <line
-      x1="2"
-      y1="12"
-      x2="6"
-      y2="12"
-    />
-    <line
-      x1="18"
-      y1="12"
-      x2="22"
-      y2="12"
-    />
-    <line
-      x1="4.22"
-      y1="19.78"
-      x2="7.07"
-      y2="16.93"
-    />
-    <line
-      x1="16.93"
-      y1="7.07"
-      x2="19.78"
-      y2="4.22"
-    />
+    <defs>
+      <linearGradient
+        id="paint_credit_loading_idle"
+        x1="10.5"
+        y1="0"
+        x2="10.5"
+        y2="21.5"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="#EEF2F6" />
+        <stop
+          offset="1"
+          stopColor="#394255"
+        />
+      </linearGradient>
+      <linearGradient
+        id="paint_credit_loading_active"
+        x1="10.5"
+        y1="0"
+        x2="10.5"
+        y2="21.5"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="#B8AEFF" />
+        <stop
+          offset="1"
+          stopColor="#322A85"
+        />
+      </linearGradient>
+    </defs>
   </svg>
 );

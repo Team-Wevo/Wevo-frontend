@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import SectionBlock from "./SectionBlock";
-import { CreditIcon } from "../../../../shared/components/icons";
+import { CreditLoadingIcon } from "../../../../shared/components/icons";
 import { cn } from "../../../../shared/utils/cn";
 
 export type AiAnalysisTaskStatus = "completed" | "active" | "pending";
@@ -52,7 +52,7 @@ const AiDraftProgressCard = ({
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-1">
           <span className="flex h-6 w-6 items-center justify-center rounded-full">
-            <CreditIcon size={16} />
+            <CreditLoadingIcon size={21} />
           </span>
           <h2 className="text-lg leading-7 font-semibold text-gray-900">
             AI가 팀원 {participantCount}명의 의견을 정리하고 있어요.
