@@ -72,19 +72,21 @@ const IdeaSection = ({
 
   // 조건 판단 로직 변수화 (가독성 향상)
   const isUnderMinLength = normalizedIdea.length < 10;
+  const isMaxLengthReached = idea.length === 150;
   const isGuideVisible = isUnderMinLength;
-  const isCharCountVisible = isUnderMinLength || isFocused;
+  const isCharCountVisible =
+    isUnderMinLength || isFocused || isMaxLengthReached;
 
   return (
-    <div className="flex w-full flex-col items-start gap-1 overflow-hidden">
+    <div className="flex w-full flex-col items-start overflow-hidden">
       <div className="text-xs leading-4 font-medium text-gray-700">
         입력한 아이디어
       </div>
 
       {isEditing ? (
-        <div className="flex w-full flex-col gap-1">
+        <div className="mt-2 flex w-full flex-col gap-2">
           {/* 입력창 */}
-          <div className="focus-within:border-main-600 w-full rounded-md border border-gray-400 bg-gray-50 px-4 py-2 transition-all duration-200">
+          <div className="focus-within:border-main-600 flex min-h-[46px] w-full items-center rounded-[8px] border border-gray-400 bg-gray-50 px-4 py-3 transition-colors duration-200">
             <textarea
               ref={textareaRef}
               value={idea}
@@ -104,7 +106,7 @@ const IdeaSection = ({
               maxLength={150}
               rows={1}
               placeholder="만들고 싶은 결과물을 적어주세요..."
-              className="w-full resize-none overflow-hidden bg-transparent text-xs leading-7 text-gray-800 placeholder:text-gray-700 focus:outline-none"
+              className="w-full resize-none overflow-hidden bg-transparent text-sm leading-[22px] text-gray-800 placeholder:text-gray-700 focus:outline-none"
             />
           </div>
 
@@ -112,35 +114,52 @@ const IdeaSection = ({
           <div className="flex items-end justify-between gap-3">
             <div className="min-h-[20px]">
               {isGuideVisible && (
-                <p className="text-xs leading-5 text-gray-700">
+                <p className="text-[13px] leading-5 text-gray-700">
                   조금 더 구체적으로 적어주세요. (최소 10자)
+                </p>
+              )}
+
+              {isMaxLengthReached && (
+                <p className="text-error text-[13px] leading-5">
+                  최대 150자까지 작성할 수 있어요.
                 </p>
               )}
             </div>
 
             {isCharCountVisible && (
-              <span className="text-xs leading-4 text-gray-700">
+              <span
+                className={`text-[13px] leading-5 ${
+                  isMaxLengthReached ? "text-error" : "text-gray-700"
+                }`}
+              >
                 {idea.length} / 150
               </span>
             )}
           </div>
         </div>
       ) : (
-        <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 px-4 py-3">
-          <div className="min-w-0 flex-1 text-sm leading-5 break-words text-gray-800">
-            {normalizedIdea.length > 0
-              ? normalizedIdea
-              : "입력한 아이디어가 없어요"}
-          </div>
-
+        <>
           <button
             type="button"
             onClick={onEditToggle}
-            className="text-main-700 flex-shrink-0 cursor-pointer text-xs leading-4 font-medium whitespace-nowrap"
+            className="mt-2 flex h-[46px] w-full cursor-pointer items-center gap-2 overflow-hidden rounded-[8px] bg-gray-100 px-4 py-3 text-left"
           >
-            수정
+            <span className="min-w-0 flex-1 truncate text-sm leading-[22px] text-gray-800">
+              {normalizedIdea.length > 0
+                ? normalizedIdea
+                : "내용을 입력하세요."}
+            </span>
+            <span className="text-main-700 flex-shrink-0 text-xs leading-4 font-medium whitespace-nowrap">
+              수정
+            </span>
           </button>
-        </div>
+
+          {isUnderMinLength && (
+            <p className="mt-1 text-xs leading-[15px] text-[#dc3e26]">
+              아이디어를 입력해주세요
+            </p>
+          )}
+        </>
       )}
     </div>
   );

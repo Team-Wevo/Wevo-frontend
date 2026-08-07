@@ -46,7 +46,7 @@ const CreateFlowModal = ({
 }: CreateFlowModalProps) => {
   const navigate = useNavigate();
   const [idea, setIdea] = useState(initialIdea);
-  const [isEditingIdea, setIsEditingIdea] = useState(true);
+  const [isEditingIdea, setIsEditingIdea] = useState(false);
   const [documentType, setDocumentType] = useState<
     "proposal" | "presentation" | null
   >(initialDocumentType);
@@ -136,11 +136,11 @@ const CreateFlowModal = ({
       {/* CreateFlowModal 폼 - isFlowModalOpen이 false일 때만 표시 */}
       {!isFlowModalOpen && !isCreatingWorkspace && (
         <div
-          className="w-full max-w-[384px] rounded-[24px] bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
+          className="w-full max-w-[440px] overflow-hidden rounded-[16px] bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between">
-            <div className="text-sm leading-7 font-semibold text-gray-900">
+            <div className="text-[18px] leading-7 font-semibold text-[#171a23]">
               무엇을 만들지 알려주세요
             </div>
 
@@ -149,7 +149,7 @@ const CreateFlowModal = ({
               onClick={onClose}
               className="cursor-pointer text-gray-700 transition-colors hover:text-gray-900"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 stroke-[1.5]" />
             </button>
           </div>
 
