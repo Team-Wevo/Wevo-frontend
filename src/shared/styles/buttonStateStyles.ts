@@ -18,3 +18,9 @@ export const PRESSABLE_STROKE_ICON_STATE_CLASS =
 
 export const PRESSABLE_FILL_ICON_STATE_CLASS =
   "group-hover:[&_path]:fill-white group-active:[&_path]:fill-white";
+
+export const PRESSABLE_CHIP_STATE_CLASS =
+  "border-gray-400 bg-gray-50 text-gray-700 hover:bg-main-50 hover:text-gray-900 active:border-main-600 active:bg-main-50 active:text-main-600";
+
+export const SELECTED_CHIP_STATE_CLASS =
+  "border-main-600 bg-main-50 text-main-600";
