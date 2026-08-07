@@ -8,6 +8,8 @@ import DraftGeneratedView from "../draft/DraftGeneratedView";
 import DraftGeneratingView from "../draft/DraftGeneratingView";
 import { MOCK_ANALYSIS_TASKS, MOCK_DRAFT_STATE_BY_STAGE } from "../draft/mock";
 import DraftReviewableView from "../draft/DraftReviewableView";
+import IssueCoordinationView from "../issue/IssueCoordinationView";
+import { MOCK_ISSUE_COORDINATION } from "../issue/mock";
 import type {
   DraftStage,
   DraftStageViewProps,
@@ -86,6 +88,7 @@ const DraftView = ({ section }: DraftViewProps) => {
   };
 
   const isOpinionAnalyzingStage = debugStage === "opinion-analyzing";
+  const isIssueCoordinationStage = debugStage === "issue-coordination";
 
   return (
     <div
@@ -102,6 +105,11 @@ const DraftView = ({ section }: DraftViewProps) => {
           participantCount={3}
           tasks={MOCK_ANALYSIS_TASKS}
           notice="의견 수에 따라 잠시 시간이 걸릴 수 있어요."
+        />
+      ) : isIssueCoordinationStage ? (
+        <IssueCoordinationView
+          data={MOCK_ISSUE_COORDINATION}
+          onCreateDraft={() => setDebugStage("generating")}
         />
       ) : (
         (() => {

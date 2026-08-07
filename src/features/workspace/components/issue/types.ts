@@ -1,0 +1,52 @@
+/** 쟁점을 해결하는 방식 — 선택지 중 고르거나, 근거를 요청하고 답변을 기다린다. */
+export type IssueResolutionType = "choice" | "evidence-request";
+
+export interface IssueOpinion {
+  memberName: string;
+  content: string;
+}
+
+export interface IssueChoiceOption {
+  id: string;
+  label: string;
+  /** 선택 시 값을 직접 적어야 하는 선택지 (예: "직접 입력") */
+  isCustomInput?: boolean;
+}
+
+export interface EvidenceRequestStatus {
+  /** 예: "민수 님에게 추가 근거를 요청했어요 · 답변 대기" */
+  message: string;
+  questionCount: number;
+}
+
+export interface WorkspaceIssue {
+  id: string;
+  order: number;
+  title: string;
+  resolutionType: IssueResolutionType;
+  /** AI가 결정을 돕기 위해 던지는 질문 또는 안내 */
+  aiHint: string;
+  opinions: IssueOpinion[];
+  /** resolutionType이 "choice"일 때만 존재 */
+  options?: IssueChoiceOption[];
+  /** resolutionType이 "evidence-request"일 때만 존재 */
+  evidenceRequest?: EvidenceRequestStatus;
+}
+
+export interface SharedProblem {
+  /** 팀 의견을 종합한 공통 문제 */
+  summary: string;
+  /** 결정이 필요한 지점 */
+  issueStatement: string;
+}
+
+export interface IssueCoordinationData {
+  sharedProblem: SharedProblem;
+  issues: WorkspaceIssue[];
+}
+
+/** 쟁점 id → 선택한 선택지 id */
+export type IssueDecisionMap = Record<string, string>;
+
+/** 쟁점 id → "직접 입력"으로 작성한 내용 */
+export type IssueCustomInputMap = Record<string, string>;
