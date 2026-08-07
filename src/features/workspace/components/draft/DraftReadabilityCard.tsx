@@ -1,5 +1,6 @@
 import { Button } from "../../../../shared/components/Button";
 import { CreditIcon } from "../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 
 interface DraftReadabilityCardProps {
   description?: string;
@@ -29,12 +30,15 @@ const DraftReadabilityCard = ({
       </p>
       <div className="flex justify-end">
         <Button
-          type="outline"
+          type="ai"
           onClick={onRequestReadabilityCheck}
           disabled={disabled}
-          className="h-8 rounded-sm border-gray-400 bg-white px-4 py-2 text-xs leading-4 font-medium text-gray-800"
+          className="h-8 px-4 py-2 text-[13px] leading-4.5 font-medium"
         >
-          <CreditIcon size={16} />
+          <CreditIcon
+            size={16}
+            className={PRESSABLE_FILL_ICON_STATE_CLASS}
+          />
           AI 읽힘 점검하기
         </Button>
       </div>

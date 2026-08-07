@@ -4,6 +4,8 @@ import SharedProblemCard from "./SharedProblemCard";
 import { isIssueDecided } from "./isIssueDecided";
 import { Button } from "../../../../shared/components/Button";
 import { CreditIcon } from "../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
+import { cn } from "../../../../shared/utils/cn";
 import type {
   IssueCoordinationData,
   IssueCustomInputMap,
@@ -75,14 +77,14 @@ const IssueCoordinationView = ({
         </p>
 
         <Button
-          type="main"
+          type="ai"
           onClick={onCreateDraft}
           disabled={!canCreateDraft}
-          className="h-auto rounded-sm px-5 py-3 text-[13px] leading-5 font-medium disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
+          className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
         >
           <CreditIcon
             size={16}
-            className="shrink-0"
+            className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
           />
           <span>결정 반영해 초안 만들기</span>
         </Button>

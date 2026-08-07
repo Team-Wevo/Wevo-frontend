@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 import {
+  PRESSABLE_AI_BUTTON_STATE_CLASS,
   PRESSABLE_BUTTON_STATE_CLASS,
   PRESSABLE_RECT_BUTTON_STATE_CLASS,
 } from "../styles/buttonStateStyles";
@@ -13,7 +14,8 @@ export type ButtonType =
   | "transparent"
   | "pressable"
   | "pressableStrong"
-  | "pressableDanger";
+  | "pressableDanger"
+  | "ai";
 
 interface ButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -46,6 +48,7 @@ const TYPE_STYLE_CLASS: Record<ButtonType, string> = {
     PRESSABLE_RECT_BUTTON_STATE_CLASS,
     "text-error hover:text-error active:text-white disabled:hover:text-error",
   ),
+  ai: PRESSABLE_AI_BUTTON_STATE_CLASS,
 };
 
 export const Button = ({

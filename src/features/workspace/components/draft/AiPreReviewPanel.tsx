@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CreditIcon } from "../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { Button } from "../../../../shared/components/Button";
 import SectionBlock from "../blocks/SectionBlock";
 import AiPreReviewResultCard from "./AiPreReviewResultCard";
@@ -40,11 +41,15 @@ const AiPreReviewPanel = ({
           </div>
 
           <Button
-            type="main"
+            type="ai"
             onClick={onCheckReadability}
-            className="h-8 rounded-sm px-3 py-2 text-xs leading-4 font-medium"
+            className="h-8 px-3 py-2 text-xs leading-4 font-medium"
           >
-            <CreditIcon size={16} />잘 읽히는지 보기
+            <CreditIcon
+              size={16}
+              className={PRESSABLE_FILL_ICON_STATE_CLASS}
+            />
+            잘 읽히는지 보기
           </Button>
         </div>
 
@@ -59,11 +64,14 @@ const AiPreReviewPanel = ({
 
         {!isRevisionVisible && (
           <Button
-            type="outline"
+            type="ai"
             onClick={handleCreateRevision}
-            className="h-12 w-full rounded-sm px-4 py-3 text-lg leading-7 font-semibold text-gray-700"
+            className="h-12 w-full px-4 py-3 text-lg leading-7 font-semibold"
           >
-            <CreditIcon size={20} />
+            <CreditIcon
+              size={20}
+              className={PRESSABLE_FILL_ICON_STATE_CLASS}
+            />
             수정안 만들기
           </Button>
         )}

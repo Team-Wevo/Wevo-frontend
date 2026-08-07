@@ -1,4 +1,5 @@
 import { CreditIcon } from "../../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { Button } from "../../../../../shared/components/Button";
 
 interface CloseCollectionModalProps {
@@ -45,12 +46,15 @@ const CloseCollectionModal = ({
             조금 더 기다리기
           </Button>
           <Button
-            type="main"
+            type="ai"
             onClick={onConfirm}
             disabled={isClosing}
             className="text-xs leading-4 font-medium"
           >
-            <CreditIcon size={14} />
+            <CreditIcon
+              size={14}
+              className={PRESSABLE_FILL_ICON_STATE_CLASS}
+            />
             {isClosing ? "마감 중..." : "마감하고 AI 정리 시작"}
           </Button>
         </div>
