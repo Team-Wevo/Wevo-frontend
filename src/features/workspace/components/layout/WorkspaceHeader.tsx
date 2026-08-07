@@ -1,18 +1,22 @@
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check, CircleDot, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
 import { cn } from "../../../../shared/utils/cn";
-
-export interface Collaborator {
-  id: string;
-  color: string;
-  name: string;
-}
+import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
+import {
+  createInviteLink,
+  getCreateInviteLinkErrorMessage,
+  type CreateInviteLinkResponse,
+} from "../../../project/api/createInviteLink";
+import { getProjectMembers } from "../../../project/api/getProjectMembers";
+import InviteTeamPopover from "./InviteTeamPopover";
 
 interface WorkspaceHeaderProps {
   title: string;
+  projectId: string;
   isSaved: boolean;
-  collaborators: Collaborator[];
   onInvite?: () => void;
   onPreviewAll?: () => void;
 }
@@ -21,12 +25,72 @@ const HEADER_ACTION_BUTTON_CLASS = "gap-1 px-3 py-2 text-[12px] text-gray-700";
 
 const WorkspaceHeader = ({
   title,
+  projectId,
   isSaved,
-  collaborators,
   onInvite,
   onPreviewAll,
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const membersQuery = useQuery({
+    queryKey: ["project-members", projectId],
+    queryFn: () => getProjectMembers(Number(projectId)),
+  });
+  const [inviteLink, setInviteLink] = useState<CreateInviteLinkResponse | null>(
+    null,
+  );
+  const [isLoadingInviteLink, setIsLoadingInviteLink] = useState(false);
+  const [inviteLinkErrorMessage, setInviteLinkErrorMessage] = useState<
+    string | null
+  >(null);
+  const inviteRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isInviteOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (inviteRef.current && !inviteRef.current.contains(target)) {
+        setIsInviteOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsInviteOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isInviteOpen]);
+
+  const handleToggleInvite = async () => {
+    onInvite?.();
+    setIsInviteOpen((prev) => !prev);
+
+    // 이미 발급받은 링크가 있으면 재사용하고, 없을 때만(최초 오픈) 요청한다.
+    if (inviteLink || isLoadingInviteLink) {
+      return;
+    }
+
+    setIsLoadingInviteLink(true);
+    setInviteLinkErrorMessage(null);
+
+    try {
+      const result = await createInviteLink(Number(projectId));
+      setInviteLink(result);
+    } catch (error) {
+      setInviteLinkErrorMessage(getCreateInviteLinkErrorMessage(error));
+    } finally {
+      setIsLoadingInviteLink(false);
+    }
+  };
 
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between border border-gray-400 px-6 py-1">
@@ -62,26 +126,50 @@ const WorkspaceHeader = ({
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="flex -space-x-2">
-          {collaborators.slice(0, 4).map((collaborator) => (
-            <div
-              key={collaborator.id}
-              className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full border-[2px] border-gray-50 text-[11px] leading-[14px] font-normal text-gray-50",
-                collaborator.color,
-              )}
-            >
-              {collaborator.name[0]}
-            </div>
-          ))}
+          {membersQuery.data?.members.slice(0, 4).map((member, index) =>
+            member.profileImageUrl ? (
+              <img
+                key={member.userId}
+                src={member.profileImageUrl}
+                alt=""
+                className="h-7 w-7 rounded-full border-[2px] border-gray-50 object-cover"
+              />
+            ) : (
+              <div
+                key={member.userId}
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full border-[2px] border-gray-50 text-[11px] leading-[14px] font-normal text-gray-50",
+                  getAvatarColorByIndex(index),
+                )}
+              >
+                {member.name[0]}
+              </div>
+            ),
+          )}
         </div>
 
-        <Button
-          onClick={onInvite}
-          className={HEADER_ACTION_BUTTON_CLASS}
+        <div
+          ref={inviteRef}
+          className="relative"
         >
-          <Plus className="h-4 w-4" />
-          팀원 초대
-        </Button>
+          <Button
+            onClick={handleToggleInvite}
+            className={HEADER_ACTION_BUTTON_CLASS}
+          >
+            <Plus className="h-4 w-4" />
+            팀원 초대
+          </Button>
+
+          {isInviteOpen && (
+            <InviteTeamPopover
+              projectId={projectId}
+              inviteUrl={inviteLink?.inviteUrl ?? null}
+              isLoadingInviteUrl={isLoadingInviteLink}
+              inviteUrlErrorMessage={inviteLinkErrorMessage}
+              onClose={() => setIsInviteOpen(false)}
+            />
+          )}
+        </div>
 
         <Button
           onClick={onPreviewAll}
