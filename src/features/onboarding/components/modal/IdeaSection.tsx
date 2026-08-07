@@ -164,7 +164,7 @@ const IdeaSection = ({
                 ? normalizedIdea
                 : "내용을 입력하세요."}
             </span>
-            <span className="text-main-700 flex-shrink-0 text-xs leading-4 font-medium whitespace-nowrap">
+            <span className="text-main-700 shrink-0 text-xs leading-4 font-medium whitespace-nowrap">
               수정
             </span>
           </button>

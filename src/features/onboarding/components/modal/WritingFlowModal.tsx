@@ -52,7 +52,7 @@ const WritingFlowModal = ({
 
   return (
     <div
-      className="flex w-full max-w-[440px] flex-col gap-5 overflow-hidden rounded-[16px] bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
+      className="flex max-h-[calc(100dvh-32px)] w-full max-w-[440px] flex-col gap-5 overflow-y-auto rounded-[16px] bg-gray-50 p-6 shadow-[0_20px_48px_-8px_rgba(0,0,0,0.12)]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}

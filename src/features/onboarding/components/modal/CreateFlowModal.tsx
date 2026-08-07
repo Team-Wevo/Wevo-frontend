@@ -45,7 +45,7 @@ const CreateFlowModal = ({
   onClose,
 }: CreateFlowModalProps) => {
   const navigate = useNavigate();
-  const [idea, setIdea] = useState(initialIdea);
+  const [idea, setIdea] = useState(() => initialIdea.slice(0, 150));
   const [isEditingIdea, setIsEditingIdea] = useState(false);
   const [documentType, setDocumentType] = useState<
     "proposal" | "presentation" | null
