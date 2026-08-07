@@ -41,19 +41,9 @@ const IssueCoordinationView = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <nav
-        aria-label="정리·초안 단계"
-        className="flex items-center gap-2 text-[13px] leading-5"
-      >
-        <span
-          aria-current="step"
-          className="text-main-600 font-medium"
-        >
-          쟁점 조율
-        </span>
-        <span className="text-gray-400">—</span>
-        <span className="font-normal text-gray-600">초안 다듬기</span>
-      </nav>
+      <span className="text-base leading-6 font-normal text-gray-900">
+        쟁점 조율
+      </span>
 
       <SharedProblemCard sharedProblem={data.sharedProblem} />
 
