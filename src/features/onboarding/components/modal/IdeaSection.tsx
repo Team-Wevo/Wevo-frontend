@@ -29,6 +29,21 @@ const IdeaSection = ({
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, [idea, isEditing]);
 
+  useEffect(() => {
+    if (!isEditing) {
+      return;
+    }
+
+    const textarea = textareaRef.current;
+
+    if (!textarea) {
+      return;
+    }
+
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  }, [isEditing]);
+
   const normalizedIdea = idea.trim();
   const isValidIdea = normalizedIdea.length >= 10;
 
