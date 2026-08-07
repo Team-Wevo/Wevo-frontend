@@ -3,14 +3,13 @@ import { Sparkles } from "lucide-react";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
+import { getAvatarColorByIndex } from "../../../../../shared/utils/avatarColor";
 import CloseCollectionModal from "./CloseCollectionModal";
 import {
   closeOpinionGate,
   getCloseOpinionGateErrorMessage,
 } from "../../../api/closeOpinionGate";
 import type { SectionOpinion } from "../../../api/getSectionOpinions";
-
-const AVATAR_COLORS = ["bg-main-500", "bg-blue-500", "bg-success"];
 
 interface CollectedOpinionsProps {
   projectSectionId: number;
@@ -83,14 +82,22 @@ const CollectedOpinions = ({
             className="flex flex-col gap-2 rounded-[12px] border border-gray-400 bg-gray-50 p-4"
           >
             <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-gray-50",
-                  AVATAR_COLORS[index % AVATAR_COLORS.length],
-                )}
-              >
-                {opinion.author.name[0]}
-              </span>
+              {opinion.author.profileImageUrl ? (
+                <img
+                  src={opinion.author.profileImageUrl}
+                  alt=""
+                  className="h-6 w-6 rounded-full object-cover"
+                />
+              ) : (
+                <span
+                  className={cn(
+                    "flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-gray-50",
+                    getAvatarColorByIndex(index),
+                  )}
+                >
+                  {opinion.author.name[0]}
+                </span>
+              )}
               <span className="text-[13px] font-medium text-gray-700">
                 {opinion.author.name}
               </span>

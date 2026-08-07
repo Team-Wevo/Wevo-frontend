@@ -1,8 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import WorkspaceHeader, {
-  type Collaborator,
-} from "../../features/workspace/components/layout/WorkspaceHeader";
+import WorkspaceHeader from "../../features/workspace/components/layout/WorkspaceHeader";
 import FlowPreviewModal, {
   type FlowPreviewSection,
 } from "../../features/workspace/components/layout/FlowPreviewModal";
@@ -27,14 +25,6 @@ const buildFlowPreviewSections = (
     content: item.status === "작성 완료" ? MOCK_WRITTEN_SECTION_CONTENT : null,
   }));
 };
-
-// TODO: 협업자 API 연동 전까지 사용하는 기본값 (상세 API는 memberCount만 주고 개별 멤버 정보는 안 줌)
-const DEFAULT_COLLABORATORS: Collaborator[] = [
-  { id: "1", color: "bg-complete", name: "구다연" },
-  { id: "2", color: "bg-success", name: "신연우" },
-  { id: "3", color: "bg-warning", name: "장현빈" },
-  { id: "4", color: "bg-main", name: "유금진" },
-];
 
 interface WorkspaceLayoutProps {
   title: string;
@@ -70,8 +60,8 @@ const WorkspaceLayout = ({
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
       <WorkspaceHeader
         title={title}
+        projectId={projectId}
         isSaved={true}
-        collaborators={DEFAULT_COLLABORATORS}
         onPreviewAll={() => setIsFlowPreviewOpen(true)}
       />
 
