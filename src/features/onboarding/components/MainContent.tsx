@@ -1,9 +1,17 @@
 import { useState } from "react";
+import { useMainLayoutContext } from "../../../app/layouts/mainLayoutContext";
+import { useMyProfile } from "../../auth/hooks/useMyProfile";
 import PromptInput from "./PromptInput";
 import SuggestionTags from "./SuggestionTags";
 import CreateFlowModal from "./modal/CreateFlowModal";
 
-const MainContent = () => {
+interface MainContentProps {
+  isLoggedIn?: boolean;
+}
+
+const MainContent = ({ isLoggedIn = false }: MainContentProps) => {
+  const { openLoginModal } = useMainLayoutContext();
+  const { data: profile } = useMyProfile(isLoggedIn);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocumentType, setSelectedDocumentType] = useState<
     "proposal" | "presentation" | null
@@ -11,38 +19,67 @@ const MainContent = () => {
   const [ideaFromPromptInput, setIdeaFromPromptInput] = useState("");
   const [modalOpenKey, setModalOpenKey] = useState(0);
 
+  // 비로그인 상태에서는 생성 플로우 대신 로그인 모달로 유도한다.
   const handleSubmitPrompt = (value: string) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
     setIdeaFromPromptInput(value);
     setSelectedDocumentType(null);
     setModalOpenKey((prev) => prev + 1);
     setIsModalOpen(true);
   };
 
+  const handleSelectDocumentType = (
+    documentType: "proposal" | "presentation",
+  ) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+
+    setIdeaFromPromptInput("");
+    setSelectedDocumentType(documentType);
+    setModalOpenKey((prev) => prev + 1);
+    setIsModalOpen(true);
+  };
+
   return (
     <main className="relative flex-1 overflow-y-auto bg-slate-50">
-      {/* 고정 인사말 */}
-      <div className="absolute top-65 left-1/2 z-10 w-[576px] -translate-x-1/2 text-center">
-        <p className="text-3xl leading-10 font-bold tracking-tight text-slate-900">
-          안녕하세요, 지현구 님
-        </p>
+      {/* 인사말 + 입력 영역을 한 블록으로 묶어 화면 중앙에 배치한다.
+          두 상태 모두 제목 1줄 + 부제 1줄이라 블록 높이가 같아, 입력창 위치도 동일하게 유지된다. */}
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="w-full max-w-xl">
+          <div className="mb-6 text-center">
+            {isLoggedIn ? (
+              <>
+                <p className="text-3xl leading-10 font-bold tracking-tight text-slate-900">
+                  안녕하세요{profile?.name ? `, ${profile.name} 님` : ""}
+                </p>
 
-        <p className="text-md mt-2 leading-7 font-semibold text-slate-500">
-          무엇을 만들까요? 자유롭게 적어주세요.
-        </p>
-      </div>
+                <p className="text-md mt-2 leading-7 font-semibold text-slate-500">
+                  무엇을 만들까요? 자유롭게 적어주세요.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl leading-10 font-bold tracking-tight text-slate-900">
+                  함께 만드는 문서, Wevo에서 시작하세요.
+                </p>
 
-      {/* 입력 영역 */}
-      <div className="mx-auto flex w-full max-w-[576px] flex-col pt-[350px]">
-        <PromptInput onSubmit={handleSubmitPrompt} />
+                <p className="text-md mt-2 leading-7 font-semibold text-slate-500">
+                  만들고 싶은 내용을 자유롭게 적어주세요.
+                </p>
+              </>
+            )}
+          </div>
 
-        <SuggestionTags
-          onSelectDocumentType={(documentType) => {
-            setIdeaFromPromptInput("");
-            setSelectedDocumentType(documentType);
-            setModalOpenKey((prev) => prev + 1);
-            setIsModalOpen(true);
-          }}
-        />
+          <PromptInput onSubmit={handleSubmitPrompt} />
+
+          <SuggestionTags onSelectDocumentType={handleSelectDocumentType} />
+        </div>
       </div>
 
       <CreateFlowModal

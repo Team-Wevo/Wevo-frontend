@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { ChevronRightIcon } from "@/shared/components/icons/ChevronRightIcon";
 
-const RecentProjectList = () => {
+interface RecentProjectListProps {
+  isLoggedIn?: boolean;
+}
+
+const RecentProjectList = ({ isLoggedIn = false }: RecentProjectListProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -25,7 +29,15 @@ const RecentProjectList = () => {
           }`}
         />
       </button>
-      {isExpanded && (
+      {isExpanded && !isLoggedIn && (
+        <p
+          id="recent-project-list"
+          className="px-2 text-xs leading-4.5 font-normal text-gray-600"
+        >
+          최근 작업한 프로젝트가 여기에 모여요.
+        </p>
+      )}
+      {isExpanded && isLoggedIn && (
         <ul
           id="recent-project-list"
           className="space-y-1"

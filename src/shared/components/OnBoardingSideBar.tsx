@@ -19,8 +19,8 @@ export const OnBoardingSideBar = ({
     <aside className="sticky top-0 z-40 flex h-screen w-64 min-w-[256px] flex-col justify-between border-r border-gray-200 bg-white font-sans select-none">
       <div>
         <Logo />
-        <NavigationMenu />
-        <RecentProjectList />
+        <NavigationMenu isLoggedIn={isLoggedIn} />
+        <RecentProjectList isLoggedIn={isLoggedIn} />
       </div>
 
       {isLoggedIn ? (

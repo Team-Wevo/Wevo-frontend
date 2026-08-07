@@ -18,3 +18,4 @@ export { FreeTopicIcon } from "./FreeTopicIcon";
 export { EditNameIcon } from "./EditNameIcon";
 export { CreditLoadingIcon } from "./CreditLoadingIcon";
 export { LogoIcon } from "./LogoIcon";
+export { ArrowUpIcon } from "./ArrowUpIcon";

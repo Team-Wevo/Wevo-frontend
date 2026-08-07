@@ -15,6 +15,8 @@ import {
   getApiErrorMessage,
   getApiErrorResponse,
 } from "../../shared/api/error";
+import { Button } from "../../shared/components/Button";
+import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
 
 const getErrorMessage = (error: unknown) => {
   const response = getApiErrorResponse(error);
@@ -41,7 +43,11 @@ const OAuthCallbackPage = () => {
   const code = searchParams.get("code");
   const callbackState = searchParams.get("state");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const savedState = provider ? getSavedOAuthState(provider) : null;
+  // 요청 시작 시 clearSavedOAuthState로 저장소가 비워지므로, 첫 렌더의 값을 고정해 둔다.
+  // 그러지 않으면 재렌더링에서 savedState가 null이 되어 검증 결과가 저장소 오류로 뒤바뀐다.
+  const [savedState] = useState(() =>
+    provider ? getSavedOAuthState(provider) : null,
+  );
   const isStateValid = Boolean(
     provider && callbackState && savedState && callbackState === savedState,
   );
@@ -104,33 +110,34 @@ const OAuthCallbackPage = () => {
     void handleOAuthCallback(provider);
   }, [callbackErrorMessage, code, isStateValid, navigate, provider]);
 
-  const visibleErrorMessage = callbackErrorMessage ?? errorMessage;
+  // 요청이 실제로 실패한 뒤에는 사전 검증 문구보다 서버가 알려준 원인을 우선 보여준다.
+  const visibleErrorMessage = errorMessage ?? callbackErrorMessage;
+
+  // 처리 중에는 스피너만 보여주고, 완료되면 곧바로 홈으로 넘어간다.
+  if (!visibleErrorMessage) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+        <LoadingSpinner size={80} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="font-['Noto_Sans_KR'] text-xl font-bold text-slate-900">
-          OAuth 로그인
+      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+        <h1 className="text-lg leading-7 font-semibold text-gray-900">
+          로그인하지 못했어요
         </h1>
-
-        {visibleErrorMessage ? (
-          <div className="mt-4 space-y-4">
-            <p className="font-['Noto_Sans_KR'] text-sm leading-6 text-red-600">
-              {visibleErrorMessage}
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/", { replace: true })}
-              className="h-11 w-full rounded-xl bg-slate-900 font-['Noto_Sans_KR'] text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              홈으로 이동
-            </button>
-          </div>
-        ) : (
-          <p className="mt-4 font-['Noto_Sans_KR'] text-sm leading-6 text-slate-600">
-            로그인 처리 중입니다. 잠시만 기다려주세요.
-          </p>
-        )}
+        <p className="text-error mt-4 text-sm leading-6">
+          {visibleErrorMessage}
+        </p>
+        <Button
+          type="main"
+          onClick={() => navigate("/", { replace: true })}
+          className="mt-6 h-11 w-full"
+        >
+          <span>홈으로 이동</span>
+        </Button>
       </div>
     </div>
   );

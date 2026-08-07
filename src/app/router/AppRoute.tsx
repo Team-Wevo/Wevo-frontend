@@ -62,7 +62,6 @@ const protectedMainRoute: RouteObject = {
       path: "home",
       element: <OnBoardingPage isLoggedIn={true} />,
     },
-    listRoute,
     {
       path: "project/:id",
       element: <ProjectDetailPage />,
@@ -101,6 +100,8 @@ const routes: RouteObject[] = [
               },
             ],
           },
+          // 비로그인도 목록 화면을 둘러볼 수 있도록 보호 라우트 밖에 둔다.
+          listRoute,
           protectedMainRoute,
         ],
       },
