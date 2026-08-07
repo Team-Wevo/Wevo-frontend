@@ -1,4 +1,4 @@
-import type { AiAnalysisTask } from "../blocks/AiDraftProgressCard";
+import type { AiAnalysisTaskStep } from "../blocks/AiDraftProgressCard";
 import type { DraftStage, DraftViewState } from "./types";
 
 const MOCK_DRAFT_CONTENT =
@@ -143,20 +143,18 @@ export const MOCK_DRAFT_STATE_BY_STAGE: Record<DraftStage, DraftViewState> = {
   },
 };
 
-export const MOCK_ANALYSIS_TASKS: AiAnalysisTask[] = [
+// 진행 상태는 useSequentialTaskProgress가 시간에 따라 채운다.
+export const MOCK_ANALYSIS_TASK_STEPS: AiAnalysisTaskStep[] = [
   {
     id: "common-opinions",
     label: "공통된 의견 확인",
-    status: "completed",
   },
   {
     id: "different-viewpoints",
-    label: "서로 다른 관점 분석 중",
-    status: "active",
+    label: "서로 다른 관점 분석",
   },
   {
     id: "additional-info",
     label: "추가로 필요한 정보 확인",
-    status: "pending",
   },
 ];

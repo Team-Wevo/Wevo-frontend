@@ -1,19 +1,25 @@
 import { Check } from "lucide-react";
 import SectionBlock from "./SectionBlock";
 import { CreditLoadingIcon } from "../../../../shared/components/icons";
+import { useSequentialTaskProgress } from "../../hooks/useSequentialTaskProgress";
 import { cn } from "../../../../shared/utils/cn";
 
 export type AiAnalysisTaskStatus = "completed" | "active" | "pending";
 
-export interface AiAnalysisTask {
+/** 진행 상태 없이 순서만 정의한 단계 */
+export interface AiAnalysisTaskStep {
   id: string;
+  /** "중"을 뺀 기본형. 진행 중일 때만 "중"을 붙여 보여준다. */
   label: string;
+}
+
+export interface AiAnalysisTask extends AiAnalysisTaskStep {
   status: AiAnalysisTaskStatus;
 }
 
 interface AiDraftProgressCardProps {
   participantCount: number;
-  tasks: AiAnalysisTask[];
+  steps: AiAnalysisTaskStep[];
   notice: string;
 }
 
@@ -36,7 +42,9 @@ const StatusIndicator = ({ status }: { status: AiAnalysisTaskStatus }) => {
   }
 
   if (status === "active") {
-    return <span className="bg-main-600 h-2.5 w-2.5 rounded-full" />;
+    return (
+      <span className="bg-main-600 h-2.5 w-2.5 animate-pulse rounded-full" />
+    );
   }
 
   return <span className="h-2.5 w-2.5 rounded-full border border-gray-600" />;
@@ -44,9 +52,11 @@ const StatusIndicator = ({ status }: { status: AiAnalysisTaskStatus }) => {
 
 const AiDraftProgressCard = ({
   participantCount,
-  tasks,
+  steps,
   notice,
 }: AiDraftProgressCardProps) => {
+  const tasks = useSequentialTaskProgress({ steps });
+
   return (
     <SectionBlock>
       <div className="flex flex-col gap-4">
@@ -68,11 +78,11 @@ const AiDraftProgressCard = ({
               <StatusIndicator status={task.status} />
               <span
                 className={cn(
-                  "text-xs leading-5 font-normal",
+                  "text-xs leading-5 font-normal transition-colors",
                   STATUS_TEXT_CLASS[task.status],
                 )}
               >
-                {task.label}
+                {task.status === "active" ? `${task.label} 중` : task.label}
               </span>
             </li>
           ))}
