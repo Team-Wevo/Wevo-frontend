@@ -1,5 +1,5 @@
-import { Sparkles } from "lucide-react";
 import { Button } from "../../../../shared/components/Button";
+import { CreditIcon } from "../../../../shared/components/icons";
 
 interface DraftFooterProps {
   canRequestReview: boolean;
@@ -21,7 +21,7 @@ const DraftFooter = ({
         onClick={onRequestReview}
         className="h-10 rounded-sm px-4 py-2 text-base leading-6 font-semibold"
       >
-        <Sparkles className="h-4 w-4" />
+        <CreditIcon size={16} />
         AI 사전 검토 받기
       </Button>
     </div>

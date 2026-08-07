@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { CreditIcon } from "../../../../../shared/components/icons";
 import { Button } from "../../../../../shared/components/Button";
 
 interface CloseCollectionModalProps {
@@ -50,7 +50,7 @@ const CloseCollectionModal = ({
             disabled={isClosing}
             className="text-xs leading-4 font-medium"
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <CreditIcon size={14} />
             {isClosing ? "마감 중..." : "마감하고 AI 정리 시작"}
           </Button>
         </div>

@@ -1,4 +1,5 @@
-import { PencilLine, Sparkle } from "lucide-react";
+import { PencilLine } from "lucide-react";
+import { CreditIcon } from "../../../../shared/components/icons";
 import { Button } from "../../../../shared/components/Button";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
@@ -21,10 +22,7 @@ const GeneratedDraftHeader = ({
           섹션 초안 · v{state.version}
         </h2>
         <span className="bg-main-50 text-main-700 flex items-center gap-1 rounded-full px-2 py-1 text-xs leading-4 font-normal">
-          <Sparkle
-            strokeWidth={1}
-            className="h-3.5 w-3.5"
-          />
+          <CreditIcon size={14} />
           {state.sourceLabel}
         </span>
       </div>

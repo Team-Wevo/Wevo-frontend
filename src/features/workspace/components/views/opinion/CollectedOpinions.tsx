@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { CreditIcon } from "../../../../../shared/components/icons";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
@@ -117,7 +117,7 @@ const CollectedOpinions = ({
             className="h-11 text-[18px] leading-[28px] font-semibold"
             onClick={() => setIsCloseConfirmOpen(true)}
           >
-            <Sparkles className="h-4 w-4" />
+            <CreditIcon size={16} />
             현재 의견으로 AI 정리 시작
           </Button>
         </div>

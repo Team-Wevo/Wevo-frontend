@@ -3,7 +3,7 @@ import { Button } from "../../../../shared/components/Button";
 import SectionBlock from "../blocks/SectionBlock";
 import DraftReadabilityCard from "./DraftReadabilityCard";
 import type { DraftEditingMode, DraftStageViewProps } from "./types";
-import { Sparkles } from "lucide-react";
+import { CreditIcon } from "../../../../shared/components/icons";
 
 const DraftEditingView = ({
   state,
@@ -55,7 +55,7 @@ const DraftEditingView = ({
               섹션 초안 · v{state.version}
             </h2>
             <span className="bg-main-50 text-main-700 flex items-center gap-1 rounded-full px-2 py-1 text-xs leading-4 font-normal">
-              <Sparkles className="h-3 w-3" />
+              <CreditIcon size={12} />
               AI 생성
             </span>
           </div>

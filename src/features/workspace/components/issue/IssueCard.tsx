@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { Sparkle } from "lucide-react";
 import SectionBlock from "../blocks/SectionBlock";
+import { CreditIcon } from "../../../../shared/components/icons";
 import {
   PRESSABLE_CHIP_STATE_CLASS,
   SELECTED_CHIP_STATE_CLASS,
@@ -69,7 +69,10 @@ const IssueCard = ({
         )}
 
         <p className="text-main-600 flex items-center gap-1.5 text-[13px] leading-5 font-normal">
-          <Sparkle className="size-4 shrink-0" />
+          <CreditIcon
+            size={16}
+            className="shrink-0"
+          />
           {issue.aiHint}
         </p>
 

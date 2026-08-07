@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Sparkle } from "lucide-react";
 import IssueCard from "./IssueCard";
 import SharedProblemCard from "./SharedProblemCard";
 import { isIssueDecided } from "./isIssueDecided";
 import { Button } from "../../../../shared/components/Button";
+import { CreditIcon } from "../../../../shared/components/icons";
 import type {
   IssueCoordinationData,
   IssueCustomInputMap,
@@ -80,7 +80,10 @@ const IssueCoordinationView = ({
           disabled={!canCreateDraft}
           className="h-auto rounded-sm px-5 py-3 text-[13px] leading-5 font-medium disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
         >
-          <Sparkle className="size-4 shrink-0" />
+          <CreditIcon
+            size={16}
+            className="shrink-0"
+          />
           <span>결정 반영해 초안 만들기</span>
         </Button>
       </div>

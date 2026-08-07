@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { CreditIcon } from "../../../../shared/components/icons";
 import { Button } from "../../../../shared/components/Button";
 import SectionBlock from "../blocks/SectionBlock";
 import AiPreReviewResultCard from "./AiPreReviewResultCard";
@@ -44,7 +44,7 @@ const AiPreReviewPanel = ({
             onClick={onCheckReadability}
             className="h-8 rounded-sm px-3 py-2 text-xs leading-4 font-medium"
           >
-            <Sparkles className="h-4 w-4" />잘 읽히는지 보기
+            <CreditIcon size={16} />잘 읽히는지 보기
           </Button>
         </div>
 
@@ -63,7 +63,7 @@ const AiPreReviewPanel = ({
             onClick={handleCreateRevision}
             className="h-12 w-full rounded-sm px-4 py-3 text-lg leading-7 font-semibold text-gray-700"
           >
-            <Sparkles className="h-5 w-5" />
+            <CreditIcon size={20} />
             수정안 만들기
           </Button>
         )}
