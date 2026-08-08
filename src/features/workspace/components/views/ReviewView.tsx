@@ -71,20 +71,19 @@ const ReviewView = ({ section }: ReviewViewProps) => {
     null,
   );
 
-  // TODO: 서버는 확정 상태를 CONFIRMED로 내려주므로 목 데이터 제거 시 함께 수정
   const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
 
   // 확정 버튼이 있는 화면(팀장 시점 · 확정 전)에서만 조회한다.
-  const { readiness, refetch: refetchReadiness } = useSectionConfirmReadiness(
+  const readinessQuery = useSectionConfirmReadiness(
     section.projectSectionId,
     IS_TEAM_LEADER && !isSectionConfirmed,
   );
 
   const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
 
-  const unsatisfiedReasons = getUnsatisfiedReasons(readiness);
+  const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
-  const isConfirmBlocked = readiness?.canConfirm === false;
+  const isConfirmBlocked = readinessQuery.data?.canConfirm === false;
   const confirmGuideMessage =
     confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
@@ -100,7 +99,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
     } catch (error) {
       setConfirmErrorMessage(getConfirmSectionErrorMessage(error));
       // 확정 조건이 바뀌었을 수 있으므로 최신 상태를 다시 조회한다.
-      refetchReadiness();
+      void readinessQuery.refetch();
     } finally {
       setIsConfirming(false);
     }

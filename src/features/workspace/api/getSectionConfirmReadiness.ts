@@ -1,7 +1,8 @@
 import { apiClient } from "../../../shared/api/client";
+import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
-// 섹션 확정 조건 key. 확정 API(C003) 실패 응답의 errors[].field와 동일한 체계다.
+// 확정 조건 key. 확정 API(C003) 실패 응답의 errors[].field와 동일한 체계다.
 export type SectionConfirmCheckKey =
   | "SECTION_REVIEWING"
   | "AI_CHECK_CURRENT"
@@ -23,23 +24,22 @@ export interface SectionConfirmReadiness {
 }
 
 /**
- * 섹션 확정 가능 여부를 조건 항목별로 조회한다. (프로젝트 멤버 권한)
- *
- * canConfirm은 ready && 호출자가 OWNER인 경우에만 true다.
+ * 섹션 확정 조건을 항목별로 조회한다. (프로젝트 멤버 권한)
+ * canConfirm은 모든 조건 충족(ready)이면서 호출자가 OWNER인 경우에만 true다.
  */
 export const getSectionConfirmReadiness = async (
   sectionId: number,
-): Promise<ApiResponse<SectionConfirmReadiness>> => {
+): Promise<SectionConfirmReadiness> => {
   const response = await apiClient.get<ApiResponse<SectionConfirmReadiness>>(
     `/api/project-sections/${sectionId}/confirm-readiness`,
   );
 
-  return response.data;
+  return unwrapApiResponse(response.data);
 };
 
 /** 미충족 항목의 사유 문구만 추린다. */
 export const getUnsatisfiedReasons = (
-  readiness: SectionConfirmReadiness | null,
+  readiness: SectionConfirmReadiness | undefined,
 ): string[] => {
   if (!readiness) {
     return [];
