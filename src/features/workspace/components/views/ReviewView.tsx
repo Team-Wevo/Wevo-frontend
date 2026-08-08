@@ -2,7 +2,9 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
+import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
 import { cn } from "../../../../shared/utils/cn";
+import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import SectionBlock from "../blocks/SectionBlock";
 import {
   confirmSection,
@@ -10,55 +12,27 @@ import {
 } from "../../api/confirmSection";
 import { getUnsatisfiedReasons } from "../../api/getSectionConfirmReadiness";
 import { useSectionConfirmReadiness } from "../../hooks/useSectionConfirmReadiness";
+import { useTeamReviews } from "../../hooks/useTeamReviews";
+import {
+  getTeamReviewsErrorMessage,
+  type TeamReviewStatus,
+} from "../../api/getTeamReviews";
 import type { WorkspaceSection } from "../../constants/sections";
 
-type SectionReviewStatus = "AGREED" | "CHANGES_REQUESTED" | "PENDING";
-
-interface SectionReviewer {
-  id: number;
-  name: string;
-  avatarColor: string;
-  reviewStatus: SectionReviewStatus;
-  changeRequestReason?: string;
-}
-
-const REVIEW_STATUS_LABEL: Record<SectionReviewStatus, string> = {
-  AGREED: "동의",
+const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
+  APPROVED: "동의",
   CHANGES_REQUESTED: "수정 요청",
   PENDING: "검토 전",
 };
 
-const REVIEW_STATUS_TEXT_CLASS: Record<SectionReviewStatus, string> = {
-  AGREED: "text-success",
+const REVIEW_STATUS_TEXT_CLASS: Record<TeamReviewStatus, string> = {
+  APPROVED: "text-success",
   CHANGES_REQUESTED: "text-error",
   PENDING: "text-gray-600",
 };
 
-// TODO: 섹션 검토 현황 API 연동 후 서버 데이터로 교체
-const SECTION_REVIEWERS: SectionReviewer[] = [
-  { id: 1, name: "수빈", avatarColor: "bg-complete", reviewStatus: "AGREED" },
-  {
-    id: 2,
-    name: "예진",
-    avatarColor: "bg-error",
-    reviewStatus: "CHANGES_REQUESTED",
-    changeRequestReason: "문제 상황을 조금 더 구체화하면 좋겠어요.",
-  },
-  {
-    id: 3,
-    name: "민수 · 나",
-    avatarColor: "bg-success",
-    reviewStatus: "PENDING",
-  },
-];
-
 // TODO: 프로젝트 멤버 권한 API 연동 후 실제 팀장 여부로 교체
 const IS_TEAM_LEADER = true;
-
-const countAgreedReviewers = (reviewers: SectionReviewer[]): number => {
-  return reviewers.filter((reviewer) => reviewer.reviewStatus === "AGREED")
-    .length;
-};
 
 interface ReviewViewProps {
   section: WorkspaceSection;
@@ -80,7 +54,8 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
     IS_TEAM_LEADER && !isSectionConfirmed,
   );
 
-  const agreedCount = countAgreedReviewers(SECTION_REVIEWERS);
+  const teamReviewsQuery = useTeamReviews(section.projectSectionId);
+  const teamReviews = teamReviewsQuery.data;
 
   const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
@@ -126,7 +101,8 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
         <div className="text-xs leading-4 font-normal text-gray-600">
           근거: 팀 의견 3개 · 확정 결정 1건
           {isSectionConfirmed &&
-            ` · 팀 동의 ${agreedCount}/${SECTION_REVIEWERS.length}`}
+            teamReviews &&
+            ` · 팀 동의 ${teamReviews.approvedCount}/${teamReviews.totalMembers}`}
         </div>
         {/* TODO: 근거 상세 보기 UI 연동 후 onClick 핸들러 연결 */}
         <button
@@ -172,15 +148,29 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
                 <div className="justify-start text-lg leading-7 font-semibold text-gray-900">
                   팀 검토 현황
                 </div>
-                <div className="justify-start text-xs leading-5 font-normal text-gray-700">
-                  동의 {agreedCount}/{SECTION_REVIEWERS.length}
-                </div>
+                {teamReviews && (
+                  <div className="justify-start text-xs leading-5 font-normal text-gray-700">
+                    동의 {teamReviews.approvedCount}/{teamReviews.totalMembers}
+                  </div>
+                )}
               </div>
 
+              {teamReviewsQuery.isPending && (
+                <div className="flex w-full justify-center py-2">
+                  <LoadingSpinner size={24} />
+                </div>
+              )}
+
+              {teamReviewsQuery.isError && (
+                <div className="text-error text-xs leading-4 font-normal">
+                  {getTeamReviewsErrorMessage(teamReviewsQuery.error)}
+                </div>
+              )}
+
               <div className="flex w-full flex-col items-start justify-start gap-3">
-                {SECTION_REVIEWERS.map((reviewer) => (
+                {teamReviews?.items.map((reviewer, index) => (
                   <div
-                    key={reviewer.id}
+                    key={reviewer.reviewerUserId}
                     className="flex w-full flex-col gap-2"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -188,24 +178,24 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
                         <div
                           className={cn(
                             "flex size-6 items-center justify-center rounded-full",
-                            reviewer.avatarColor,
+                            getAvatarColorByIndex(index),
                           )}
                         >
                           <div className="text-xs leading-4 font-normal text-gray-50">
-                            {reviewer.name.charAt(0)}
+                            {reviewer.reviewerName.charAt(0)}
                           </div>
                         </div>
                         <div className="text-base leading-6 font-normal text-gray-900">
-                          {reviewer.name}
+                          {reviewer.reviewerName}
                         </div>
                       </div>
                       <div
                         className={cn(
                           "text-xs leading-4 font-medium",
-                          REVIEW_STATUS_TEXT_CLASS[reviewer.reviewStatus],
+                          REVIEW_STATUS_TEXT_CLASS[reviewer.status],
                         )}
                       >
-                        {REVIEW_STATUS_LABEL[reviewer.reviewStatus]}
+                        {REVIEW_STATUS_LABEL[reviewer.status]}
                       </div>
                     </div>
 
