@@ -53,7 +53,9 @@ const WorkspaceLayout = ({
 
   const handleNavigateToSection = (sectionNo: number) => {
     setIsFlowPreviewOpen(false);
-    navigate(`/workspace/${projectId}/sections/${sectionNo}`);
+    navigate(`/workspace/${projectId}/sections/${sectionNo}`, {
+      replace: true,
+    });
   };
 
   return (
