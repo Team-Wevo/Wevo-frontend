@@ -84,6 +84,9 @@ const ReviewView = ({ section }: ReviewViewProps) => {
   const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
   const isConfirmBlocked = readinessQuery.data?.canConfirm === false;
+  // 조회 중에는 canConfirm이 낡은 값이므로 중복 확정을 막기 위해 함께 잠근다.
+  const isConfirmDisabled =
+    isConfirming || readinessQuery.isFetching || isConfirmBlocked;
   const confirmGuideMessage =
     confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
@@ -250,7 +253,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
                 type="main"
                 className="ml-auto h-auto text-lg leading-7 font-semibold"
                 onClick={handleConfirmSection}
-                disabled={isConfirming || isConfirmBlocked}
+                disabled={isConfirmDisabled}
               >
                 {isConfirming ? "확정 중..." : "섹션 확정"}
               </Button>
