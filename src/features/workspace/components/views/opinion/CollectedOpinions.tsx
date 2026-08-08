@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { CreditIcon } from "../../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
@@ -120,11 +121,14 @@ const CollectedOpinions = ({
             <span className="text-error text-xs">{closeErrorMessage}</span>
           )}
           <Button
-            type="outline"
-            className="h-11 text-[18px] leading-[28px] font-semibold"
+            type="ai"
+            className="h-11 text-lg leading-7 font-semibold"
             onClick={() => setIsCloseConfirmOpen(true)}
           >
-            <Sparkles className="h-4 w-4" />
+            <CreditIcon
+              size={16}
+              className={PRESSABLE_FILL_ICON_STATE_CLASS}
+            />
             현재 의견으로 AI 정리 시작
           </Button>
         </div>

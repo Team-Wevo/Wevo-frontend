@@ -13,11 +13,23 @@ export const PRESSABLE_RECT_BUTTON_STATE_CLASS =
 export const PRESSABLE_SEND_BUTTON_STATE_CLASS =
   "bg-main-400 text-gray-50 drop-shadow-[2px_2px_5px_rgba(0,0,0,0.2)] transition-[background-color,filter] hover:bg-main-700 hover:drop-shadow-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:drop-shadow-none disabled:hover:bg-gray-100 disabled:hover:text-gray-500";
 
+/**
+ * AI 실행 버튼 (Figma: AI 읽힘 점검하기 / 현재 의견으로 AI 정리 시작)
+ * 기본 흰 배경 + gray/5 테두리 → hover main/300 → pressed main/600.
+ * 아이콘은 PRESSABLE_FILL_ICON_STATE_CLASS와 함께 써야 hover·pressed에서 흰색으로 바뀐다.
+ */
+export const PRESSABLE_AI_BUTTON_STATE_CLASS =
+  "group border-gray-400 bg-white text-gray-800 transition-colors hover:border-transparent hover:bg-main-300 hover:text-white active:border-transparent active:bg-main-600 active:text-white disabled:hover:border-gray-400 disabled:hover:bg-white disabled:hover:text-gray-800";
+
+/*
+ * 아이콘 색 전환은 버튼이 비활성일 때 일어나면 안 된다.
+ * CSS :hover는 disabled 버튼에도 매칭되므로 :not(:disabled)로 직접 걸러낸다.
+ */
 export const PRESSABLE_STROKE_ICON_STATE_CLASS =
-  "group-hover:[&_path]:stroke-white group-active:[&_path]:stroke-white";
+  "[.group:hover:not(:disabled)_&_path]:stroke-white [.group:active:not(:disabled)_&_path]:stroke-white";
 
 export const PRESSABLE_FILL_ICON_STATE_CLASS =
-  "group-hover:[&_path]:fill-white group-active:[&_path]:fill-white";
+  "[.group:hover:not(:disabled)_&_path]:fill-white [.group:active:not(:disabled)_&_path]:fill-white";
 
 export const PRESSABLE_CHIP_STATE_CLASS =
   "border-gray-400 bg-gray-50 text-gray-700 hover:bg-main-50 hover:text-gray-900 active:border-main-600 active:bg-main-50 active:text-main-600";

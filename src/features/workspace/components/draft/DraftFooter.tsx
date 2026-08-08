@@ -1,5 +1,6 @@
-import { Sparkles } from "lucide-react";
 import { Button } from "../../../../shared/components/Button";
+import { CreditIcon } from "../../../../shared/components/icons";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 
 interface DraftFooterProps {
   canRequestReview: boolean;
@@ -16,12 +17,15 @@ const DraftFooter = ({
         초안을 다듬은 뒤 AI 사전 검토를 받아보세요.
       </p>
       <Button
-        type="main"
+        type="ai"
         disabled={!canRequestReview}
         onClick={onRequestReview}
-        className="h-10 rounded-sm px-4 py-2 text-base leading-6 font-semibold"
+        className="h-10 px-4 py-2 text-base leading-6 font-semibold"
       >
-        <Sparkles className="h-4 w-4" />
+        <CreditIcon
+          size={16}
+          className={PRESSABLE_FILL_ICON_STATE_CLASS}
+        />
         AI 사전 검토 받기
       </Button>
     </div>

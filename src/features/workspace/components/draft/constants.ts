@@ -17,9 +17,10 @@ export const DEV_STAGE_CONTROL_LABEL = "Draft 상태 확인 (개발용)";
 
 export const DEBUG_STAGE_OPTIONS: DraftStageOption[] = [
   { id: "opinion-analyzing", label: "1. AI 의견 정리 중" },
-  { id: "generating", label: "2. 초안 생성 중" },
-  { id: "generated", label: "3. 초안 생성 완료" },
-  { id: "editing", label: "4. 초안 편집 중" },
-  { id: "edited", label: "5. 초안 편집 완료" },
-  { id: "reviewable", label: "6. AI 사전 검토 가능" },
+  { id: "issue-coordination", label: "2. 쟁점 조율" },
+  { id: "generating", label: "3. 초안 생성 중" },
+  { id: "generated", label: "4. 초안 생성 완료" },
+  { id: "editing", label: "5. 초안 편집 중" },
+  { id: "edited", label: "6. 초안 편집 완료" },
+  { id: "reviewable", label: "7. AI 사전 검토 가능" },
 ];

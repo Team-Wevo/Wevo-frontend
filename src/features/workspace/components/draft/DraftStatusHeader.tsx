@@ -1,4 +1,4 @@
-import { Sparkle } from "lucide-react";
+import { CreditIcon } from "../../../../shared/components/icons";
 import { cn } from "../../../../shared/utils/cn";
 import { ACTIVITY_TONE_CLASS } from "./constants";
 import type { DraftViewState } from "./types";
@@ -15,10 +15,7 @@ const DraftStatusHeader = ({ state }: DraftStatusHeaderProps) => {
           초안
         </span>
         <span className="bg-main-50 text-main-700 flex items-center gap-1 rounded-full px-2 py-1 text-xs leading-4 font-normal">
-          <Sparkle
-            strokeWidth={1}
-            className="h-3.5 w-3.5 [&_path]:fill-current"
-          />
+          <CreditIcon size={14} />
           {state.sourceLabel}
         </span>
         <button

@@ -1,0 +1,24 @@
+@theme {
+  /* 크레딧 아이콘이 보라 ↔ 회색으로 번갈아 보이는 로딩 효과 */
+  --animate-credit-blink: credit-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes credit-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/*
+ * 모션 최소화를 선택한 사용자에게는 속도를 늦추고 대비를 줄인다.
+ * 처리 중이라는 정보 자체는 남겨야 하므로 애니메이션을 완전히 끄지는 않는다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-credit-blink {
+    animation-duration: 1.5s;
+  }
+}

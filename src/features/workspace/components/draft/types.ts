@@ -1,7 +1,8 @@
 export type DraftStage =
   "generating" | "generated" | "editing" | "edited" | "reviewable";
 
-export type DebugDraftStage = "opinion-analyzing" | DraftStage;
+export type DebugDraftStage =
+  "opinion-analyzing" | "issue-coordination" | DraftStage;
 
 export type DraftEditingMode = "self" | "locked";
 
