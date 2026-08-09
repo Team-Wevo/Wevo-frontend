@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "../../../../../shared/components/Button";
+import { cn } from "../../../../../shared/utils/cn";
 import {
   saveOpinionDraft,
   submitOpinion,
@@ -70,10 +71,13 @@ const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
             {opinion.length} / {MAX_OPINION_LENGTH}
           </span>
           <Button
-            type="transparent"
+            type={isBelowMinLength ? "transparent" : "main"}
             onClick={handleSubmit}
             disabled={isBelowMinLength || isSubmitting}
-            className="bg-gray-100 px-6 py-2 text-gray-600"
+            className={cn(
+              "px-6 py-2",
+              isBelowMinLength && "bg-gray-100 text-gray-600",
+            )}
           >
             {isSubmitting ? "제출 중..." : "제출하기"}
           </Button>
