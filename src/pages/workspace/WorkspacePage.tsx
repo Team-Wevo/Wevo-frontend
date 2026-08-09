@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useLoaderData } from "react-router-dom";
 import type { WorkspaceSectionLoaderData } from "../../app/router/loaders/workspaceLoaders";
 import WorkspaceLayout from "../../app/layouts/WorkspaceLayout";
+import type { DraftSaveStatus } from "../../features/workspace/components/layout/WorkspaceHeader";
 import type { ProjectResultType } from "../../features/project/api/projectList";
 import type { ProjectInfoItem } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
 import DraftView from "../../features/workspace/components/views/DraftView";
@@ -18,6 +20,7 @@ const WorkspacePage = () => {
   const { projectId, sections, currentSection, projectDetail, opinions } =
     useLoaderData() as WorkspaceSectionLoaderData;
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
+  const [saveStatus, setSaveStatus] = useState<DraftSaveStatus>("idle");
 
   const projectInfo: ProjectInfoItem[] = [
     {
@@ -35,11 +38,13 @@ const WorkspacePage = () => {
       projectInfo={projectInfo}
       progress={toDocumentProgress(sections)}
       activeStepId={currentSection.orderNo}
+      saveStatus={currentPhase === "의견 모으기" ? saveStatus : undefined}
     >
       {currentPhase === "의견 모으기" ? (
         <OpinionView
           section={currentSection}
           opinions={opinions}
+          onSaveStatusChange={setSaveStatus}
         />
       ) : currentPhase === "정리·초안" ? (
         <DraftView section={currentSection} />

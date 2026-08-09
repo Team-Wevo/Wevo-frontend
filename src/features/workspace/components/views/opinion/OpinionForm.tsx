@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
 import {
@@ -7,21 +7,62 @@ import {
   getSaveOpinionDraftErrorMessage,
   getSubmitOpinionErrorMessage,
 } from "../../../api/submitOpinion";
+import type { DraftSaveStatus } from "../../layout/WorkspaceHeader";
 
 const MAX_OPINION_LENGTH = 1000;
 const MIN_SUBMIT_LENGTH = 20;
+const DRAFT_SAVE_DEBOUNCE_MS = 800;
 
 interface OpinionFormProps {
   projectSectionId: number;
   onSubmit: () => void;
+  onSaveStatusChange?: (status: DraftSaveStatus) => void;
 }
 
-const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
+const OpinionForm = ({
+  projectSectionId,
+  onSubmit,
+  onSaveStatusChange,
+}: OpinionFormProps) => {
   const [opinion, setOpinion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pendingDraftTimerRef = useRef<number | null>(null);
+
+  // 입력을 멈추고 일정 시간이 지나면 임시저장한다. 타이핑 중엔 "저장 중...",
+  // 저장이 실제로 끝난 뒤에만 "저장됨"을 보여준다.
+  useEffect(() => {
+    if (opinion.trim().length === 0) {
+      return;
+    }
+
+    onSaveStatusChange?.("saving");
+
+    pendingDraftTimerRef.current = window.setTimeout(() => {
+      saveOpinionDraft(projectSectionId, opinion)
+        .then(() => onSaveStatusChange?.("saved"))
+        .catch(() => {
+          // 자동 임시저장 실패는 조용히 무시한다. 다음 입력 또는 제출 시 다시 시도된다.
+        });
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (pendingDraftTimerRef.current !== null) {
+        window.clearTimeout(pendingDraftTimerRef.current);
+      }
+    };
+  }, [opinion, projectSectionId, onSaveStatusChange]);
+
+  // 섹션을 벗어나면 상태 표시를 초기화한다.
+  useEffect(() => {
+    return () => onSaveStatusChange?.("idle");
+  }, [onSaveStatusChange]);
 
   const handleSubmit = async () => {
+    if (pendingDraftTimerRef.current !== null) {
+      window.clearTimeout(pendingDraftTimerRef.current);
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 

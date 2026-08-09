@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import WorkspaceHeader from "../../features/workspace/components/layout/WorkspaceHeader";
+import WorkspaceHeader, {
+  type DraftSaveStatus,
+} from "../../features/workspace/components/layout/WorkspaceHeader";
 import FlowPreviewModal, {
   type FlowPreviewSection,
 } from "../../features/workspace/components/layout/FlowPreviewModal";
@@ -32,6 +34,7 @@ interface WorkspaceLayoutProps {
   projectInfo: ProjectInfoItem[];
   progress: DocumentProgress;
   activeStepId: number;
+  saveStatus?: DraftSaveStatus;
   children: ReactNode;
 }
 
@@ -41,6 +44,7 @@ const WorkspaceLayout = ({
   projectInfo,
   progress,
   activeStepId,
+  saveStatus,
   children,
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
@@ -61,7 +65,7 @@ const WorkspaceLayout = ({
       <WorkspaceHeader
         title={title}
         projectId={projectId}
-        isSaved={true}
+        saveStatus={saveStatus}
         onPreviewAll={() => setIsFlowPreviewOpen(true)}
       />
 
