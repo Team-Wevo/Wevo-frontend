@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import { EditNameIcon, PresentationOutlineIcon, ProposalIcon } from "./icons";
 import { cn } from "../utils/cn";
 
@@ -17,6 +18,7 @@ interface ProjectCardProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   onOpen?: () => void;
+  onEdit?: () => void;
 }
 
 const CATEGORY_CONFIG = {
@@ -25,7 +27,6 @@ const CATEGORY_CONFIG = {
     icon: PresentationOutlineIcon,
     iconSize: 30,
     iconWrapperClassName: "size-10",
-    hoverThumbnailClassName: "group-hover:bg-[#E4DFFF]",
     thumbnailClassName: "bg-main-50",
   },
   제안서: {
@@ -33,7 +34,6 @@ const CATEGORY_CONFIG = {
     icon: ProposalIcon,
     iconSize: 32,
     iconWrapperClassName: "size-11",
-    hoverThumbnailClassName: "group-hover:bg-[#E2E1FF]",
     thumbnailClassName: "bg-blue-50",
   },
 } as const;
@@ -50,42 +50,51 @@ export const ProjectCard = ({
   isSelected = false,
   onToggleSelect,
   onOpen,
+  onEdit,
 }: ProjectCardProps) => {
   const categoryConfig = CATEGORY_CONFIG[category];
   const CategoryIcon = categoryConfig.icon;
-  const isHoverable = isSelectionMode && !isSelected;
-  const handleActivate = isSelectionMode ? onToggleSelect : onOpen;
-  const isClickable = Boolean(handleActivate);
+  const selectHandler = isSelectionMode ? onToggleSelect : undefined;
+  const openHandler = isSelectionMode ? undefined : onOpen;
+  const isSelectClickable = Boolean(selectHandler);
+  const isOpenClickable = Boolean(openHandler);
+
+  const handleActivateKeyDown =
+    (handler: (() => void) | undefined) =>
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handler?.();
+      }
+    };
 
   return (
     <div
-      onClick={handleActivate}
+      onClick={selectHandler}
       onKeyDown={
-        isClickable
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleActivate?.();
-              }
-            }
-          : undefined
+        isSelectClickable ? handleActivateKeyDown(selectHandler) : undefined
       }
-      role={isClickable ? "button" : undefined}
-      tabIndex={isClickable ? 0 : undefined}
+      role={isSelectClickable ? "button" : undefined}
+      tabIndex={isSelectClickable ? 0 : undefined}
       aria-pressed={isSelectionMode ? isSelected : undefined}
       className={cn(
         "flex w-full flex-col overflow-hidden rounded-xl border bg-gray-50 transition-colors",
-        isClickable && "cursor-pointer",
-        isSelectionMode && "group",
+        isSelectClickable && "cursor-pointer",
         isSelected ? "border-main-600" : "border-gray-400",
       )}
     >
-      {/* 카드 상단 썸네일 영역 */}
+      {/* 카드 상단 썸네일 영역 — 작업 영역 진입 클릭은 여기로 한정 */}
       <div
+        onClick={openHandler}
+        onKeyDown={
+          isOpenClickable ? handleActivateKeyDown(openHandler) : undefined
+        }
+        role={isOpenClickable ? "button" : undefined}
+        tabIndex={isOpenClickable ? 0 : undefined}
         className={cn(
           "flex h-[124px] shrink-0 flex-col items-start justify-start overflow-hidden p-3 transition-colors",
+          isOpenClickable && "cursor-pointer",
           categoryConfig.thumbnailClassName,
-          isHoverable && categoryConfig.hoverThumbnailClassName,
         )}
       >
         <div className="flex w-full items-start justify-between overflow-hidden">
@@ -138,31 +147,41 @@ export const ProjectCard = ({
       <div
         className={cn(
           "flex flex-1 flex-col items-start justify-start gap-2 overflow-hidden border-t border-gray-400 p-4 transition-colors",
-          isHoverable && "group-hover:bg-[#E8E4FE]",
         )}
       >
         <div className="flex w-full items-center justify-between overflow-hidden">
           <h3
             className={cn(
               "line-clamp-1 flex-1 text-sm leading-5 font-medium text-gray-900 transition-colors",
-              isHoverable && "group-hover:text-main-700",
             )}
           >
             {title}
           </h3>
-          {showEditIcon && (
-            <EditNameIcon
-              size={16}
-              className="shrink-0"
-            />
-          )}
+          {showEditIcon &&
+            (onEdit && !isSelectionMode ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEdit();
+                }}
+                aria-label="프로젝트 이름 수정"
+                className="flex shrink-0 cursor-pointer items-center justify-center p-0.5"
+              >
+                <EditNameIcon size={16} />
+              </button>
+            ) : (
+              <EditNameIcon
+                size={16}
+                className="shrink-0"
+              />
+            ))}
         </div>
         <div className="flex w-full items-center justify-between overflow-hidden">
           {statusText && (
             <span
               className={cn(
                 "truncate text-[13px] leading-5 text-gray-700 transition-colors",
-                isHoverable && "group-hover:text-main-700",
               )}
             >
               {statusText}
@@ -172,7 +191,6 @@ export const ProjectCard = ({
             <span
               className={cn(
                 "text-xs leading-[15px] text-gray-600 transition-colors",
-                isHoverable && "group-hover:text-main-600",
               )}
             >
               {date}
@@ -180,7 +198,6 @@ export const ProjectCard = ({
             <span
               className={cn(
                 "text-xs leading-[15px] text-gray-600 transition-colors",
-                isHoverable && "group-hover:text-main-600",
               )}
             >
               {dateLabel}

@@ -4,13 +4,9 @@ import type { ApiResponse } from "../../../shared/api/types";
 import type {
   ProjectMemberRole,
   ProjectResultType,
+  ProjectSectionProgress,
   ProjectStatus,
 } from "./projectList";
-
-export interface ProjectSectionProgress {
-  total: number;
-  confirmed: number;
-}
 
 export interface ProjectDetailResponse {
   projectId: number;
