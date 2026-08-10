@@ -8,10 +8,11 @@ import type { SectionOpinionsResponse } from "../../api/getSectionOpinions";
 
 interface OpinionViewProps {
   section: WorkspaceSection;
+  sectionId: number;
   opinions: SectionOpinionsResponse | null;
 }
 
-const OpinionView = ({ section, opinions }: OpinionViewProps) => {
+const OpinionView = ({ section, sectionId, opinions }: OpinionViewProps) => {
   const revalidator = useRevalidator();
   const [isEditingOwnOpinion, setIsEditingOwnOpinion] = useState(false);
 
@@ -43,12 +44,12 @@ const OpinionView = ({ section, opinions }: OpinionViewProps) => {
 
       {showForm ? (
         <OpinionForm
-          projectSectionId={section.projectSectionId}
+          sectionId={sectionId}
           onSubmit={handleOpinionSubmitted}
         />
       ) : (
         <CollectedOpinions
-          projectSectionId={section.projectSectionId}
+          sectionId={sectionId}
           opinions={opinions?.opinions ?? []}
           totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
           onEditOpinion={() => setIsEditingOwnOpinion(true)}

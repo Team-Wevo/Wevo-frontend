@@ -11,11 +11,11 @@ const MAX_OPINION_LENGTH = 1000;
 const MIN_SUBMIT_LENGTH = 20;
 
 interface OpinionFormProps {
-  projectSectionId: number;
+  sectionId: number;
   onSubmit: () => void;
 }
 
-const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
+const OpinionForm = ({ sectionId, onSubmit }: OpinionFormProps) => {
   const [opinion, setOpinion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -27,7 +27,7 @@ const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
     try {
       // submit은 요청 본문을 받지 않으므로, 먼저 임시저장으로 현재 텍스트를
       // 서버에 반영한 뒤 제출을 진행한다.
-      await saveOpinionDraft(projectSectionId, opinion);
+      await saveOpinionDraft(sectionId, opinion);
     } catch (error) {
       setErrorMessage(getSaveOpinionDraftErrorMessage(error));
       setIsSubmitting(false);
@@ -35,7 +35,7 @@ const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
     }
 
     try {
-      await submitOpinion(projectSectionId);
+      await submitOpinion(sectionId);
       onSubmit();
     } catch (error) {
       setErrorMessage(getSubmitOpinionErrorMessage(error));

@@ -15,8 +15,14 @@ const RESULT_TYPE_LABEL: Record<ProjectResultType, string> = {
 };
 
 const WorkspacePage = () => {
-  const { projectId, sections, currentSection, projectDetail, opinions } =
-    useLoaderData() as WorkspaceSectionLoaderData;
+  const {
+    projectId,
+    sectionId,
+    sections,
+    currentSection,
+    projectDetail,
+    opinions,
+  } = useLoaderData() as WorkspaceSectionLoaderData;
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
 
   const projectInfo: ProjectInfoItem[] = [
@@ -39,12 +45,19 @@ const WorkspacePage = () => {
       {currentPhase === "의견 모으기" ? (
         <OpinionView
           section={currentSection}
+          sectionId={sectionId}
           opinions={opinions}
         />
       ) : currentPhase === "정리·초안" ? (
-        <DraftView section={currentSection} />
+        <DraftView
+          section={currentSection}
+          sectionId={sectionId}
+        />
       ) : (
-        <ReviewView section={currentSection} />
+        <ReviewView
+          section={currentSection}
+          sectionId={sectionId}
+        />
       )}
     </WorkspaceLayout>
   );
