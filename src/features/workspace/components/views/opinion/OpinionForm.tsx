@@ -1,26 +1,74 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../../../shared/components/Button";
+import { cn } from "../../../../../shared/utils/cn";
 import {
   saveOpinionDraft,
   submitOpinion,
   getSaveOpinionDraftErrorMessage,
   getSubmitOpinionErrorMessage,
 } from "../../../api/submitOpinion";
+import type { DraftSaveStatus } from "../../layout/WorkspaceHeader";
 
 const MAX_OPINION_LENGTH = 1000;
 const MIN_SUBMIT_LENGTH = 20;
+const DRAFT_SAVE_DEBOUNCE_MS = 800;
 
 interface OpinionFormProps {
   projectSectionId: number;
+  initialContent?: string;
   onSubmit: () => void;
+  onSaveStatusChange?: (status: DraftSaveStatus) => void;
 }
 
-const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
-  const [opinion, setOpinion] = useState("");
+const OpinionForm = ({
+  projectSectionId,
+  initialContent = "",
+  onSubmit,
+  onSaveStatusChange,
+}: OpinionFormProps) => {
+  const [opinion, setOpinion] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pendingDraftTimerRef = useRef<number | null>(null);
+  const isFirstRenderRef = useRef(true);
+
+  // 입력을 멈추고 일정 시간이 지나면 임시저장한다. 타이핑 중엔 "저장 중...",
+  // 저장이 실제로 끝난 뒤에만 "저장됨"을 보여준다.
+  useEffect(() => {
+    // 기존 작업본을 불러와 채운 첫 렌더에서는 저장을 다시 보낼 필요가 없다.
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
+    // 내용을 전부 지운 경우도 그대로 저장해야 서버의 임시저장본이 비워진다.
+    onSaveStatusChange?.("saving");
+
+    pendingDraftTimerRef.current = window.setTimeout(() => {
+      saveOpinionDraft(projectSectionId, opinion)
+        .then(() => onSaveStatusChange?.("saved"))
+        .catch(() => {
+          // 자동 임시저장 실패는 조용히 무시한다. 다음 입력 또는 제출 시 다시 시도된다.
+        });
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (pendingDraftTimerRef.current !== null) {
+        window.clearTimeout(pendingDraftTimerRef.current);
+      }
+    };
+  }, [opinion, projectSectionId, onSaveStatusChange]);
+
+  // 섹션을 벗어나면 상태 표시를 초기화한다.
+  useEffect(() => {
+    return () => onSaveStatusChange?.("idle");
+  }, [onSaveStatusChange]);
 
   const handleSubmit = async () => {
+    if (pendingDraftTimerRef.current !== null) {
+      window.clearTimeout(pendingDraftTimerRef.current);
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -70,10 +118,13 @@ const OpinionForm = ({ projectSectionId, onSubmit }: OpinionFormProps) => {
             {opinion.length} / {MAX_OPINION_LENGTH}
           </span>
           <Button
-            type="transparent"
+            type={isBelowMinLength ? "transparent" : "main"}
             onClick={handleSubmit}
             disabled={isBelowMinLength || isSubmitting}
-            className="bg-gray-100 px-6 py-2 text-gray-600"
+            className={cn(
+              "px-6 py-2",
+              isBelowMinLength && "bg-gray-100 text-gray-600",
+            )}
           >
             {isSubmitting ? "제출 중..." : "제출하기"}
           </Button>

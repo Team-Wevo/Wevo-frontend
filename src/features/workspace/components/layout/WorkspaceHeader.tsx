@@ -13,10 +13,12 @@ import {
 import { getProjectMembers } from "../../../project/api/getProjectMembers";
 import InviteTeamPopover from "./InviteTeamPopover";
 
+export type DraftSaveStatus = "idle" | "saving" | "saved";
+
 interface WorkspaceHeaderProps {
   title: string;
   projectId: string;
-  isSaved: boolean;
+  saveStatus?: DraftSaveStatus;
   onInvite?: () => void;
   onPreviewAll?: () => void;
 }
@@ -26,7 +28,7 @@ const HEADER_ACTION_BUTTON_CLASS = "gap-1 px-3 py-2 text-[12px] text-gray-700";
 const WorkspaceHeader = ({
   title,
   projectId,
-  isSaved,
+  saveStatus = "idle",
   onInvite,
   onPreviewAll,
 }: WorkspaceHeaderProps) => {
@@ -116,7 +118,12 @@ const WorkspaceHeader = ({
           {title}
         </h1>
 
-        {isSaved && (
+        {saveStatus === "saving" && (
+          <span className="flex shrink-0 items-center gap-1 text-[12px] text-gray-500">
+            저장 중...
+          </span>
+        )}
+        {saveStatus === "saved" && (
           <span className="flex shrink-0 items-center gap-1 text-[12px] text-gray-600">
             <Check className="text-success h-2.5 w-2.5" />
             저장됨
