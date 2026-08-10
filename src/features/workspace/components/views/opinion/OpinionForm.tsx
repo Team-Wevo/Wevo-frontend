@@ -41,10 +41,7 @@ const OpinionForm = ({
       return;
     }
 
-    if (opinion.trim().length === 0) {
-      return;
-    }
-
+    // 내용을 전부 지운 경우도 그대로 저장해야 서버의 임시저장본이 비워진다.
     onSaveStatusChange?.("saving");
 
     pendingDraftTimerRef.current = window.setTimeout(() => {
