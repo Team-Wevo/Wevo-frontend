@@ -5,17 +5,20 @@ import CollectedOpinions from "./opinion/CollectedOpinions";
 import OpinionForm from "./opinion/OpinionForm";
 import type { WorkspaceSection } from "../../constants/sections";
 import type { SectionOpinionsResponse } from "../../api/getSectionOpinions";
+import type { MyOpinionResponse } from "../../api/getMyOpinion";
 import type { DraftSaveStatus } from "../layout/WorkspaceHeader";
 
 interface OpinionViewProps {
   section: WorkspaceSection;
   opinions: SectionOpinionsResponse | null;
+  myOpinion: MyOpinionResponse | null;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
 }
 
 const OpinionView = ({
   section,
   opinions,
+  myOpinion,
   onSaveStatusChange,
 }: OpinionViewProps) => {
   const revalidator = useRevalidator();
@@ -67,6 +70,7 @@ const OpinionView = ({
       {showForm ? (
         <OpinionForm
           projectSectionId={section.projectSectionId}
+          initialContent={myOpinion?.exists ? myOpinion.content : ""}
           onSubmit={handleOpinionSubmitted}
           onSaveStatusChange={onSaveStatusChange}
         />

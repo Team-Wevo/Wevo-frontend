@@ -17,8 +17,14 @@ const RESULT_TYPE_LABEL: Record<ProjectResultType, string> = {
 };
 
 const WorkspacePage = () => {
-  const { projectId, sections, currentSection, projectDetail, opinions } =
-    useLoaderData() as WorkspaceSectionLoaderData;
+  const {
+    projectId,
+    sections,
+    currentSection,
+    projectDetail,
+    opinions,
+    myOpinion,
+  } = useLoaderData() as WorkspaceSectionLoaderData;
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
   const [saveStatus, setSaveStatus] = useState<DraftSaveStatus>("idle");
 
@@ -42,8 +48,10 @@ const WorkspacePage = () => {
     >
       {currentPhase === "의견 모으기" ? (
         <OpinionView
+          key={currentSection.projectSectionId}
           section={currentSection}
           opinions={opinions}
+          myOpinion={myOpinion}
           onSaveStatusChange={setSaveStatus}
         />
       ) : currentPhase === "정리·초안" ? (

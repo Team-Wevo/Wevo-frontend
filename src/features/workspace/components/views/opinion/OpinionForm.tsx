@@ -15,23 +15,32 @@ const DRAFT_SAVE_DEBOUNCE_MS = 800;
 
 interface OpinionFormProps {
   projectSectionId: number;
+  initialContent?: string;
   onSubmit: () => void;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
 }
 
 const OpinionForm = ({
   projectSectionId,
+  initialContent = "",
   onSubmit,
   onSaveStatusChange,
 }: OpinionFormProps) => {
-  const [opinion, setOpinion] = useState("");
+  const [opinion, setOpinion] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const pendingDraftTimerRef = useRef<number | null>(null);
+  const isFirstRenderRef = useRef(true);
 
   // 입력을 멈추고 일정 시간이 지나면 임시저장한다. 타이핑 중엔 "저장 중...",
   // 저장이 실제로 끝난 뒤에만 "저장됨"을 보여준다.
   useEffect(() => {
+    // 기존 작업본을 불러와 채운 첫 렌더에서는 저장을 다시 보낼 필요가 없다.
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
     if (opinion.trim().length === 0) {
       return;
     }
