@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -6,6 +7,12 @@ import {
   LogoutIcon,
   SettingsIcon,
 } from "@/shared/components/icons";
+import {
+  getMyProfile,
+  updateMyProfile,
+  withdrawMyAccount,
+  type MyProfileResponse,
+} from "@/features/auth/api/user";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -30,6 +37,39 @@ const INITIAL_PROFILE_FORM = {
   name: "지현구",
 };
 
+const getInitialCharacter = (name: string) => {
+  const normalizedName = name.trim();
+
+  if (!normalizedName) {
+    return "?";
+  }
+
+  return normalizedName.charAt(0);
+};
+
+const getApiErrorMessage = (error: unknown) => {
+  if (isAxiosError(error)) {
+    const responseData = error.response?.data as
+      | {
+          code?: string;
+          message?: string;
+        }
+      | undefined;
+
+    if (responseData?.message) {
+      return responseData.code
+        ? `[${responseData.code}] ${responseData.message}`
+        : responseData.message;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "프로필 처리 중 오류가 발생했습니다.";
+};
+
 const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
@@ -40,11 +80,57 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [savedProfileForm, setSavedProfileForm] =
     useState(INITIAL_PROFILE_FORM);
   const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
+  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(
+    null,
+  );
+
+  const applyProfileToForm = useCallback((profile: MyProfileResponse) => {
+    setSavedProfileForm((prev) => ({
+      ...prev,
+      email: profile.email ?? "",
+      name: profile.name,
+    }));
+
+    setProfileForm((prev) => ({
+      ...prev,
+      email: profile.email ?? "",
+      name: profile.name,
+    }));
+  }, []);
+
+  const loadMyProfile = useCallback(async () => {
+    setIsProfileLoading(true);
+    setProfileErrorMessage(null);
+
+    try {
+      const profile = await getMyProfile();
+      applyProfileToForm(profile);
+      setIsProfileLoaded(true);
+    } catch (error) {
+      setProfileErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsProfileLoading(false);
+    }
+  }, [applyProfileToForm]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadMyProfile();
+  }, [loadMyProfile]);
 
   const handleOpenSettings = () => {
     setProfileForm(savedProfileForm);
     setShowSaveToast(false);
+    setProfileErrorMessage(null);
     setIsSettingsOpen(true);
+
+    if (!isProfileLoaded) {
+      void loadMyProfile();
+    }
   };
 
   const handleCloseSettings = useCallback(() => {
@@ -104,16 +190,6 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     />
   );
 
-  const withdrawConfirmModal = (
-    <ConfirmModal
-      title="정말 탈퇴할까요?"
-      description="탈퇴 시 내가 만든 프로젝트와 작성 데이터가 모두 삭제되며, 되돌릴 수 없습니다."
-      confirmLabel="탈퇴하기"
-      onCancel={() => setShowWithdrawModal(false)}
-      onConfirm={() => setShowWithdrawModal(false)}
-    />
-  );
-
   const handleProfileChange = (
     field: "email" | "loginMethod" | "name",
     value: string,
@@ -126,23 +202,69 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
   const normalizedProfileName = profileForm.name.trim();
   const canSaveProfile =
+    !isProfileLoading &&
+    !isSaveLoading &&
     normalizedProfileName.length > 0 &&
     normalizedProfileName !== savedProfileForm.name.trim();
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!canSaveProfile) return;
 
-    const nextProfileForm = {
-      ...profileForm,
-      name: normalizedProfileName,
-    };
+    setIsSaveLoading(true);
+    setProfileErrorMessage(null);
 
-    setSavedProfileForm(nextProfileForm);
-    setProfileForm(nextProfileForm);
-    setShowSaveToast(true);
-    // 토스트가 이미 떠 있어도 저장할 때마다 3초 타이머를 다시 시작
-    setSaveToastNonce((prev) => prev + 1);
+    try {
+      const updatedProfile = await updateMyProfile({
+        name: normalizedProfileName,
+      });
+
+      applyProfileToForm(updatedProfile);
+      setShowSaveToast(true);
+      // 토스트가 이미 떠 있어도 저장할 때마다 3초 타이머를 다시 시작
+      setSaveToastNonce((prev) => prev + 1);
+    } catch (error) {
+      setProfileErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsSaveLoading(false);
+    }
   };
+
+  const handleWithdrawConfirm = async () => {
+    if (isWithdrawLoading) return;
+
+    setIsWithdrawLoading(true);
+    setProfileErrorMessage(null);
+
+    try {
+      await withdrawMyAccount();
+      setShowWithdrawModal(false);
+      setIsSettingsOpen(false);
+      onClose?.();
+      onLogoutClick?.();
+    } catch (error) {
+      setProfileErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsWithdrawLoading(false);
+    }
+  };
+
+  const withdrawConfirmModal = (
+    <ConfirmModal
+      title="정말 탈퇴할까요?"
+      description="탈퇴 시 개인정보는 삭제 처리되며, 작성한 내용은 보존됩니다. 되돌릴 수 없습니다."
+      confirmLabel={isWithdrawLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
+      onCancel={() => {
+        if (isWithdrawLoading) return;
+        setShowWithdrawModal(false);
+      }}
+      onConfirm={() => {
+        void handleWithdrawConfirm();
+      }}
+    />
+  );
+
+  const modalProfileInitial = getInitialCharacter(profileForm.name);
+  const profileInitial = getInitialCharacter(savedProfileForm.name);
 
   const modalContent = (
     <div
@@ -224,7 +346,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
             {activeTab === "profile" ? (
               <div className="inline-flex w-full items-start justify-start gap-6 overflow-hidden">
                 <div className="bg-main-600 flex size-[88px] shrink-0 items-center justify-center overflow-hidden rounded-full text-[32px] leading-[42px] font-bold text-gray-50">
-                  지
+                  {modalProfileInitial}
                 </div>
                 <div className="inline-flex flex-1 flex-col items-start justify-start gap-5 overflow-hidden">
                   <div className="flex flex-col items-start justify-start gap-2 self-stretch overflow-hidden">
@@ -233,7 +355,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                     </div>
                     <input
                       type="email"
-                      value={profileForm.email}
+                      value={profileForm.email || "-"}
                       readOnly
                       className="inline-flex cursor-default items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-600 outline-none"
                     />
@@ -264,8 +386,14 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                       onChange={(e) =>
                         handleProfileChange("name", e.target.value)
                       }
+                      disabled={isProfileLoading || isSaveLoading}
                       className="inline-flex items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 outline-none focus:bg-gray-100"
                     />
+                    {profileErrorMessage && (
+                      <div className="text-xs leading-[15px] font-normal text-red-600">
+                        {profileErrorMessage}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -294,7 +422,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                     계정 탈퇴
                   </h3>
                   <p className="absolute top-[41px] left-0 text-base leading-[26px] font-normal text-gray-700">
-                    탈퇴 시 내가 만든 프로젝트와 작성 데이터가 삭제됩니다.
+                    탈퇴 시 개인정보는 삭제되며 작성 데이터는 보존됩니다.
                   </p>
                   <button
                     type="button"
@@ -322,7 +450,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                 )}
               >
                 <div className="text-[13px] leading-[18px] font-medium">
-                  저장
+                  {isSaveLoading ? "저장 중..." : "저장"}
                 </div>
               </button>
             </div>
@@ -346,14 +474,14 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
           <div className="flex w-full flex-col gap-3 border-b border-[#C6CEDA] px-4 pt-4 pb-3">
             <div className="flex w-full items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#6B5EF0] text-xs font-medium text-[#FCFCFD]">
-                현
+                {profileInitial}
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="truncate text-sm leading-5 font-medium text-[#1C2230]">
-                  지현구
+                  {savedProfileForm.name}
                 </span>
                 <span className="truncate text-xs leading-[15px] font-normal text-[#7D889C]">
-                  alexjee85@gmail.com
+                  {savedProfileForm.email || "이메일 정보 없음"}
                 </span>
               </div>
             </div>
