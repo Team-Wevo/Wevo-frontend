@@ -51,10 +51,9 @@ import {
 
 interface DraftViewProps {
   section: WorkspaceSection;
-  sectionId: number;
 }
 
-const AI_JOB_POLLING_INTERVAL_MS = 2_000;
+const AI_JOB_POLLING_INTERVAL_MS = 5_000;
 
 const toStringValue = (value: unknown): string | null => {
   if (typeof value === "string" && value.trim()) {
@@ -66,6 +65,121 @@ const toStringValue = (value: unknown): string | null => {
   }
 
   return null;
+};
+
+const toRecordValue = (value: unknown): Record<string, unknown> | null => {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+};
+
+const hasIssuePayloadShape = (value: unknown): boolean => {
+  const record = toRecordValue(value);
+
+  if (!record) {
+    return false;
+  }
+
+  return (
+    Array.isArray(record.issues) ||
+    Array.isArray(record.issueList) ||
+    Array.isArray(record.currentSet) ||
+    typeof record.consensusSummary === "string" ||
+    typeof record.summary === "string"
+  );
+};
+
+const extractSynthesisCurrentSet = (
+  responseData: unknown,
+): SectionSynthesisCurrentSetResponse | null => {
+  const root = toRecordValue(responseData);
+
+  if (!root) {
+    return null;
+  }
+
+  const directCandidates: unknown[] = [
+    root.currentSet,
+    root.current_set,
+    root.result,
+    root.data,
+  ];
+
+  for (const candidate of directCandidates) {
+    if (hasIssuePayloadShape(candidate)) {
+      return candidate as SectionSynthesisCurrentSetResponse;
+    }
+
+    const candidateRecord = toRecordValue(candidate);
+
+    if (!candidateRecord) {
+      continue;
+    }
+
+    const nestedCandidate =
+      candidateRecord.currentSet ?? candidateRecord.current_set;
+
+    if (hasIssuePayloadShape(nestedCandidate)) {
+      return nestedCandidate as SectionSynthesisCurrentSetResponse;
+    }
+  }
+
+  return hasIssuePayloadShape(root)
+    ? (root as SectionSynthesisCurrentSetResponse)
+    : null;
+};
+
+const extractSynthesisLatestJob = (
+  responseData: unknown,
+): { requestId: string | null; status: string | null } | null => {
+  const record = toRecordValue(responseData);
+
+  if (!record) {
+    return null;
+  }
+
+  const latestJobRecord = toRecordValue(record.latestJob);
+
+  if (!latestJobRecord) {
+    return null;
+  }
+
+  return {
+    requestId: toStringValue(latestJobRecord.requestId),
+    status: toStringValue(latestJobRecord.status),
+  };
+};
+
+const normalizeSynthesisJobStatus = (
+  status: string | null,
+): "REQUESTED" | "SUCCEEDED" | "FAILED" | null => {
+  if (!status) {
+    return null;
+  }
+
+  const normalized = status.trim().toUpperCase();
+
+  if (
+    normalized === "SUCCEEDED" ||
+    normalized === "SUCCESS" ||
+    normalized === "COMPLETED" ||
+    normalized === "DONE"
+  ) {
+    return "SUCCEEDED";
+  }
+
+  if (
+    normalized === "FAILED" ||
+    normalized === "ERROR" ||
+    normalized === "CANCELLED" ||
+    normalized === "CANCELED"
+  ) {
+    return "FAILED";
+  }
+
+  return "REQUESTED";
 };
 
 const toIssueType = (value: unknown): "CONFLICT" | "GAP" | "UNKNOWN" => {
@@ -127,7 +241,11 @@ const toWorkspaceIssue = (
     })
     .filter((option): option is NonNullable<typeof option> => option !== null);
 
-  const opinionCandidates = Array.isArray(issue.opinions) ? issue.opinions : [];
+  const opinionCandidates = Array.isArray(issue.opinions)
+    ? issue.opinions
+    : Array.isArray(issue.relatedOpinions)
+      ? issue.relatedOpinions
+      : [];
   const opinions = opinionCandidates
     .map((opinion) => {
       if (typeof opinion !== "object" || opinion === null) {
@@ -136,11 +254,14 @@ const toWorkspaceIssue = (
 
       const record = opinion as Record<string, unknown>;
       const memberName =
-        toStringValue(record.memberName) ?? toStringValue(record.name);
+        toStringValue(record.memberName) ??
+        toStringValue(record.name) ??
+        toStringValue(record.authorName);
       const content =
         toStringValue(record.content) ??
         toStringValue(record.opinion) ??
-        toStringValue(record.text);
+        toStringValue(record.text) ??
+        toStringValue(record.excerpt);
 
       if (!memberName || !content) {
         return null;
@@ -154,6 +275,7 @@ const toWorkspaceIssue = (
 
   const title =
     toStringValue(issue.title) ??
+    toStringValue(issue.description) ??
     toStringValue(issue.summary) ??
     toStringValue(issue.content) ??
     `${index + 1}번 쟁점`;
@@ -167,7 +289,10 @@ const toWorkspaceIssue = (
 
   if (issueType === "GAP") {
     return {
-      id: toStringValue(issue.id) ?? `gap-${index + 1}`,
+      id:
+        toStringValue(issue.id) ??
+        toStringValue(issue.issueId) ??
+        `gap-${index + 1}`,
       order: index + 1,
       title,
       resolutionType: "evidence-request",
@@ -199,7 +324,10 @@ const toWorkspaceIssue = (
         ];
 
   return {
-    id: toStringValue(issue.id) ?? `conflict-${index + 1}`,
+    id:
+      toStringValue(issue.id) ??
+      toStringValue(issue.issueId) ??
+      `conflict-${index + 1}`,
     order: index + 1,
     title,
     resolutionType: "choice",
@@ -212,9 +340,12 @@ const toWorkspaceIssue = (
 const toIssueCoordinationData = (
   currentSet: SectionSynthesisCurrentSetResponse | null,
 ): IssueCoordinationData => {
-  const issuesSource = Array.isArray(currentSet?.issues)
-    ? currentSet.issues
-    : [];
+  const currentSetRecord = (currentSet ?? {}) as Record<string, unknown>;
+  const issuesCandidate =
+    currentSetRecord.issues ??
+    currentSetRecord.issueList ??
+    currentSetRecord.currentSet;
+  const issuesSource = Array.isArray(issuesCandidate) ? issuesCandidate : [];
   const issues = issuesSource
     .filter((issue): issue is Record<string, unknown> => {
       return typeof issue === "object" && issue !== null;
@@ -222,7 +353,8 @@ const toIssueCoordinationData = (
     .map(toWorkspaceIssue);
 
   const consensusSummary =
-    toStringValue(currentSet?.consensusSummary) ??
+    toStringValue(currentSetRecord.consensusSummary) ??
+    toStringValue(currentSetRecord.summary) ??
     "팀 의견 정리가 완료되었어요. 아래 쟁점을 확인해 주세요.";
 
   return {
@@ -291,7 +423,8 @@ const getInitialStage = (
   return "issue-coordination";
 };
 
-const DraftView = ({ section, sectionId }: DraftViewProps) => {
+const DraftView = ({ section }: DraftViewProps) => {
+  const sectionId = section.projectSectionId;
   const revalidator = useRevalidator();
 
   const initialSynthesisRequestId = getStoredSynthesisRequestId(sectionId);
@@ -347,8 +480,32 @@ const DraftView = ({ section, sectionId }: DraftViewProps) => {
     refetchOnReconnect: false,
   });
 
+  const shouldRunSynthesisSnapshot =
+    section.sectionStatus === "SYNTHESIZING" &&
+    !synthesisRequestId &&
+    !synthesisStartQuery.isFetching &&
+    !synthesisStartQuery.data?.requestId;
+
+  const synthesisSnapshotQuery = useQuery({
+    queryKey: ["workspace-synthesis-snapshot", sectionId],
+    queryFn: () => getSectionSynthesis(sectionId),
+    enabled: shouldRunSynthesisSnapshot,
+    retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  const synthesisLatestJobFromSnapshot = useMemo(() => {
+    return extractSynthesisLatestJob(synthesisSnapshotQuery.data);
+  }, [synthesisSnapshotQuery.data]);
+
   const effectiveSynthesisRequestId =
-    synthesisRequestId ?? synthesisStartQuery.data?.requestId ?? null;
+    synthesisStartQuery.data?.requestId ??
+    synthesisLatestJobFromSnapshot?.requestId ??
+    synthesisRequestId ??
+    null;
 
   const synthesisJobQuery = useQuery({
     queryKey: [
@@ -367,22 +524,56 @@ const DraftView = ({ section, sectionId }: DraftViewProps) => {
     },
   });
 
-  const synthesisJobStatus = synthesisJobQuery.data?.status;
+  const synthesisJobStatus =
+    synthesisJobQuery.data?.status ??
+    normalizeSynthesisJobStatus(
+      synthesisLatestJobFromSnapshot?.status ?? null,
+    ) ??
+    "REQUESTED";
+  const synthesisFailureMessage =
+    synthesisJobQuery.data?.failure?.message?.trim() ?? null;
 
   const synthesisResultQuery = useQuery({
-    queryKey: ["workspace-synthesis-result", sectionId],
+    queryKey: [
+      "workspace-synthesis-result",
+      sectionId,
+      effectiveSynthesisRequestId,
+      synthesisJobStatus,
+    ],
     queryFn: () => getSectionSynthesis(sectionId),
     enabled:
       section.sectionStatus === "DRAFTING" ||
       synthesisJobStatus === "SUCCEEDED",
     retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
+  useEffect(() => {
+    if (!effectiveSynthesisRequestId) {
+      return;
+    }
+
+    setStoredSynthesisRequestId(sectionId, effectiveSynthesisRequestId);
+  }, [sectionId, effectiveSynthesisRequestId]);
+
+  const synthesisCurrentSet = useMemo(() => {
+    const resultPayload = extractSynthesisCurrentSet(synthesisResultQuery.data);
+
+    if (resultPayload) {
+      return resultPayload;
+    }
+
+    return extractSynthesisCurrentSet(synthesisSnapshotQuery.data);
+  }, [synthesisResultQuery.data, synthesisSnapshotQuery.data]);
+
   const issueCoordinationData = useMemo(() => {
-    return synthesisResultQuery.data
-      ? toIssueCoordinationData(synthesisResultQuery.data.currentSet)
+    return synthesisCurrentSet
+      ? toIssueCoordinationData(synthesisCurrentSet)
       : null;
-  }, [synthesisResultQuery.data]);
+  }, [synthesisCurrentSet]);
 
   const draftJobQuery = useQuery({
     queryKey: ["workspace-ai-job", "draft", sectionId, draftRequestId],
@@ -434,12 +625,17 @@ const DraftView = ({ section, sectionId }: DraftViewProps) => {
       return "issue-coordination";
     }
 
+    if (synthesisJobStatus === "SUCCEEDED") {
+      return "issue-coordination";
+    }
+
     return "opinion-analyzing";
   }, [
     runtimeDraftState,
     draftStage,
     draftRequestId,
     draftJobQuery.data,
+    synthesisJobStatus,
     issueCoordinationData,
   ]);
 
@@ -452,11 +648,23 @@ const DraftView = ({ section, sectionId }: DraftViewProps) => {
       return getStartSynthesisErrorMessage(synthesisStartQuery.error);
     }
 
+    if (synthesisSnapshotQuery.isError) {
+      return getSectionSynthesisErrorMessage(synthesisSnapshotQuery.error);
+    }
+
     if (synthesisJobStatus === "FAILED") {
+      if (synthesisFailureMessage) {
+        return synthesisFailureMessage;
+      }
+
       return getAiJobFailedMessage("AI 의견 정리");
     }
 
-    if (synthesisResultQuery.isError) {
+    if (
+      synthesisResultQuery.isError &&
+      (synthesisJobStatus === "SUCCEEDED" ||
+        section.sectionStatus === "DRAFTING")
+    ) {
       return getSectionSynthesisErrorMessage(synthesisResultQuery.error);
     }
 
@@ -477,7 +685,11 @@ const DraftView = ({ section, sectionId }: DraftViewProps) => {
     actionErrorMessage,
     synthesisStartQuery.isError,
     synthesisStartQuery.error,
+    synthesisSnapshotQuery.isError,
+    synthesisSnapshotQuery.error,
     synthesisJobStatus,
+    synthesisFailureMessage,
+    section.sectionStatus,
     synthesisResultQuery.isError,
     synthesisResultQuery.error,
     draftJobQuery.data,

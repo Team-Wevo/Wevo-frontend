@@ -3,7 +3,16 @@ import { useNavigate } from "react-router-dom";
 import ListLayout from "../../app/layouts/ListLayout";
 import { useMainLayoutContext } from "../../app/layouts/mainLayoutContext";
 import CreateFlowModal from "../../features/onboarding/components/modal/CreateFlowModal";
+import {
+  deleteProject,
+  getDeleteProjectErrorMessage,
+} from "../../features/project/api/deleteProject";
 import { getMyProjects } from "../../features/project/api/projectList";
+import {
+  getUpdateProjectErrorMessage,
+  updateProject,
+} from "../../features/project/api/updateProject";
+import { RenameProjectModal } from "../../features/project/components/RenameProjectModal";
 import {
   toProjectListItem,
   type ProjectListItem,
@@ -60,8 +69,19 @@ export const ProjectListPage = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createModalKey, setCreateModalKey] = useState(0);
+  const [editingProject, setEditingProject] = useState<ProjectListItem | null>(
+    null,
+  );
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameErrorMessage, setRenameErrorMessage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     // 비로그인 상태에서 호출하면 401 인터셉터가 홈으로 강제 이동시키므로 요청하지 않는다.
@@ -133,15 +153,58 @@ export const ProjectListPage = () => {
     setSelectedIds(new Set());
   };
 
-  const handleConfirmDelete = () => {
-    setSelectedIds(new Set());
-    setIsSelectionMode(false);
-    setIsDeleteModalOpen(false);
+  const handleConfirmDelete = async () => {
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => deleteProject(id)));
+      setProjects((prev) =>
+        prev.filter((project) => !selectedIds.has(project.id)),
+      );
+      setSelectedIds(new Set());
+      setIsSelectionMode(false);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      setDeleteErrorMessage(getDeleteProjectErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleOpenCreateModal = () => {
     setCreateModalKey((prev) => prev + 1);
     setIsCreateModalOpen(true);
+  };
+
+  const handleCancelRename = () => {
+    setEditingProject(null);
+    setRenameErrorMessage(null);
+  };
+
+  const handleSubmitRename = async (title: string) => {
+    if (!editingProject) return;
+
+    setIsRenaming(true);
+    setRenameErrorMessage(null);
+
+    try {
+      const updated = await updateProject(editingProject.id, { title });
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === editingProject.id
+            ? { ...project, title: updated.title }
+            : project,
+        ),
+      );
+      setEditingProject(null);
+    } catch (error) {
+      setRenameErrorMessage(getUpdateProjectErrorMessage(error));
+    } finally {
+      setIsRenaming(false);
+    }
   };
 
   const guestPreview = GUEST_PREVIEW_BY_FILTER[activeFilter];
@@ -165,7 +228,10 @@ export const ProjectListPage = () => {
               </Button>
               <Button
                 type="pressableDanger"
-                onClick={() => setIsDeleteModalOpen(true)}
+                onClick={() => {
+                  setDeleteErrorMessage(null);
+                  setIsDeleteModalOpen(true);
+                }}
                 disabled={selectedIds.size === 0}
               >
                 <span>삭제</span>
@@ -232,6 +298,7 @@ export const ProjectListPage = () => {
               isSelected={selectedIds.has(project.id)}
               onToggleSelect={() => toggleSelect(project.id)}
               onOpen={() => navigate(`/workspace/${project.id}/sections/1`)}
+              onEdit={() => setEditingProject(project)}
             />
           ))}
         {isDeleteModalOpen && (
@@ -241,11 +308,29 @@ export const ProjectListPage = () => {
               <>
                 선택한 {selectedIds.size}개의 프로젝트가 삭제돼요. 이 작업은
                 되돌릴 수 없어요.
+                {deleteErrorMessage && (
+                  <span className="text-error mt-2 block">
+                    {deleteErrorMessage}
+                  </span>
+                )}
               </>
             }
-            confirmLabel="삭제"
-            onCancel={() => setIsDeleteModalOpen(false)}
+            confirmLabel={isDeleting ? "삭제 중..." : "삭제"}
+            onCancel={() => {
+              if (isDeleting) return;
+              setDeleteErrorMessage(null);
+              setIsDeleteModalOpen(false);
+            }}
             onConfirm={handleConfirmDelete}
+          />
+        )}
+        {editingProject && (
+          <RenameProjectModal
+            initialTitle={editingProject.title}
+            isSubmitting={isRenaming}
+            errorMessage={renameErrorMessage}
+            onCancel={handleCancelRename}
+            onSubmit={handleSubmitRename}
           />
         )}
       </ListLayout>

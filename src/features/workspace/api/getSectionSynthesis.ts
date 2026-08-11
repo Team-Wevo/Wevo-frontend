@@ -7,15 +7,28 @@ export interface SectionSynthesisIssueResponse {
   id?: string | number;
   type?: string;
   title?: string;
+  summary?: string;
   aiHint?: string;
+  question?: string;
   opinions?: Array<{
     memberName?: string;
     name?: string;
     content?: string;
+    opinion?: string;
+    text?: string;
   }>;
   options?: Array<{
     id?: string | number;
     label?: string;
+    content?: string;
+    text?: string;
+    isCustomInput?: boolean;
+  }>;
+  decisionOptions?: Array<{
+    id?: string | number;
+    label?: string;
+    content?: string;
+    text?: string;
     isCustomInput?: boolean;
   }>;
   [key: string]: unknown;
@@ -23,11 +36,22 @@ export interface SectionSynthesisIssueResponse {
 
 export interface SectionSynthesisCurrentSetResponse {
   consensusSummary?: string;
+  summary?: string;
   issues?: SectionSynthesisIssueResponse[];
+  issueList?: SectionSynthesisIssueResponse[];
+  currentSet?: SectionSynthesisIssueResponse[];
 }
 
 export interface SectionSynthesisResponse {
-  currentSet: SectionSynthesisCurrentSetResponse | null;
+  exists?: boolean;
+  synthesisStale?: boolean;
+  latestJob?: {
+    requestId?: string;
+    status?: string;
+  };
+  currentSet?: SectionSynthesisCurrentSetResponse | null;
+  current_set?: SectionSynthesisCurrentSetResponse | null;
+  data?: SectionSynthesisCurrentSetResponse | null;
 }
 
 const GET_SYNTHESIS_FALLBACK_MESSAGE =
