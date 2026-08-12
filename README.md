@@ -1,203 +1,364 @@
-# WEVO
+<div align="center">
 
-> 대학생 팀 프로젝트 협업을 위한 AI 기반 서비스
+<img src="./public/Wevo-logo.svg" width="100" />
 
----
+<br />
 
-# 📖 프로젝트 소개
+<h1>
+<span style="color:#6D5DFB">WEVO</span>
+</h1>
 
-WEVO는 공모전, 팀 프로젝트, 대외활동에서 여러 구성원의 흩어진 의견과 초안을 하나의 결과물로 완성할 수 있도록 돕는 실시간 AI 협업 워크스페이스입니다.
+<h3>
+AI 기반 대학생 팀 프로젝트 협업 플랫폼
+</h3>
 
----
+<p>
+<span style="color:#94A3B8">
+AI와 함께 아이디어를 모으고,<br />
+팀의 생각을 정리하고,<br />
+완성도 높은 결과물까지 만들어가는 협업 서비스
+</span>
+</p>
 
-## ✨ 주요 기능
+</br>
+</br>
 
-### 🔐 소셜 로그인 및 프로젝트 생성
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
-- Google, Kakao 소셜 로그인 지원
-- 프로젝트 생성 및 초기 설정
-- 인증 상태 기반 접근 제어
-
-### 📝 실시간 협업
-
-- 작업 보드에서 의견 작성 및 공유
-- 팀원 의견 실시간 반영
-- 참여 현황 확인
-
-### 🤖 AI 퍼실리테이터
-
-- AI를 활용한 의견 분석 및 쟁점 정리
-- 프로젝트 초안 자동 생성
-- AI 분석 결과 및 근거 제공
-
-### ✅ 검토 및 결과물 관리
-
-- 팀원 검토 및 수정 요청
-- 프로젝트 확정 프로세스
-- 결과물 미리보기 및 내보내기
-
-### 🎨 공통 UI 및 시스템
-
-- 디자인 시스템 기반 UI 제공
-- 공통 컴포넌트 및 API 관리
-- 일관된 로딩 및 에러 처리
+</div>
 
 ---
 
-## 🔄 서비스 플로우
+## 📚 Table of Contents
 
-| 단계                  | 사용자 행동                                             |
-| --------------------- | ------------------------------------------------------- |
-| **1. 프로젝트 설정**  | 아이디어를 입력하고 결과물 유형과 전달 대상을 설정한다. |
-| **2. 의견 작성**      | 팀원들이 섹션의 항목별로 의견을 작성한다.               |
-| **3. 의견 통합**      | 섹션에 반영할 의견을 선택한다.                          |
-| **4. 읽힘 점검**      | 정리된 섹션 본문에 대한 점검을 요청한다.                |
-| **5. 실제 이해 확인** | 검토 링크를 팀원이나 외부 검토자에게 공유한다.          |
-| **6. 섹션 확정**      | 팀장이 검토된 섹션을 확정한다.                          |
-| **7. 변경 영향 확인** | 확정된 섹션의 내용을 수정한다.                          |
-| **8. 결과물 완성**    | 확정된 섹션을 모아 전체 결과물을 확인한다.              |
-
----
-
-## 👥 팀원 및 역할
-
-| 담당자 | 담당 기능                                                                           |
-| ------ | ----------------------------------------------------------------------------------- |
-| 구다연 | 계정 설정 팝업 구현                                                                 |
-| 신연우 | 메인 팀원 화면(사이드바, 헤더, 전체 레이아웃) 구현<br>프로젝트 탭 및 완성본 탭 구현 |
-| 유금진 | 메인 팀원 화면(작업 영역) 구현<br>프로젝트 탭 및 완성본 탭 구현                     |
-| 장현빈 | 온보딩 화면(메인 홈 화면) 및 온보딩 설정 팝업 구현                                  |
+- [📖 About WEVO](#-about-wevo)
+- [✨ Features](#-features)
+- [🔄 Service Flow](#-service-flow)
+  - [🛠 Tech Stack](#-tech-stack)
+- [💻 Getting Started](#-getting-started)
+  - [📋 Prerequisites](#-prerequisites)
+    - [1️⃣ Clone Repository](#1️⃣-clone-repository)
+    - [2️⃣ Environment Variables](#2️⃣-environment-variables)
+    - [3️⃣ Install Dependencies](#3️⃣-install-dependencies)
+    - [4️⃣ Start Development Server](#4️⃣-start-development-server)
+- [🔗 API Architecture](#-api-architecture)
+- [📂 Project Structure](#-project-structure)
+- [🌿 Git Convention](#-git-convention)
+  - [🌱 Branch Naming](#-branch-naming)
+  - [🏷 GitHub Labels](#-github-labels)
+  - [💬 Commit Convention](#-commit-convention)
+  - [🚀 Pull Request](#-pull-request)
+- [👥 Team](#-team)
 
 ---
 
-## 🛠️ 기술 스택
+# 📖 About WEVO
 
-| 분류            | 기술                     | 설명                                         |
-| --------------- | ------------------------ | -------------------------------------------- |
-| Framework       | React                    | 사용자 인터페이스 개발                       |
-| Language        | TypeScript               | 타입 안정성 및 유지보수 향상                 |
-| Build Tool      | Vite                     | 빠른 개발 서버 및 번들링                     |
-| Styling         | Tailwind CSS v4          | 유틸리티 기반 스타일링 및 디자인 시스템 적용 |
-| Routing         | React Router             | 페이지 라우팅 및 네비게이션                  |
-| Server State    | TanStack Query           | 서버 데이터 조회, 캐싱 및 동기화             |
-| Client State    | Zustand                  | 전역 UI 및 클라이언트 상태 관리              |
-| Form            | React Hook Form          | 폼 상태 관리 및 유효성 검사                  |
-| Realtime        | Server-Sent Events (SSE) | 실시간 협업 데이터 반영                      |
-| Icons           | Lucide React             | UI 아이콘                                    |
-| Package Manager | pnpm                     | 패키지 및 의존성 관리                        |
-| Deploy          | Vercel                   | 프로젝트 배포                                |
+> **WEVO는 대학생 팀 프로젝트 협업을 위한 AI 기반 워크스페이스입니다.**
+
+팀 프로젝트를 진행하며 발생하는 **의견 파편화**와 **결과물 정리의 어려움**을 해결합니다. WEVO는 여러 구성원의 흩어진 아이디어를 실시간으로 모으고, AI 퍼실리테이터를 통해 **의견 분석 → AI 초안 생성 → 팀원 검토 및 수정 → 최종 결과물 Export**까지 하나의 통합 공간에서 연속성 있게 연결합니다.
 
 ---
 
-## 📂 폴더 구조
+# ✨ Features
 
-> `features`와 `pages` 구조는 프로젝트에 맞게 수정 예정
+| 기능                   | 설명                                                                                                           | 주요 화면 (예시)                     |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------- |
+| **🔐 Authentication**  | • Google / Kakao OAuth 2.0 로그인<br>• JWT 기반 토큰 인증 및 자동 갱신<br>• 인증 상태에 따른 Route Guard 적용  | `<!-- 스크린샷 이미지 배치 영역 -->` |
+| **👥 Collaboration**   | • 실시간 팀원 의견 작성 및 공유<br>• 팀원별 참여 현황 및 상태 확인                                             | `<!-- 스크린샷 이미지 배치 영역 -->` |
+| **🤖 AI Facilitator**  | • SSE(Server-Sent Events) 기반 실시간 AI 응답 스트리밍<br>• 팀원 의견 종합 분석 및 근거 기반 AI 초안 자동 생성 | `<!-- 스크린샷 이미지 배치 영역 -->` |
+| **📄 Review & Export** | • AI 초안에 대한 팀원별 검토 및 피드백/수정 요청<br>• 최종 결과물 미리보기 및 다각도 Export 지원               | `<!-- 스크린샷 이미지 배치 영역 -->` |
+
+---
+
+# 🔄 Service Flow
+
+| 단계  | 과정             | 설명                                              |
+| ----- | ---------------- | ------------------------------------------------- |
+| 🚀 01 | 프로젝트 생성    | 프로젝트 목표와 기본 정보를 설정합니다            |
+| 💡 02 | 의견 작성 & 공유 | 팀원들이 아이디어와 의견을 자유롭게 공유합니다    |
+| 🤖 03 | AI 의견 분석     | 여러 의견을 AI가 분석하고 핵심 내용을 정리합니다  |
+| 📝 04 | AI 초안 생성     | 정리된 의견을 기반으로 프로젝트 초안을 생성합니다 |
+| ✏️ 05 | 검토 및 수정     | 팀원들이 초안을 확인하고 함께 개선합니다          |
+| 📦 06 | 결과물 완성      | 완성된 결과물을 저장하고 Export합니다             |
+
+## 🛠 Tech Stack
+
+| Category               | Tech Stack                | Why We Chose It                                                 |
+| :--------------------- | :------------------------ | :-------------------------------------------------------------- |
+| ⚛️ **Framework**       | React 19                  | 최신 React 기능을 활용하여 사용자 경험과 비동기 렌더링을 최적화 |
+| 📘 **Language**        | TypeScript 6.0            | 엄격한 타입 시스템으로 런타임 오류를 줄이고 유지보수성을 향상   |
+| ⚡ **Build Tool**      | Vite 8                    | 빠른 HMR과 빌드 성능을 통해 개발 생산성을 향상                  |
+| 🎨 **Styling**         | Tailwind CSS v4           | Utility-first 방식으로 일관된 디자인 시스템 구축                |
+| 🧭 **Routing**         | React Router              | 선언적 라우팅 기반의 직관적인 페이지 전환                       |
+| 🗂 **State**            | TanStack Query<br>Zustand | Server State와 Client State를 분리하여 효율적인 상태 관리       |
+| 📝 **Form**            | React Hook Form           | 불필요한 리렌더링을 최소화하고 폼 유효성 검사 최적화            |
+| 📡 **Realtime**        | Server-Sent Events (SSE)  | AI 스트리밍 데이터를 실시간으로 수신                            |
+| 🎯 **Icons**           | Lucide React              | 일관된 디자인 시스템을 위한 아이콘 사용                         |
+| 📦 **Package Manager** | pnpm                      | 빠른 의존성 설치 및 관리                                        |
+| 🚀 **Deploy**          | Vercel                    | CI/CD 기반 자동 배포                                            |
+
+---
+
+# 💻 Getting Started
+
+## 📋 Prerequisites
+
+프로젝트를 실행하기 위해 아래 환경이 필요합니다.
+
+- Node.js **20.x** 이상
+- pnpm **9.x** 이상
+
+### 1️⃣ Clone Repository
+
+```bash
+git clone https://github.com/your-team/wevo-frontend.git
+
+cd wevo-frontend
+```
+
+### 2️⃣ Environment Variables
+
+루트 경로에 `.env.local` 파일을 생성합니다.
+
+```env
+VITE_API_BASE_URL=https://api.wevo.com
+```
+
+### 3️⃣ Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 4️⃣ Start Development Server
+
+```bash
+pnpm dev
+```
+
+---
+
+# 🔗 API Architecture
+
+> [!IMPORTANT]
+> 프로젝트의 API 통신은 아래 공통 아키텍처 규칙을 따릅니다.
+
+| Rule                  | Description                                                        |
+| :-------------------- | :----------------------------------------------------------------- |
+| 🟢 **Client**         | 일반 요청은 `apiClient`, 토큰 재발급은 `tokenClient`를 사용합니다. |
+| 🟢 **Response**       | 모든 응답은 `ApiResponse<T>` 형태를 따릅니다.                      |
+| 🟢 **Parsing**        | `unwrapApiResponse()`를 통해 데이터를 검증하고 추출합니다.         |
+| 🟢 **Error Handling** | `getApiErrorMessage()`를 통해 서버 에러를 표준화합니다.            |
+| 🟢 **Server State**   | TanStack Query를 기반으로 서버 상태를 관리합니다.                  |
+| 🟢 **Token**          | 토큰은 `tokenStorage`를 통해 일관되게 관리합니다.                  |
+
+---
+
+# 📂 Project Structure
 
 ```text
 wevo-frontend/
-├─ .github/
-│  ├─ ISSUE_TEMPLATE/
-│  │  └─ feature_request.md
-│  ├─ workflows/
-│  │  ├─ ci.yml
-│  │  └─ deploy.yml
-│  └─ pull_request_template.md
-├─ .husky/
-│  └─ pre-commit
-├─ public/
+│
+├── AGENTS.md
+├── public
+│   └── Wevo-logo.svg
+├── src
+│   ├── app
+│   │   ├── layouts
+│   │   ├── router
+│   │   └── styles
+│   ├── features
+│   │   ├── ai
+│   │   ├── auth
+│   │   ├── export
+│   │   ├── onboarding
+│   │   ├── project
+│   │   └── workspace
+│   ├── pages
+│   │   ├── auth
+│   │   ├── common
+│   │   ├── completed
+│   │   ├── onboarding
+│   │   ├── project
+│   │   └── workspace
+│   ├── shared
+│   │   ├── api
+│   │   ├── assets
+│   │   ├── components
+│   │   ├── styles
+│   │   ├── types
+│   │   └── utils
+│   ├── stores
+│   ├── App.css
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── eslint.config.js
+├── index.html
+├── package.json
+├── pnpm-lock.yaml
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vercel.json
+└── vite.config.ts
+```
+
+<details>
+
+<summary><strong>📁 전체 폴더 구조 보기</strong></summary>
+
+```text
+wevo-frontend/
+├─ AGENTS.md
+├─ eslint.config.js
+├─ index.html
+├─ package.json
+├─ pnpm-lock.yaml
 ├─ src/
 │  ├─ app/
 │  │  ├─ layouts/
-│  │  ├─ providers/
-│  │  └─ router/
-│  ├─ assets/
+│  │  ├─ router/
+│  │  └─ styles/
 │  ├─ features/
+│  │  ├─ ai/
+│  │  ├─ auth/
+│  │  ├─ export/
+│  │  ├─ onboarding/
+│  │  ├─ project/
+│  │  └─ workspace/
 │  ├─ pages/
+│  │  ├─ auth/
+│  │  ├─ common/
+│  │  ├─ completed/
+│  │  ├─ onboarding/
+│  │  ├─ project/
+│  │  └─ workspace/
 │  ├─ shared/
-│  │  ├─ api/
-│  │  ├─ components/
-│  │  ├─ config/
-│  │  ├─ constants/
-│  │  ├─ hooks/
-│  │  ├─ types/
-│  │  └─ utils/
+│  ├─ stores/
 │  ├─ App.tsx
+│  ├─ App.css
+│  ├─ index.css
 │  ├─ main.tsx
-│  └─ index.css
-├─ .env.example
-├─ .prettierrc
-├─ eslint.config.js
-├─ package.json
-├─ vite.config.ts
-└─ README.md
+│  └─ vite-env.d.ts
+├─ public/
+├─ README.md
+├─ tsconfig.app.json
+├─ tsconfig.json
+├─ tsconfig.node.json
+├─ vercel.json
+└─ vite.config.ts
+```
+
+</details>
+
+---
+
+# 🌿 Git Convention
+
+## 🌱 Branch Naming
+
+```text
+type/issue-feature
+```
+
+예시
+
+```text
+feat/79-login
+fix/84-bookmark
+refactor/15-auth
 ```
 
 ---
 
-## 🌿 브랜치 전략 (Branch Strategy)
+## 🏷 GitHub Labels
 
-기능 단위로 브랜치를 생성하며, 아래 네이밍 규칙을 따릅니다.
+| Label            | Description                |
+| :--------------- | :------------------------- |
+| ✨ feature       | 새로운 기능                |
+| 🚀 enhancement   | 기존 기능 개선             |
+| ♻️ refactor      | 리팩토링                   |
+| 🐛 bug           | 버그 수정                  |
+| 🎨 design        | UI 및 스타일 수정          |
+| 📝 documentation | 문서 수정                  |
+| 🔧 chore         | 프로젝트 설정 및 기타 작업 |
+| ✅ test          | 테스트 코드                |
+| ⏪ revert        | 이전 변경 사항 복구        |
 
-### 브랜치 규칙
+---
+
+## 💬 Commit Convention
 
 ```text
-브랜치타입/이슈번호-기능명
+type: description (#issue)
 ```
 
-### 예시
+예시
 
 ```text
-feat/79-mypage-features
-fix/83-bookmark-toggle
-refactor/45-auth
+feat: 프로젝트 생성 API 연동 (#51)
+
+fix: OAuth 로그인 오류 수정 (#62)
+
+docs: README 수정 (#14)
+
+refactor: API 구조 개선 (#23)
 ```
 
 ---
 
-## 🏷️ GitHub Labels
+## 🚀 Pull Request
 
-| Label           | 설명                          |
-| --------------- | ----------------------------- |
-| `bug`           | 버그 수정                     |
-| `chore`         | 프로젝트 설정 및 기타 작업    |
-| `design`        | UI 및 스타일 수정             |
-| `documentation` | README, API 문서 등 문서 수정 |
-| `enhancement`   | 기존 기능 개선                |
-| `feature`       | 새로운 기능 개발              |
-| `refactor`      | 기능 변경 없는 코드 구조 개선 |
-| `revert`        | 이전 변경 사항 복구           |
-| `test`          | 테스트 코드 작성              |
+PR은 프로젝트 템플릿을 사용하며 아래 내용을 포함합니다.
+
+- 📌 Related Issue
+- 🏷 PR Type
+- 📝 Description
+- 📸 Screenshot
+- ✅ Checklist
+- 📎 Reference
 
 ---
 
-## 💬 커밋 컨벤션 (Commit Convention)
+# 👥 Team
 
-### 커밋 규칙
-
-```text
-타입: 설명 (#이슈번호)
-```
-
-### 예시
-
-```text
-feat: 북마크 토글 (#84)
-fix: 로그인 오류 수정 (#32)
-refactor: API 구조 개선 (#15)
-docs: README 수정 (#7)
-```
+| Member    | Role                                  |
+| :-------- | :------------------------------------ |
+| 👤 구다연 | 계정 설정 팝업 및 사용자 프로필 관리  |
+| 👤 신연우 | 메인 레이아웃, 프로젝트 / 완성본 화면 |
+| 👤 유금진 | Workspace, 실시간 협업 UI             |
+| 👤 장현빈 | 온보딩, 프로젝트 설정 팝업            |
 
 ---
 
-## 🚀 Pull Request 컨벤션
+<div align="center">
 
-PR은 프로젝트에서 제공하는 템플릿을 사용하여 작성합니다.
+<img src="./dist/Wevo-logo.svg" width="100" />
 
-### PR 구성
+<h1>
+<span style="color:#6D5DFB">WEVO</span>
+</h1>
 
-- 📌 관련 이슈
-- 🏷️ PR 타입
-- 📝 작업 내용
-- 📸 스크린샷 (UI 변경 시)
-- ✅ 체크리스트
-- 📎 기타 참고사항
+<h3>
+AI 기반 대학생 팀 프로젝트 협업 플랫폼
+</h3>
+
+<p>
+<span style="color:#94A3B8">
+공모전, 팀 프로젝트, 대외활동에서<br />
+AI와 함께 아이디어를 모으고, 초안을 생성하고,<br />
+팀원과 함께 완성하는 협업 플랫폼
+
+</span>
+</p>
+
+</div>

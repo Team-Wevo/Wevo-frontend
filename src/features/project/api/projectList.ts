@@ -5,6 +5,20 @@ import type { ApiResponse } from "../../../shared/api/types";
 export type ProjectResultType = "PROPOSAL" | "PRESENTATION";
 export type ProjectStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
 export type ProjectMemberRole = "OWNER" | "MEMBER";
+export type ProjectSectionStatus =
+  "COLLECTING" | "SYNTHESIZING" | "DRAFTING" | "REVIEWING" | "CONFIRMED";
+
+export interface ProjectSectionProgress {
+  total: number;
+  confirmed: number;
+}
+
+export interface LastActiveSectionResponse {
+  sectionId: number;
+  order: number;
+  title: string;
+  sectionStatus: ProjectSectionStatus;
+}
 
 export interface ProjectSummaryResponse {
   projectId: number;
@@ -13,6 +27,8 @@ export interface ProjectSummaryResponse {
   status: ProjectStatus;
   myRole: ProjectMemberRole;
   createdAt: string;
+  lastActiveSection: LastActiveSectionResponse;
+  sectionProgress: ProjectSectionProgress;
 }
 
 // 내 프로젝트 목록 — 멤버인 것만, 보관(ARCHIVED) 제외, 최신순으로 서버에서 내려줌

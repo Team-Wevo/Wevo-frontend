@@ -5,6 +5,7 @@ import type {
 import type {
   ProjectMemberRole,
   ProjectResultType,
+  ProjectStatus,
   ProjectSummaryResponse,
 } from "../api/projectList";
 
@@ -27,6 +28,17 @@ const MEMBER_ROLE_TO_LABEL: Record<ProjectMemberRole, ProjectRole> = {
   MEMBER: "팀원",
 };
 
+const STATUS_TO_LABEL: Record<Exclude<ProjectStatus, "ACTIVE">, string> = {
+  DRAFT: "작성 전",
+  COMPLETED: "작성 완료",
+  ARCHIVED: "보관됨",
+};
+
+const getStatusText = (response: ProjectSummaryResponse): string =>
+  response.status === "ACTIVE"
+    ? `${response.lastActiveSection.title} 작성 중`
+    : STATUS_TO_LABEL[response.status];
+
 const formatDate = (isoString: string): string => {
   const date = new Date(isoString);
   const year = date.getFullYear();
@@ -43,7 +55,6 @@ export const toProjectListItem = (
   category: RESULT_TYPE_TO_CATEGORY[response.resultType],
   role: MEMBER_ROLE_TO_LABEL[response.myRole],
   title: response.title,
-  // TODO: 한글 라벨 매핑 필요해지면 여기서 교체
-  statusText: response.status,
+  statusText: getStatusText(response),
   date: formatDate(response.createdAt),
 });

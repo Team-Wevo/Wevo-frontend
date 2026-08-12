@@ -9,6 +9,10 @@ import {
   type SectionOpinionsResponse,
 } from "../../../features/workspace/api/getSectionOpinions";
 import {
+  getMyOpinion,
+  type MyOpinionResponse,
+} from "../../../features/workspace/api/getMyOpinion";
+import {
   isWorkspaceSectionNo,
   type WorkspaceSection,
   type WorkspaceSectionNo,
@@ -49,10 +53,12 @@ const getFallbackSectionNo = (sections: WorkspaceSection[]): number => {
 export interface WorkspaceSectionLoaderData {
   projectId: number;
   sectionNo: number;
+  sectionId: number;
   sections: WorkspaceSection[];
   currentSection: WorkspaceSection;
   projectDetail: ProjectDetailResponse;
   opinions: SectionOpinionsResponse | null;
+  myOpinion: MyOpinionResponse | null;
 }
 
 export const workspaceIndexLoader = ({ params }: LoaderFunctionArgs) => {
@@ -96,17 +102,22 @@ export const workspaceSectionLoader = async ({
   }
 
   // 의견 모으기 단계에서만 필요한 데이터이므로, 다른 단계에서는 불필요한 요청을 보내지 않는다.
-  const opinions =
+  const [opinions, myOpinion] =
     currentSection.sectionStatus === "COLLECTING"
-      ? await getSectionOpinions(currentSection.projectSectionId)
-      : null;
+      ? await Promise.all([
+          getSectionOpinions(currentSection.projectSectionId),
+          getMyOpinion(currentSection.projectSectionId),
+        ])
+      : [null, null];
 
   return {
     projectId,
     sectionNo,
+    sectionId: currentSection.projectSectionId,
     sections,
     currentSection,
     projectDetail,
     opinions,
+    myOpinion,
   };
 };

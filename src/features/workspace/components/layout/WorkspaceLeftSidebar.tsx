@@ -53,6 +53,7 @@ const WorkspaceLeftSidebar = ({
               <Link
                 key={item.section}
                 to={`/workspace/${projectId}/sections/${stepId}`}
+                replace
                 className={cn(
                   "flex cursor-pointer items-start gap-2 overflow-hidden rounded-sm px-3 py-2 text-left",
                   isActive && "bg-main-50",
