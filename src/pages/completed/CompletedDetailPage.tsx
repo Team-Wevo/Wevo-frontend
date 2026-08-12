@@ -1,8 +1,10 @@
-import { useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import CompletedLayout from "../../app/layouts/CompletedLayout";
 import CompletedPreviewCard, {
   type CompletedPreviewSection,
 } from "../../features/completed/components/CompletedPreviewCard";
+import EditSectionConfirmModal from "../../features/completed/components/EditSectionConfirmModal";
 import type { DocumentProgress } from "../../shared/types/documentType";
 
 // TODO: 로더 연동 후 실제 섹션 진행 상황으로 교체
@@ -44,6 +46,16 @@ const MOCK_SECTIONS: CompletedPreviewSection[] = [
 
 export const CompletedDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [editingSection, setEditingSection] =
+    useState<CompletedPreviewSection | null>(null);
+
+  const handleCancelEdit = () => setEditingSection(null);
+
+  const handleConfirmEdit = () => {
+    if (!editingSection) return;
+    navigate(`/workspace/${id}/sections/${editingSection.orderNo}`);
+  };
 
   return (
     <CompletedLayout
@@ -56,7 +68,21 @@ export const CompletedDetailPage = () => {
         categoryLabel={MOCK_CATEGORY_LABEL}
         documentTitle={MOCK_DOCUMENT_TITLE}
         sections={MOCK_SECTIONS}
+        onEditSection={(orderNo) =>
+          setEditingSection(
+            MOCK_SECTIONS.find((section) => section.orderNo === orderNo) ??
+              null,
+          )
+        }
       />
+
+      {editingSection && (
+        <EditSectionConfirmModal
+          sectionTitle={editingSection.title}
+          onCancel={handleCancelEdit}
+          onConfirm={handleConfirmEdit}
+        />
+      )}
     </CompletedLayout>
   );
 };
