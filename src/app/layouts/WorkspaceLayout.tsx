@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMyProfile } from "../../features/auth/hooks/useMyProfile";
 import WorkspaceHeader, {
   type DraftSaveStatus,
 } from "../../features/workspace/components/layout/WorkspaceHeader";
@@ -19,8 +18,8 @@ import type {
 } from "../../shared/types/documentType";
 import type { WorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 import {
-  hasSeenWorkspaceOnboarding,
-  markWorkspaceOnboardingAsSeen,
+  clearPendingWorkspaceOnboarding,
+  hasPendingWorkspaceOnboarding,
 } from "../../features/workspace/utils/workspaceOnboardingStorage";
 
 // TODO: 섹션별 초안 내용 API 연동 후 실제 본문으로 교체
@@ -51,23 +50,21 @@ interface WorkspaceLayoutProps {
 }
 
 interface WorkspaceOnboardingGateProps {
-  userId: number;
   projectId: string;
 }
 
 const WorkspaceOnboardingGate = ({
-  userId,
   projectId,
 }: WorkspaceOnboardingGateProps) => {
-  const [isVisible, setIsVisible] = useState(() => {
-    if (hasSeenWorkspaceOnboarding(userId, projectId)) {
-      return false;
-    }
+  const [isVisible, setIsVisible] = useState(() =>
+    hasPendingWorkspaceOnboarding(projectId),
+  );
 
-    // 최초 노출 시점에 기록해 가이드 도중 새로고침해도 다시 표시되지 않게 한다.
-    markWorkspaceOnboardingAsSeen(userId, projectId);
-    return true;
-  });
+  useEffect(() => {
+    if (isVisible) {
+      clearPendingWorkspaceOnboarding(projectId);
+    }
+  }, [isVisible, projectId]);
 
   return isVisible ? (
     <WorkspaceOnboarding onFinish={() => setIsVisible(false)} />
@@ -87,7 +84,6 @@ const WorkspaceLayout = ({
   children,
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
-  const profileQuery = useMyProfile(true);
   const [isFlowPreviewOpen, setIsFlowPreviewOpen] = useState(false);
   const activeSection = progress[activeStepId - 1];
   const documentTypeLabel =
@@ -138,13 +134,10 @@ const WorkspaceLayout = ({
         <WorkspaceRightSidebar projectInfo={projectInfo} />
       </div>
 
-      {profileQuery.data && (
-        <WorkspaceOnboardingGate
-          key={`${profileQuery.data.userId}:${projectId}`}
-          userId={profileQuery.data.userId}
-          projectId={projectId}
-        />
-      )}
+      <WorkspaceOnboardingGate
+        key={projectId}
+        projectId={projectId}
+      />
 
       {isFlowPreviewOpen && (
         <FlowPreviewModal

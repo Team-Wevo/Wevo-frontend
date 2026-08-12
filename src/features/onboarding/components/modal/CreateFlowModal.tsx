@@ -13,6 +13,7 @@ import DocumentTypeSection from "./DocumentTypeSection";
 import FooterButton from "./FooterButton";
 import IdeaSection from "./IdeaSection";
 import WritingFlowModal from "./WritingFlowModal";
+import { markWorkspaceOnboardingAsPending } from "@/features/workspace/utils/workspaceOnboardingStorage";
 
 const WORKSPACE_NAVIGATION_DELAY_MS = 2000;
 
@@ -116,6 +117,7 @@ const CreateFlowModal = ({
         setTimeout(resolve, WORKSPACE_NAVIGATION_DELAY_MS);
       });
 
+      markWorkspaceOnboardingAsPending(String(result.projectId));
       navigate(`/workspace/${result.projectId}/sections/1`);
     } catch (error) {
       setErrorMessage(getCreateProjectErrorMessage(error));
