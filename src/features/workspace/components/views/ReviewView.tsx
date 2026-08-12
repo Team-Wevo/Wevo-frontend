@@ -34,7 +34,7 @@ import type { WorkspaceSection } from "../../constants/sections";
 const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
   APPROVED: "동의",
   CHANGES_REQUESTED: "수정 요청",
-  PENDING: "검토 전",
+  PENDING: "대기",
 };
 
 const REVIEW_STATUS_TEXT_CLASS: Record<TeamReviewStatus, string> = {
