@@ -9,13 +9,14 @@ import { cn } from "../../../../shared/utils/cn";
 import type {
   IssueCoordinationData,
   IssueCustomInputMap,
+  IssueDecisionSubmission,
   IssueDecisionMap,
 } from "./types";
 
 interface IssueCoordinationViewProps {
   data: IssueCoordinationData;
   /** 모든 쟁점을 결정한 뒤 초안 생성 단계로 넘어간다. */
-  onCreateDraft: () => void;
+  onCreateDraft: (decisions: IssueDecisionSubmission[]) => void;
   isCreatingDraft?: boolean;
   canManageIssues: boolean;
   canGenerateDraft: boolean;
@@ -28,15 +29,60 @@ const IssueCoordinationView = ({
   canManageIssues,
   canGenerateDraft,
 }: IssueCoordinationViewProps) => {
-  const [decisions, setDecisions] = useState<IssueDecisionMap>({});
-  const [customInputs, setCustomInputs] = useState<IssueCustomInputMap>({});
+  const [decisionOverrides, setDecisionOverrides] = useState<IssueDecisionMap>(
+    {},
+  );
+  const [customInputOverrides, setCustomInputOverrides] =
+    useState<IssueCustomInputMap>({});
+  const persistedDecisions = useMemo<IssueDecisionMap>(
+    () =>
+      Object.fromEntries(
+        data.issues.flatMap((issue) => {
+          const selectedOption = issue.decision?.selectedOption;
+          const customInput = issue.decision?.customInput;
+          const matchedOption = issue.options?.find(
+            (option) =>
+              option.label === selectedOption ||
+              Boolean(customInput && option.isCustomInput),
+          );
+
+          return matchedOption ? [[issue.id, matchedOption.id]] : [];
+        }),
+      ),
+    [data.issues],
+  );
+  const persistedCustomInputs = useMemo<IssueCustomInputMap>(
+    () =>
+      Object.fromEntries(
+        data.issues.flatMap((issue) =>
+          issue.decision?.customInput
+            ? [[issue.id, issue.decision.customInput]]
+            : [],
+        ),
+      ),
+    [data.issues],
+  );
+  const decisions = useMemo(
+    () => ({ ...persistedDecisions, ...decisionOverrides }),
+    [persistedDecisions, decisionOverrides],
+  );
+  const customInputs = useMemo(
+    () => ({ ...persistedCustomInputs, ...customInputOverrides }),
+    [persistedCustomInputs, customInputOverrides],
+  );
 
   const handleSelectOption = (issueId: string, optionId: string) => {
-    setDecisions((previous) => ({ ...previous, [issueId]: optionId }));
+    setDecisionOverrides((previous) => ({
+      ...previous,
+      [issueId]: optionId,
+    }));
   };
 
   const handleChangeCustomInput = (issueId: string, value: string) => {
-    setCustomInputs((previous) => ({ ...previous, [issueId]: value }));
+    setCustomInputOverrides((previous) => ({
+      ...previous,
+      [issueId]: value,
+    }));
   };
 
   const canCreateDraft = useMemo(
@@ -46,6 +92,44 @@ const IssueCoordinationView = ({
       ),
     [data.issues, decisions, customInputs],
   );
+
+  const handleCreateDraft = () => {
+    const pendingDecisions = data.issues.flatMap((issue) => {
+      if (issue.resolutionType !== "choice") {
+        return [];
+      }
+
+      const selectedOption = issue.options?.find(
+        (option) => option.id === decisions[issue.id],
+      );
+
+      if (!selectedOption) {
+        return [];
+      }
+
+      const customInput = selectedOption.isCustomInput
+        ? (customInputs[issue.id] ?? "").trim()
+        : undefined;
+      const selectedOptionValue = selectedOption.isCustomInput
+        ? undefined
+        : selectedOption.label;
+      const isAlreadyPersisted =
+        issue.decision?.selectedOption === selectedOptionValue &&
+        issue.decision?.customInput === customInput;
+
+      return isAlreadyPersisted
+        ? []
+        : [
+            {
+              issueId: issue.id,
+              selectedOption: selectedOptionValue,
+              customInput,
+            },
+          ];
+    });
+
+    onCreateDraft(pendingDecisions);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -86,7 +170,7 @@ const IssueCoordinationView = ({
 
           <Button
             type="ai"
-            onClick={onCreateDraft}
+            onClick={handleCreateDraft}
             disabled={!canCreateDraft || isCreatingDraft}
             className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
           >

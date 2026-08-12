@@ -20,7 +20,11 @@ import type {
   DraftStageViewProps,
   DebugDraftStage,
 } from "../draft/types";
-import type { IssueCoordinationData, WorkspaceIssue } from "../issue/types";
+import type {
+  IssueCoordinationData,
+  IssueDecisionSubmission,
+  WorkspaceIssue,
+} from "../issue/types";
 import type { WorkspaceSection } from "../../constants/sections";
 import { getAiJobStatus } from "../../api/getAiJobStatus";
 import {
@@ -41,6 +45,7 @@ import {
   generateSectionDraft,
   getGenerateDraftErrorMessage,
 } from "../../api/generateDraft";
+import { decideIssue, getDecideIssueErrorMessage } from "../../api/decideIssue";
 import {
   getSectionDraft,
   getSectionDraftErrorMessage,
@@ -165,7 +170,7 @@ const extractSynthesisCurrentSet = (
   }
 
   return hasIssuePayloadShape(root)
-    ? (root as SectionSynthesisCurrentSetResponse)
+    ? (root as unknown as SectionSynthesisCurrentSetResponse)
     : null;
 };
 
@@ -252,6 +257,20 @@ const toWorkspaceIssue = (
 
   const options = optionCandidates
     .map((option, optionIndex) => {
+      if (typeof option === "string") {
+        const label = option.trim();
+
+        if (!label) {
+          return null;
+        }
+
+        return {
+          id: `${index + 1}-option-${optionIndex + 1}`,
+          label,
+          isCustomInput: label.replace(/\s/g, "") === "직접입력",
+        };
+      }
+
       if (typeof option !== "object" || option === null) {
         return null;
       }
@@ -324,6 +343,14 @@ const toWorkspaceIssue = (
     (issueType === "GAP"
       ? "추가 근거를 요청한 상태예요. 답변을 기다리며 진행할 수 있어요."
       : "이 쟁점의 방향을 하나로 결정해 주세요.");
+  const decisionRecord = toRecordValue(issue.decision);
+  const decision = decisionRecord
+    ? {
+        selectedOption:
+          toStringValue(decisionRecord.selectedOption) ?? undefined,
+        customInput: toStringValue(decisionRecord.customInput) ?? undefined,
+      }
+    : undefined;
 
   if (issueType === "GAP") {
     return {
@@ -345,21 +372,20 @@ const toWorkspaceIssue = (
             ? issue.questionCount
             : 1,
       },
+      decision,
     };
   }
 
-  const choiceOptions =
-    options.length > 0
-      ? options
-      : [
-          { id: `${index + 1}-agree`, label: "의견 A 기준으로 반영" },
-          { id: `${index + 1}-merge`, label: "의견을 통합해 반영" },
-          {
-            id: `${index + 1}-custom`,
-            label: "직접 입력",
-            isCustomInput: true,
-          },
-        ];
+  const choiceOptions = options.some((option) => option.isCustomInput)
+    ? options
+    : [
+        ...options,
+        {
+          id: `${index + 1}-custom`,
+          label: "직접 입력",
+          isCustomInput: true,
+        },
+      ];
 
   return {
     id:
@@ -372,6 +398,7 @@ const toWorkspaceIssue = (
     aiHint,
     opinions,
     options: choiceOptions,
+    decision,
   };
 };
 
@@ -1191,13 +1218,39 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     }
   };
 
-  const handleCreateDraft = async () => {
+  const handleCreateDraft = async (decisions: IssueDecisionSubmission[]) => {
     if (!permissions.canGenerateDraft) {
       return;
     }
 
     setIsStartingDraftGeneration(true);
     setActionErrorMessage(null);
+
+    try {
+      await Promise.all(
+        decisions.map((decision) => {
+          const issueId = Number(decision.issueId);
+
+          if (!Number.isInteger(issueId) || issueId <= 0) {
+            throw new Error("유효하지 않은 쟁점 번호입니다.");
+          }
+
+          return decideIssue(issueId, {
+            selectedOption: decision.selectedOption,
+            customInput: decision.customInput,
+          });
+        }),
+      );
+
+      if (decisions.length > 0) {
+        await synthesisResultQuery.refetch();
+      }
+    } catch (error) {
+      setActionErrorMessage(getDecideIssueErrorMessage(error));
+      void synthesisResultQuery.refetch();
+      setIsStartingDraftGeneration(false);
+      return;
+    }
 
     try {
       const { requestId } = await generateSectionDraft(sectionId);
