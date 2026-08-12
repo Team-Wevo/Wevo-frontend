@@ -12,6 +12,7 @@ import ReviewView from "../../features/workspace/components/views/ReviewView";
 import { getWorkspacePhase } from "../../features/workspace/utils/getWorkspacePhase";
 import { getWorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 import { toDocumentProgress } from "../../features/workspace/utils/toDocumentProgress";
+import { useWorkspaceSections } from "../../features/workspace/hooks/useWorkspaceSections";
 import {
   SECTION_PHASES,
   type SectionPhase,
@@ -25,14 +26,20 @@ const RESULT_TYPE_LABEL: Record<ProjectResultType, string> = {
 const WorkspacePage = () => {
   const {
     projectId,
-    sectionId,
+    sectionNo,
     sections,
     currentSection,
     projectDetail,
     opinions,
     myOpinion,
   } = useLoaderData() as WorkspaceSectionLoaderData;
-  const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
+  const sectionsQuery = useWorkspaceSections(projectId, sections);
+  const syncedSections = sectionsQuery.data ?? sections;
+  const syncedCurrentSection =
+    syncedSections.find((section) => section.orderNo === sectionNo) ??
+    currentSection;
+  const sectionId = syncedCurrentSection.projectSectionId;
+  const currentPhase = getWorkspacePhase(syncedCurrentSection.sectionStatus);
   const permissions = getWorkspacePermissions(projectDetail.myRole);
   const [saveStatus, setSaveStatus] = useState<DraftSaveStatus>("idle");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -83,8 +90,8 @@ const WorkspacePage = () => {
       title={projectDetail.title}
       projectId={String(projectId)}
       projectInfo={projectInfo}
-      progress={toDocumentProgress(sections)}
-      activeStepId={currentSection.orderNo}
+      progress={toDocumentProgress(syncedSections)}
+      activeStepId={syncedCurrentSection.orderNo}
       saveStatus={
         currentPhase === "의견 모으기" && selectedPhase === currentPhase
           ? saveStatus
@@ -96,9 +103,9 @@ const WorkspacePage = () => {
     >
       {selectedPhase === "의견 모으기" ? (
         <OpinionView
-          key={currentSection.projectSectionId}
+          key={syncedCurrentSection.projectSectionId}
           projectId={projectId}
-          section={currentSection}
+          section={syncedCurrentSection}
           sectionId={sectionId}
           opinions={opinions}
           myOpinion={myOpinion}
@@ -109,7 +116,7 @@ const WorkspacePage = () => {
       ) : selectedPhase === "정리·초안" ? (
         selectedPhase === currentPhase ? (
           <DraftView
-            section={currentSection}
+            section={syncedCurrentSection}
             permissions={permissions}
           />
         ) : (
@@ -117,13 +124,14 @@ const WorkspacePage = () => {
         )
       ) : (
         <ReviewView
-          section={currentSection}
+          section={syncedCurrentSection}
           sectionId={sectionId}
           permissions={permissions}
           projectId={String(projectId)}
           nextSectionNo={
-            sections.find((item) => item.orderNo === currentSection.orderNo + 1)
-              ?.orderNo ?? null
+            syncedSections.find(
+              (item) => item.orderNo === syncedCurrentSection.orderNo + 1,
+            )?.orderNo ?? null
           }
         />
       )}
