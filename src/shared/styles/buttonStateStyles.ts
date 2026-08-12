@@ -14,6 +14,13 @@ export const PRESSABLE_SEND_BUTTON_STATE_CLASS =
   "bg-main-400 text-gray-50 drop-shadow-[2px_2px_5px_rgba(0,0,0,0.2)] transition-[background-color,filter] hover:bg-main-700 hover:drop-shadow-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:drop-shadow-none disabled:hover:bg-gray-100 disabled:hover:text-gray-500";
 
 /**
+ * 의견 제출 버튼 (Figma: Button/제출하기)
+ * 제출 가능 시 main/300, hover·pressed 시 main/600으로 전환한다.
+ */
+export const PRESSABLE_SUBMIT_BUTTON_STATE_CLASS =
+  "border-transparent bg-main-300 text-white shadow-[4px_4px_10px_0px_rgba(0,0,0,0.1)] transition-[background-color,box-shadow] hover:bg-main-600 hover:shadow-none active:bg-main-600 active:shadow-none disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:shadow-none disabled:hover:bg-gray-100 disabled:hover:text-gray-600";
+
+/**
  * AI 실행 버튼 (Figma: AI 읽힘 점검하기 / 현재 의견으로 AI 정리 시작)
  * 기본 흰 배경 + gray/5 테두리 → hover main/300 → pressed main/600.
  * 아이콘은 PRESSABLE_FILL_ICON_STATE_CLASS와 함께 써야 hover·pressed에서 흰색으로 바뀐다.

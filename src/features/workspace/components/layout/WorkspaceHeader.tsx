@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, CircleDot, Plus } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
+import { TeamInviteIcon } from "../../../../shared/components/icons/TeamInviteIcon";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import {
@@ -24,7 +26,8 @@ interface WorkspaceHeaderProps {
   onPreviewAll?: () => void;
 }
 
-const HEADER_ACTION_BUTTON_CLASS = "gap-1 px-3 py-2 text-[12px] text-gray-700";
+const HEADER_ACTION_BUTTON_CLASS =
+  "h-8 gap-1 rounded-sm px-3 py-2 text-xs leading-4 font-medium";
 
 const WorkspaceHeader = ({
   title,
@@ -167,10 +170,14 @@ const WorkspaceHeader = ({
             className="relative"
           >
             <Button
+              type="pressableStrong"
               onClick={handleToggleInvite}
               className={HEADER_ACTION_BUTTON_CLASS}
             >
-              <Plus className="h-4 w-4" />
+              <TeamInviteIcon
+                size={14}
+                className={cn("p-[1.5px]", PRESSABLE_FILL_ICON_STATE_CLASS)}
+              />
               팀원 초대
             </Button>
 
@@ -187,10 +194,10 @@ const WorkspaceHeader = ({
         )}
 
         <Button
+          type="pressableStrong"
           onClick={onPreviewAll}
-          className={cn(HEADER_ACTION_BUTTON_CLASS)}
+          className={HEADER_ACTION_BUTTON_CLASS}
         >
-          <CircleDot className="h-4 w-4" />
           전체 미리보기
         </Button>
       </div>
