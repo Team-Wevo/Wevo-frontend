@@ -9,6 +9,7 @@ import type { MyOpinionResponse } from "../../api/getMyOpinion";
 import type { DraftSaveStatus } from "../layout/WorkspaceHeader";
 
 interface OpinionViewProps {
+  projectId: number;
   section: WorkspaceSection;
   sectionId: number;
   opinions: SectionOpinionsResponse | null;
@@ -17,6 +18,7 @@ interface OpinionViewProps {
 }
 
 const OpinionView = ({
+  projectId,
   section,
   sectionId,
   opinions,
@@ -78,6 +80,7 @@ const OpinionView = ({
         />
       ) : (
         <CollectedOpinions
+          projectId={projectId}
           sectionId={sectionId}
           opinions={opinions?.opinions ?? []}
           totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}

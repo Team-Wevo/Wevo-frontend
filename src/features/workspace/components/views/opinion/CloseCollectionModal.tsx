@@ -4,6 +4,7 @@ import { Button } from "../../../../../shared/components/Button";
 
 interface CloseCollectionModalProps {
   opinionCount: number;
+  notSubmittedMemberNames: string[];
   isClosing?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -11,6 +12,7 @@ interface CloseCollectionModalProps {
 
 const CloseCollectionModal = ({
   opinionCount,
+  notSubmittedMemberNames,
   isClosing = false,
   onCancel,
   onConfirm,
@@ -29,8 +31,13 @@ const CloseCollectionModal = ({
             의견 수집을 마감할까요?
           </h2>
           <p className="text-[13px] leading-5 font-normal text-gray-700">
-            예진 님이 아직 의견을 작성 중이에요.
-            <br />
+            {notSubmittedMemberNames.length > 0 && (
+              <>
+                {notSubmittedMemberNames.join(", ")} 님이 아직 의견을 작성
+                중이에요.
+                <br />
+              </>
+            )}
             마감하면 현재 제출된 의견 {opinionCount}개로 AI 정리를 시작하며,
             추가 작성과 수정은 중단돼요.
           </p>

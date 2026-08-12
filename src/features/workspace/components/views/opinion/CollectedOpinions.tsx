@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CreditIcon } from "../../../../../shared/components/icons";
 import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../../shared/utils/avatarColor";
+import { getProjectMembers } from "../../../../project/api/getProjectMembers";
 import CloseCollectionModal from "./CloseCollectionModal";
 import {
   closeOpinionGate,
@@ -13,6 +15,7 @@ import {
 import type { SectionOpinion } from "../../../api/getSectionOpinions";
 
 interface CollectedOpinionsProps {
+  projectId: number;
   sectionId: number;
   opinions: SectionOpinion[];
   totalSubmittedCount: number;
@@ -20,6 +23,7 @@ interface CollectedOpinionsProps {
 }
 
 const CollectedOpinions = ({
+  projectId,
   sectionId,
   opinions,
   totalSubmittedCount,
@@ -30,6 +34,18 @@ const CollectedOpinions = ({
   const [isClosing, setIsClosing] = useState(false);
   const [closeErrorMessage, setCloseErrorMessage] = useState<string | null>(
     null,
+  );
+
+  const membersQuery = useQuery({
+    queryKey: ["project-members", projectId],
+    queryFn: () => getProjectMembers(projectId),
+  });
+
+  const submittedAuthorIds = new Set(
+    opinions.map((opinion) => opinion.author.id),
+  );
+  const notSubmittedMembers = (membersQuery.data?.members ?? []).filter(
+    (member) => !submittedAuthorIds.has(member.userId),
   );
 
   const handleConfirmClose = async () => {
@@ -110,13 +126,14 @@ const CollectedOpinions = ({
       </div>
       <hr className="border-gray-400" />
 
-      <p className="text-[13px] text-gray-700">
-        예진 님이 작성 중이에요. 새 의견이 제출되면 여기에 바로 표시돼요.
-      </p>
+      {notSubmittedMembers.length > 0 && (
+        <p className="text-[13px] text-gray-700">
+          {notSubmittedMembers.map((member) => member.name).join(", ")} 님이
+          아직 작성 중이에요. 새 의견이 제출되면 여기에 바로 표시돼요.
+        </p>
+      )}
 
-      <div className="flex items-center justify-between">
-        {/* TODO: 알림 발송 API 연동 */}
-        <Button type="outline">예진에게 알림</Button>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           {closeErrorMessage && (
             <span className="text-error text-xs">{closeErrorMessage}</span>
@@ -138,6 +155,9 @@ const CollectedOpinions = ({
       {isCloseConfirmOpen && (
         <CloseCollectionModal
           opinionCount={totalSubmittedCount}
+          notSubmittedMemberNames={notSubmittedMembers.map(
+            (member) => member.name,
+          )}
           isClosing={isClosing}
           onCancel={() => setIsCloseConfirmOpen(false)}
           onConfirm={handleConfirmClose}
