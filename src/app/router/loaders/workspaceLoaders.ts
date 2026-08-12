@@ -73,6 +73,7 @@ export const workspaceIndexLoader = ({ params }: LoaderFunctionArgs) => {
 
 export const workspaceSectionLoader = async ({
   params,
+  request,
 }: LoaderFunctionArgs): Promise<WorkspaceSectionLoaderData | Response> => {
   const projectId = toPositiveNumber(params.projectId);
   const sectionNo = toPositiveNumber(params.sectionNo);
@@ -101,14 +102,20 @@ export const workspaceSectionLoader = async ({
     return redirect(buildWorkspaceSectionPath(projectId, fallbackSectionNo));
   }
 
-  // 의견 모으기 단계에서만 필요한 데이터이므로, 다른 단계에서는 불필요한 요청을 보내지 않는다.
-  const [opinions, myOpinion] =
-    currentSection.sectionStatus === "COLLECTING"
-      ? await Promise.all([
-          getSectionOpinions(currentSection.projectSectionId),
-          getMyOpinion(currentSection.projectSectionId),
-        ])
-      : [null, null];
+  const requestedView = new URL(request.url).searchParams.get("view");
+  const isCollecting = currentSection.sectionStatus === "COLLECTING";
+  const shouldLoadOpinions = isCollecting || requestedView === "collecting";
+
+  // 현재 의견 작성 화면과 이전 의견 조회 화면에서만 의견 데이터를 불러온다.
+  // 내 의견 단건은 수정에만 필요하므로 현재 의견 모으기 단계에서만 요청한다.
+  const [opinions, myOpinion] = await Promise.all([
+    shouldLoadOpinions
+      ? getSectionOpinions(currentSection.projectSectionId)
+      : Promise.resolve(null),
+    isCollecting
+      ? getMyOpinion(currentSection.projectSectionId)
+      : Promise.resolve(null),
+  ]);
 
   return {
     projectId,

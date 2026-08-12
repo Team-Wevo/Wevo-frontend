@@ -13,7 +13,10 @@ import WorkspacePhaseStepper from "../../features/workspace/components/layout/Wo
 import WorkspaceRightSidebar, {
   type ProjectInfoItem,
 } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
-import type { DocumentProgress } from "../../shared/types/documentType";
+import type {
+  DocumentProgress,
+  SectionPhase,
+} from "../../shared/types/documentType";
 import type { WorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 import {
   hasSeenWorkspaceOnboarding,
@@ -42,6 +45,8 @@ interface WorkspaceLayoutProps {
   activeStepId: number;
   saveStatus?: DraftSaveStatus;
   permissions: WorkspacePermissions;
+  selectedPhase: SectionPhase;
+  onPhaseSelect: (phase: SectionPhase) => void;
   children: ReactNode;
 }
 
@@ -77,6 +82,8 @@ const WorkspaceLayout = ({
   activeStepId,
   saveStatus,
   permissions,
+  selectedPhase,
+  onPhaseSelect,
   children,
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
@@ -121,6 +128,8 @@ const WorkspaceLayout = ({
             </h1>
             <WorkspacePhaseStepper
               currentStatus={activeSection?.status ?? "시작 전"}
+              selectedPhase={selectedPhase}
+              onPhaseSelect={onPhaseSelect}
             />
             {children}
           </div>

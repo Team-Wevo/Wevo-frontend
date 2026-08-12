@@ -17,6 +17,7 @@ interface OpinionViewProps {
   myOpinion: MyOpinionResponse | null;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
   permissions: WorkspacePermissions;
+  readOnly?: boolean;
 }
 
 const OpinionView = ({
@@ -27,6 +28,7 @@ const OpinionView = ({
   myOpinion,
   onSaveStatusChange,
   permissions,
+  readOnly = false,
 }: OpinionViewProps) => {
   const revalidator = useRevalidator();
   const [isEditingOwnOpinion, setIsEditingOwnOpinion] = useState(false);
@@ -37,7 +39,8 @@ const OpinionView = ({
     revalidator.revalidate();
   };
 
-  const showForm = !opinions?.everSubmitted || isEditingOwnOpinion;
+  const showForm =
+    !readOnly && (!opinions?.everSubmitted || isEditingOwnOpinion);
 
   // keyQuestion은 "? "로 이어붙은 여러 질문이 한 문자열로 내려온다.
   // 첫 질문만 대표 질문으로 강조하고 나머지는 하위 bullet로 보여준다.
@@ -50,7 +53,7 @@ const OpinionView = ({
 
   return (
     <div
-      aria-label={`${section.title} 의견 작성`}
+      aria-label={`${section.title} 의견 ${readOnly ? "조회" : "작성"}`}
       className="flex flex-col gap-6"
     >
       <SectionBlock className="flex flex-col gap-2">
@@ -89,6 +92,7 @@ const OpinionView = ({
           totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
           onEditOpinion={() => setIsEditingOwnOpinion(true)}
           canManageOpinionCollection={permissions.canManageOpinionCollection}
+          readOnly={readOnly}
         />
       )}
     </div>

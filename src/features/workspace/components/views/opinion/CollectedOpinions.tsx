@@ -21,6 +21,7 @@ interface CollectedOpinionsProps {
   totalSubmittedCount: number;
   onEditOpinion: () => void;
   canManageOpinionCollection: boolean;
+  readOnly?: boolean;
 }
 
 const CollectedOpinions = ({
@@ -30,6 +31,7 @@ const CollectedOpinions = ({
   totalSubmittedCount,
   onEditOpinion,
   canManageOpinionCollection,
+  readOnly = false,
 }: CollectedOpinionsProps) => {
   const revalidator = useRevalidator();
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
@@ -41,6 +43,7 @@ const CollectedOpinions = ({
   const membersQuery = useQuery({
     queryKey: ["project-members", projectId],
     queryFn: () => getProjectMembers(projectId),
+    enabled: !readOnly,
   });
 
   const submittedAuthorIds = new Set(
@@ -73,27 +76,29 @@ const CollectedOpinions = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-main-50 flex items-center justify-between overflow-hidden rounded-[8px] px-4 py-3">
-        <span className="text-main-700 text-xs font-medium">
-          ✓ 의견을 제출했어요.
-        </span>
-        <div className="flex items-center gap-4 text-[13px]">
-          <button
-            type="button"
-            onClick={onEditOpinion}
-            className="text-main-700 cursor-pointer font-normal"
-          >
-            내 의견 수정
-          </button>
-          {/* TODO: 다른 섹션으로 이동하는 라우팅 연결 */}
-          <button
-            type="button"
-            className="text-main-700 cursor-pointer font-normal"
-          >
-            다른 섹션 작성
-          </button>
+      {!readOnly && (
+        <div className="bg-main-50 flex items-center justify-between overflow-hidden rounded-[8px] px-4 py-3">
+          <span className="text-main-700 text-xs font-medium">
+            ✓ 의견을 제출했어요.
+          </span>
+          <div className="flex items-center gap-4 text-[13px]">
+            <button
+              type="button"
+              onClick={onEditOpinion}
+              className="text-main-700 cursor-pointer font-normal"
+            >
+              내 의견 수정
+            </button>
+            {/* TODO: 다른 섹션으로 이동하는 라우팅 연결 */}
+            <button
+              type="button"
+              className="text-main-700 cursor-pointer font-normal"
+            >
+              다른 섹션 작성
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <h2 className="text-[14px] font-medium text-gray-900">
         모인 의견 {totalSubmittedCount}개
@@ -132,14 +137,14 @@ const CollectedOpinions = ({
       </div>
       <hr className="border-gray-400" />
 
-      {notSubmittedMembers.length > 0 && (
+      {!readOnly && notSubmittedMembers.length > 0 && (
         <p className="text-[13px] text-gray-700">
           {notSubmittedMembers.map((member) => member.name).join(", ")} 님이
           아직 작성 중이에요. 새 의견이 제출되면 여기에 바로 표시돼요.
         </p>
       )}
 
-      {canManageOpinionCollection && (
+      {!readOnly && canManageOpinionCollection && (
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-3">
             {closeErrorMessage && (
@@ -160,7 +165,7 @@ const CollectedOpinions = ({
         </div>
       )}
 
-      {canManageOpinionCollection && isCloseConfirmOpen && (
+      {!readOnly && canManageOpinionCollection && isCloseConfirmOpen && (
         <CloseCollectionModal
           opinionCount={totalSubmittedCount}
           notSubmittedMemberNames={notSubmittedMembers.map(
