@@ -1,4 +1,4 @@
-type AiJobType = "synthesis" | "draft";
+type AiJobType = "synthesis" | "draft" | "precheck";
 
 const buildStorageKey = (type: AiJobType, sectionId: number) => {
   return `workspace:${type}:request:${sectionId}`;
@@ -66,4 +66,19 @@ export const setStoredDraftRequestId = (
 
 export const clearStoredDraftRequestId = (sectionId: number) => {
   clearStoredRequestId("draft", sectionId);
+};
+
+export const getStoredPrecheckRequestId = (sectionId: number) => {
+  return getStoredRequestId("precheck", sectionId);
+};
+
+export const setStoredPrecheckRequestId = (
+  sectionId: number,
+  requestId: string,
+) => {
+  setStoredRequestId("precheck", sectionId, requestId);
+};
+
+export const clearStoredPrecheckRequestId = (sectionId: number) => {
+  clearStoredRequestId("precheck", sectionId);
 };

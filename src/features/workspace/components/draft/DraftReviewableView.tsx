@@ -11,6 +11,12 @@ const DraftReviewableView = ({
   onMoveToReviewRequest,
   isMovingToReviewRequest,
   moveToReviewRequestErrorMessage,
+  isRequestingReadabilityCheck,
+  readabilityRequestErrorMessage,
+  onApplyRevision,
+  onKeepRevision,
+  isApplyingRevision,
+  applyRevisionErrorMessage,
 }: DraftStageViewProps) => {
   const preReviewData = state.preReview ?? {
     perspectiveLabel: "처음 읽는 사람 관점",
@@ -37,6 +43,12 @@ const DraftReviewableView = ({
         data={preReviewData}
         onCheckReadability={onRequestReadabilityCheck}
         onCreateRevision={handleCreateRevision}
+        onApplyRevision={onApplyRevision}
+        onKeepRevision={onKeepRevision}
+        isCheckingReadability={isRequestingReadabilityCheck}
+        readabilityErrorMessage={readabilityRequestErrorMessage}
+        isApplyingRevision={isApplyingRevision}
+        applyRevisionErrorMessage={applyRevisionErrorMessage}
       />
 
       <div className="flex w-full items-center justify-end gap-3">

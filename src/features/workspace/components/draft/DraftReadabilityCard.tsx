@@ -5,12 +5,16 @@ import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/butto
 interface DraftReadabilityCardProps {
   description?: string;
   disabled?: boolean;
+  isLoading?: boolean;
+  errorMessage?: string | null;
   onRequestReadabilityCheck: () => void;
 }
 
 const DraftReadabilityCard = ({
   description = "AI가 처음 읽는 사람의 관점에서 문장과 흐름을 점검해요.",
   disabled = false,
+  isLoading = false,
+  errorMessage = null,
   onRequestReadabilityCheck,
 }: DraftReadabilityCardProps) => {
   return (
@@ -32,16 +36,19 @@ const DraftReadabilityCard = ({
         <Button
           type="ai"
           onClick={onRequestReadabilityCheck}
-          disabled={disabled}
+          disabled={disabled || isLoading}
           className="h-8 px-4 py-2 text-[13px] leading-4.5 font-medium"
         >
           <CreditIcon
             size={16}
             className={PRESSABLE_FILL_ICON_STATE_CLASS}
           />
-          AI 읽힘 점검하기
+          {isLoading ? "점검 요청 중..." : "AI 읽힘 점검하기"}
         </Button>
       </div>
+      {errorMessage && (
+        <p className="text-error text-xs leading-4">{errorMessage}</p>
+      )}
     </section>
   );
 };

@@ -10,12 +10,24 @@ interface AiPreReviewPanelProps {
   data: AiPreReviewData;
   onCheckReadability: () => void;
   onCreateRevision: () => void;
+  onApplyRevision?: () => Promise<boolean>;
+  onKeepRevision?: () => void;
+  isCheckingReadability?: boolean;
+  readabilityErrorMessage?: string | null;
+  isApplyingRevision?: boolean;
+  applyRevisionErrorMessage?: string | null;
 }
 
 const AiPreReviewPanel = ({
   data,
   onCheckReadability,
   onCreateRevision,
+  onApplyRevision,
+  onKeepRevision,
+  isCheckingReadability = false,
+  readabilityErrorMessage = null,
+  isApplyingRevision = false,
+  applyRevisionErrorMessage = null,
 }: AiPreReviewPanelProps) => {
   const [isRevisionVisible, setIsRevisionVisible] = useState(false);
 
@@ -24,6 +36,23 @@ const AiPreReviewPanel = ({
 
     if (data.revisionProposal) {
       setIsRevisionVisible(true);
+    }
+  };
+
+  const handleKeepRevision = () => {
+    onKeepRevision?.();
+    setIsRevisionVisible(false);
+  };
+
+  const handleApplyRevision = async () => {
+    if (!onApplyRevision) {
+      return;
+    }
+
+    const wasApplied = await onApplyRevision();
+
+    if (wasApplied) {
+      setIsRevisionVisible(false);
     }
   };
 
@@ -43,15 +72,22 @@ const AiPreReviewPanel = ({
           <Button
             type="ai"
             onClick={onCheckReadability}
+            disabled={isCheckingReadability}
             className="h-8 px-3 py-2 text-xs leading-4 font-medium"
           >
             <CreditIcon
               size={16}
               className={PRESSABLE_FILL_ICON_STATE_CLASS}
             />
-            잘 읽히는지 보기
+            {isCheckingReadability ? "점검 요청 중..." : "잘 읽히는지 보기"}
           </Button>
         </div>
+
+        {readabilityErrorMessage && (
+          <p className="text-error text-xs leading-4">
+            {readabilityErrorMessage}
+          </p>
+        )}
 
         <div className="flex flex-col gap-3">
           {data.results.map((result) => (
@@ -92,17 +128,25 @@ const AiPreReviewPanel = ({
               </p>
               <Button
                 type="outline"
+                onClick={handleKeepRevision}
                 className="h-8 rounded-sm px-4 py-2 text-xs leading-4 font-medium"
               >
                 유지하기
               </Button>
               <Button
                 type="main"
+                onClick={() => void handleApplyRevision()}
+                disabled={isApplyingRevision}
                 className="h-8 rounded-sm px-4 py-2 text-xs leading-4 font-medium"
               >
-                수정안 적용
+                {isApplyingRevision ? "적용 중..." : "수정안 적용"}
               </Button>
             </div>
+            {applyRevisionErrorMessage && (
+              <p className="text-error text-xs leading-4">
+                {applyRevisionErrorMessage}
+              </p>
+            )}
           </section>
         )}
       </div>
