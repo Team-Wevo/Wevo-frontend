@@ -17,12 +17,16 @@ interface IssueCoordinationViewProps {
   /** 모든 쟁점을 결정한 뒤 초안 생성 단계로 넘어간다. */
   onCreateDraft: () => void;
   isCreatingDraft?: boolean;
+  canManageIssues: boolean;
+  canGenerateDraft: boolean;
 }
 
 const IssueCoordinationView = ({
   data,
   onCreateDraft,
   isCreatingDraft = false,
+  canManageIssues,
+  canGenerateDraft,
 }: IssueCoordinationViewProps) => {
   const [decisions, setDecisions] = useState<IssueDecisionMap>({});
   const [customInputs, setCustomInputs] = useState<IssueCustomInputMap>({});
@@ -68,33 +72,36 @@ const IssueCoordinationView = ({
             isDecided={isIssueDecided(issue, decisions, customInputs)}
             onSelectOption={handleSelectOption}
             onChangeCustomInput={handleChangeCustomInput}
+            readOnly={!canManageIssues}
           />
         ))}
       </div>
 
-      <div className="flex flex-col items-end gap-3">
-        <p className="text-xs leading-[18px] font-normal text-gray-600">
-          쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 부족 항목은 답변을
-          기다리며 진행 가능)
-        </p>
+      {canGenerateDraft && (
+        <div className="flex flex-col items-end gap-3">
+          <p className="text-xs leading-[18px] font-normal text-gray-600">
+            쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 부족 항목은 답변을
+            기다리며 진행 가능)
+          </p>
 
-        <Button
-          type="ai"
-          onClick={onCreateDraft}
-          disabled={!canCreateDraft || isCreatingDraft}
-          className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
-        >
-          <CreditIcon
-            size={16}
-            className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
-          />
-          <span>
-            {isCreatingDraft
-              ? "초안 생성 시작 중..."
-              : "결정 반영해 초안 만들기"}
-          </span>
-        </Button>
-      </div>
+          <Button
+            type="ai"
+            onClick={onCreateDraft}
+            disabled={!canCreateDraft || isCreatingDraft}
+            className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
+          >
+            <CreditIcon
+              size={16}
+              className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
+            />
+            <span>
+              {isCreatingDraft
+                ? "초안 생성 시작 중..."
+                : "결정 반영해 초안 만들기"}
+            </span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import type { WorkspaceSection } from "../../constants/sections";
 import type { SectionOpinionsResponse } from "../../api/getSectionOpinions";
 import type { MyOpinionResponse } from "../../api/getMyOpinion";
 import type { DraftSaveStatus } from "../layout/WorkspaceHeader";
+import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
 
 interface OpinionViewProps {
   projectId: number;
@@ -15,6 +16,7 @@ interface OpinionViewProps {
   opinions: SectionOpinionsResponse | null;
   myOpinion: MyOpinionResponse | null;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
+  permissions: WorkspacePermissions;
 }
 
 const OpinionView = ({
@@ -24,6 +26,7 @@ const OpinionView = ({
   opinions,
   myOpinion,
   onSaveStatusChange,
+  permissions,
 }: OpinionViewProps) => {
   const revalidator = useRevalidator();
   const [isEditingOwnOpinion, setIsEditingOwnOpinion] = useState(false);
@@ -85,6 +88,7 @@ const OpinionView = ({
           opinions={opinions?.opinions ?? []}
           totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
           onEditOpinion={() => setIsEditingOwnOpinion(true)}
+          canManageOpinionCollection={permissions.canManageOpinionCollection}
         />
       )}
     </div>

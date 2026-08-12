@@ -20,6 +20,7 @@ interface CollectedOpinionsProps {
   opinions: SectionOpinion[];
   totalSubmittedCount: number;
   onEditOpinion: () => void;
+  canManageOpinionCollection: boolean;
 }
 
 const CollectedOpinions = ({
@@ -28,6 +29,7 @@ const CollectedOpinions = ({
   opinions,
   totalSubmittedCount,
   onEditOpinion,
+  canManageOpinionCollection,
 }: CollectedOpinionsProps) => {
   const revalidator = useRevalidator();
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
@@ -49,6 +51,10 @@ const CollectedOpinions = ({
   );
 
   const handleConfirmClose = async () => {
+    if (!canManageOpinionCollection) {
+      return;
+    }
+
     setIsClosing(true);
     setCloseErrorMessage(null);
 
@@ -133,26 +139,28 @@ const CollectedOpinions = ({
         </p>
       )}
 
-      <div className="flex items-center justify-end">
-        <div className="flex items-center gap-3">
-          {closeErrorMessage && (
-            <span className="text-error text-xs">{closeErrorMessage}</span>
-          )}
-          <Button
-            type="ai"
-            className="h-11 text-lg leading-7 font-semibold"
-            onClick={() => setIsCloseConfirmOpen(true)}
-          >
-            <CreditIcon
-              size={16}
-              className={PRESSABLE_FILL_ICON_STATE_CLASS}
-            />
-            현재 의견으로 AI 정리 시작
-          </Button>
+      {canManageOpinionCollection && (
+        <div className="flex items-center justify-end">
+          <div className="flex items-center gap-3">
+            {closeErrorMessage && (
+              <span className="text-error text-xs">{closeErrorMessage}</span>
+            )}
+            <Button
+              type="ai"
+              className="h-11 text-lg leading-7 font-semibold"
+              onClick={() => setIsCloseConfirmOpen(true)}
+            >
+              <CreditIcon
+                size={16}
+                className={PRESSABLE_FILL_ICON_STATE_CLASS}
+              />
+              현재 의견으로 AI 정리 시작
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {isCloseConfirmOpen && (
+      {canManageOpinionCollection && isCloseConfirmOpen && (
         <CloseCollectionModal
           opinionCount={totalSubmittedCount}
           notSubmittedMemberNames={notSubmittedMembers.map(

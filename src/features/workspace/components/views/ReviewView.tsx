@@ -30,6 +30,7 @@ import {
   resolveTeamReview,
 } from "../../api/resolveTeamReview";
 import type { WorkspaceSection } from "../../constants/sections";
+import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
 
 const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
   APPROVED: "동의",
@@ -46,8 +47,7 @@ const REVIEW_STATUS_TEXT_CLASS: Record<TeamReviewStatus, string> = {
 interface ReviewViewProps {
   section: WorkspaceSection;
   sectionId: number;
-  // 팀장(OWNER)만 수정 요청 사유 확인·해소 처리와 섹션 확정을 할 수 있다.
-  isTeamLeader: boolean;
+  permissions: WorkspacePermissions;
   projectId: string;
   // 마지막 섹션이면 null.
   nextSectionNo: number | null;
@@ -56,7 +56,7 @@ interface ReviewViewProps {
 const ReviewView = ({
   section,
   sectionId,
-  isTeamLeader,
+  permissions,
   projectId,
   nextSectionNo,
 }: ReviewViewProps) => {
@@ -86,7 +86,7 @@ const ReviewView = ({
   // 확정 버튼이 있는 화면(팀장 시점 · 확정 전)에서만 조회한다.
   const readinessQuery = useSectionConfirmReadiness(
     section.projectSectionId,
-    isTeamLeader && !isSectionConfirmed,
+    permissions.canConfirmSection && !isSectionConfirmed,
   );
 
   const teamReviewsQuery = useTeamReviews(section.projectSectionId);
@@ -109,6 +109,10 @@ const ReviewView = ({
     isSubmittingReview || teamReviewsQuery.isFetching || !teamReviews;
 
   const handleConfirmSection = async () => {
+    if (!permissions.canConfirmSection) {
+      return;
+    }
+
     setIsConfirming(true);
     setConfirmErrorMessage(null);
 
@@ -127,7 +131,7 @@ const ReviewView = ({
   };
 
   const handleSubmitReview = async (status: SubmitTeamReviewStatus) => {
-    if (!teamReviews) {
+    if (!permissions.canSubmitTeamReview || !teamReviews) {
       return;
     }
 
@@ -157,6 +161,10 @@ const ReviewView = ({
   };
 
   const handleResolveReview = async (reviewId: number) => {
+    if (!permissions.canResolveTeamReview) {
+      return;
+    }
+
     setResolvingReviewId(reviewId);
     setResolveError(null);
 
@@ -315,47 +323,50 @@ const ReviewView = ({
                       </div>
 
                       {/* 팀장만 수정 요청 사유를 확인하고 처리할 수 있습니다. */}
-                      {isTeamLeader && reviewer.changeRequestReason && (
-                        <div className="flex w-full flex-col items-start justify-start gap-2 rounded-sm bg-amber-100 p-3">
-                          <div className="w-full text-xs leading-5 font-normal text-amber-700">
-                            “{reviewer.changeRequestReason}”
-                          </div>
-                          {reviewer.resolved ? (
-                            <div className="text-xs leading-4 font-medium text-amber-700">
-                              대화로 해결 처리한 요청이에요.
+                      {permissions.canResolveTeamReview &&
+                        reviewer.changeRequestReason && (
+                          <div className="flex w-full flex-col items-start justify-start gap-2 rounded-sm bg-amber-100 p-3">
+                            <div className="w-full text-xs leading-5 font-normal text-amber-700">
+                              “{reviewer.changeRequestReason}”
                             </div>
-                          ) : (
-                            <div className="flex items-center justify-start gap-2">
-                              {/* TODO: 초안 수정 API 연동 후 onClick 핸들러 연결 */}
-                              <Button
-                                type="outline"
-                                className="text-xs"
-                              >
-                                초안 수정
-                              </Button>
-                              {reviewId !== undefined && (
+                            {reviewer.resolved ? (
+                              <div className="text-xs leading-4 font-medium text-amber-700">
+                                대화로 해결 처리한 요청이에요.
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-start gap-2">
+                                {/* TODO: 초안 수정 API 연동 후 onClick 핸들러 연결 */}
                                 <Button
                                   type="outline"
                                   className="text-xs"
-                                  onClick={() => handleResolveReview(reviewId)}
-                                  disabled={resolvingReviewId !== null}
                                 >
-                                  {resolvingReviewId === reviewId
-                                    ? "처리 중..."
-                                    : "논의 후 해결 처리"}
+                                  초안 수정
                                 </Button>
-                              )}
-                            </div>
-                          )}
-
-                          {resolveError &&
-                            resolveError.reviewId === reviewId && (
-                              <div className="text-error text-xs leading-4 font-normal">
-                                {resolveError.message}
+                                {reviewId !== undefined && (
+                                  <Button
+                                    type="outline"
+                                    className="text-xs"
+                                    onClick={() =>
+                                      handleResolveReview(reviewId)
+                                    }
+                                    disabled={resolvingReviewId !== null}
+                                  >
+                                    {resolvingReviewId === reviewId
+                                      ? "처리 중..."
+                                      : "논의 후 해결 처리"}
+                                  </Button>
+                                )}
                               </div>
                             )}
-                        </div>
-                      )}
+
+                            {resolveError &&
+                              resolveError.reviewId === reviewId && (
+                                <div className="text-error text-xs leading-4 font-normal">
+                                  {resolveError.message}
+                                </div>
+                              )}
+                          </div>
+                        )}
                     </div>
                   );
                 })}
@@ -363,7 +374,7 @@ const ReviewView = ({
             </div>
           </SectionBlock>
 
-          {isTeamLeader ? (
+          {permissions.isOwner ? (
             <div className="flex w-full items-end justify-between">
               {confirmGuideMessage && (
                 <div

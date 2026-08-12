@@ -82,8 +82,10 @@ import {
   setStoredDraftRequestId,
   setStoredSynthesisRequestId,
 } from "../../utils/aiJobRequestStorage";
+import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
 interface DraftViewProps {
   section: WorkspaceSection;
+  permissions: WorkspacePermissions;
 }
 
 const AI_JOB_POLLING_INTERVAL_MS = 5_000;
@@ -571,7 +573,7 @@ const getInitialStage = (
   return "issue-coordination";
 };
 
-const DraftView = ({ section }: DraftViewProps) => {
+const DraftView = ({ section, permissions }: DraftViewProps) => {
   const sectionId = section.projectSectionId;
   const revalidator = useRevalidator();
   const myProfileQuery = useMyProfile(true);
@@ -653,7 +655,10 @@ const DraftView = ({ section }: DraftViewProps) => {
       setSynthesisRequestId(result.requestId);
       return result;
     },
-    enabled: section.sectionStatus === "SYNTHESIZING" && !synthesisRequestId,
+    enabled:
+      permissions.canManageOpinionCollection &&
+      section.sectionStatus === "SYNTHESIZING" &&
+      !synthesisRequestId,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
@@ -1187,6 +1192,10 @@ const DraftView = ({ section }: DraftViewProps) => {
   };
 
   const handleCreateDraft = async () => {
+    if (!permissions.canGenerateDraft) {
+      return;
+    }
+
     setIsStartingDraftGeneration(true);
     setActionErrorMessage(null);
 
@@ -1260,15 +1269,17 @@ const DraftView = ({ section }: DraftViewProps) => {
           <div className="text-error text-xs leading-4 font-normal">
             {flowErrorMessage}
           </div>
-          {synthesisStartQuery.isError && !effectiveSynthesisRequestId && (
-            <button
-              type="button"
-              onClick={() => void synthesisStartQuery.refetch()}
-              className="text-error shrink-0 text-xs leading-4 font-medium underline"
-            >
-              다시 시도
-            </button>
-          )}
+          {permissions.canManageOpinionCollection &&
+            synthesisStartQuery.isError &&
+            !effectiveSynthesisRequestId && (
+              <button
+                type="button"
+                onClick={() => void synthesisStartQuery.refetch()}
+                className="text-error shrink-0 text-xs leading-4 font-medium underline"
+              >
+                다시 시도
+              </button>
+            )}
         </div>
       )}
 
@@ -1283,6 +1294,8 @@ const DraftView = ({ section }: DraftViewProps) => {
           data={issueCoordinationData ?? toIssueCoordinationData(null)}
           onCreateDraft={handleCreateDraft}
           isCreatingDraft={isStartingDraftGeneration}
+          canManageIssues={permissions.canManageIssues}
+          canGenerateDraft={permissions.canGenerateDraft}
         />
       ) : (
         (() => {

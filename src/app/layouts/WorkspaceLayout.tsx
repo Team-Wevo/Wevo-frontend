@@ -13,6 +13,7 @@ import WorkspaceRightSidebar, {
   type ProjectInfoItem,
 } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
 import type { DocumentProgress } from "../../shared/types/documentType";
+import type { WorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 
 // TODO: 섹션별 초안 내용 API 연동 후 실제 본문으로 교체
 const MOCK_WRITTEN_SECTION_CONTENT =
@@ -35,6 +36,7 @@ interface WorkspaceLayoutProps {
   progress: DocumentProgress;
   activeStepId: number;
   saveStatus?: DraftSaveStatus;
+  permissions: WorkspacePermissions;
   children: ReactNode;
 }
 
@@ -45,6 +47,7 @@ const WorkspaceLayout = ({
   progress,
   activeStepId,
   saveStatus,
+  permissions,
   children,
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
@@ -68,6 +71,7 @@ const WorkspaceLayout = ({
         title={title}
         projectId={projectId}
         saveStatus={saveStatus}
+        canInviteMembers={permissions.canInviteMembers}
         onPreviewAll={() => setIsFlowPreviewOpen(true)}
       />
 

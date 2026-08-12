@@ -17,6 +17,7 @@ interface IssueCardProps {
   isDecided: boolean;
   onSelectOption: (issueId: string, optionId: string) => void;
   onChangeCustomInput: (issueId: string, value: string) => void;
+  readOnly?: boolean;
 }
 
 const IssueCard = ({
@@ -26,6 +27,7 @@ const IssueCard = ({
   isDecided,
   onSelectOption,
   onChangeCustomInput,
+  readOnly = false,
 }: IssueCardProps) => {
   const customInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,10 +40,10 @@ const IssueCard = ({
   const needsDecision = isChoice && !isDecided;
 
   useEffect(() => {
-    if (isCustomInputOpen) {
+    if (isCustomInputOpen && !readOnly) {
       customInputRef.current?.focus();
     }
-  }, [isCustomInputOpen]);
+  }, [isCustomInputOpen, readOnly]);
 
   return (
     <SectionBlock className={cn(needsDecision && "border-warning/40")}>
@@ -92,11 +94,15 @@ const IssueCard = ({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => onSelectOption(issue.id, option.id)}
+                  disabled={readOnly}
                   className={cn(
-                    "cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] leading-5 font-normal transition-colors",
+                    "rounded-full border px-3.5 py-1.5 text-[13px] leading-5 font-normal transition-colors",
+                    readOnly ? "cursor-default" : "cursor-pointer",
                     isSelected
                       ? SELECTED_CHIP_STATE_CLASS
-                      : PRESSABLE_CHIP_STATE_CLASS,
+                      : readOnly
+                        ? "border-gray-400 bg-gray-50 text-gray-700"
+                        : PRESSABLE_CHIP_STATE_CLASS,
                   )}
                 >
                   {option.label}
@@ -106,7 +112,7 @@ const IssueCard = ({
           </div>
         )}
 
-        {isCustomInputOpen && (
+        {isCustomInputOpen && !readOnly && (
           <div className="flex items-center gap-3 rounded-sm border border-gray-400 bg-gray-50 px-4 py-2.5">
             <input
               ref={customInputRef}

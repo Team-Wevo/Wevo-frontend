@@ -9,6 +9,7 @@ import DraftView from "../../features/workspace/components/views/DraftView";
 import OpinionView from "../../features/workspace/components/views/OpinionView";
 import ReviewView from "../../features/workspace/components/views/ReviewView";
 import { getWorkspacePhase } from "../../features/workspace/utils/getWorkspacePhase";
+import { getWorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 import { toDocumentProgress } from "../../features/workspace/utils/toDocumentProgress";
 
 const RESULT_TYPE_LABEL: Record<ProjectResultType, string> = {
@@ -27,6 +28,7 @@ const WorkspacePage = () => {
     myOpinion,
   } = useLoaderData() as WorkspaceSectionLoaderData;
   const currentPhase = getWorkspacePhase(currentSection.sectionStatus);
+  const permissions = getWorkspacePermissions(projectDetail.myRole);
   const [saveStatus, setSaveStatus] = useState<DraftSaveStatus>("idle");
 
   const projectInfo: ProjectInfoItem[] = [
@@ -46,6 +48,7 @@ const WorkspacePage = () => {
       progress={toDocumentProgress(sections)}
       activeStepId={currentSection.orderNo}
       saveStatus={currentPhase === "의견 모으기" ? saveStatus : undefined}
+      permissions={permissions}
     >
       {currentPhase === "의견 모으기" ? (
         <OpinionView
@@ -56,14 +59,18 @@ const WorkspacePage = () => {
           opinions={opinions}
           myOpinion={myOpinion}
           onSaveStatusChange={setSaveStatus}
+          permissions={permissions}
         />
       ) : currentPhase === "정리·초안" ? (
-        <DraftView section={currentSection} />
+        <DraftView
+          section={currentSection}
+          permissions={permissions}
+        />
       ) : (
         <ReviewView
           section={currentSection}
           sectionId={sectionId}
-          isTeamLeader={projectDetail.myRole === "OWNER"}
+          permissions={permissions}
           projectId={String(projectId)}
           nextSectionNo={
             sections.find((item) => item.orderNo === currentSection.orderNo + 1)

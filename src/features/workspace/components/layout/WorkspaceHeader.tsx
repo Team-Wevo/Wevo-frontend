@@ -19,6 +19,7 @@ interface WorkspaceHeaderProps {
   title: string;
   projectId: string;
   saveStatus?: DraftSaveStatus;
+  canInviteMembers: boolean;
   onInvite?: () => void;
   onPreviewAll?: () => void;
 }
@@ -29,6 +30,7 @@ const WorkspaceHeader = ({
   title,
   projectId,
   saveStatus = "idle",
+  canInviteMembers,
   onInvite,
   onPreviewAll,
 }: WorkspaceHeaderProps) => {
@@ -73,6 +75,10 @@ const WorkspaceHeader = ({
   }, [isInviteOpen]);
 
   const handleToggleInvite = async () => {
+    if (!canInviteMembers) {
+      return;
+    }
+
     onInvite?.();
     setIsInviteOpen((prev) => !prev);
 
@@ -155,28 +161,30 @@ const WorkspaceHeader = ({
           )}
         </div>
 
-        <div
-          ref={inviteRef}
-          className="relative"
-        >
-          <Button
-            onClick={handleToggleInvite}
-            className={HEADER_ACTION_BUTTON_CLASS}
+        {canInviteMembers && (
+          <div
+            ref={inviteRef}
+            className="relative"
           >
-            <Plus className="h-4 w-4" />
-            팀원 초대
-          </Button>
+            <Button
+              onClick={handleToggleInvite}
+              className={HEADER_ACTION_BUTTON_CLASS}
+            >
+              <Plus className="h-4 w-4" />
+              팀원 초대
+            </Button>
 
-          {isInviteOpen && (
-            <InviteTeamPopover
-              projectId={projectId}
-              inviteUrl={inviteLink?.inviteUrl ?? null}
-              isLoadingInviteUrl={isLoadingInviteLink}
-              inviteUrlErrorMessage={inviteLinkErrorMessage}
-              onClose={() => setIsInviteOpen(false)}
-            />
-          )}
-        </div>
+            {isInviteOpen && (
+              <InviteTeamPopover
+                projectId={projectId}
+                inviteUrl={inviteLink?.inviteUrl ?? null}
+                isLoadingInviteUrl={isLoadingInviteLink}
+                inviteUrlErrorMessage={inviteLinkErrorMessage}
+                onClose={() => setIsInviteOpen(false)}
+              />
+            )}
+          </div>
+        )}
 
         <Button
           onClick={onPreviewAll}

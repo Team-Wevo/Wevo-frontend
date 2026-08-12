@@ -28,6 +28,7 @@ const CompletedLayout = ({
         title={title}
         projectId={projectId}
         saveStatus="saved"
+        canInviteMembers={false}
       />
 
       <div className="flex flex-1 overflow-hidden">
