@@ -14,14 +14,14 @@ const MIN_SUBMIT_LENGTH = 20;
 const DRAFT_SAVE_DEBOUNCE_MS = 800;
 
 interface OpinionFormProps {
-  projectSectionId: number;
+  sectionId: number;
   initialContent?: string;
   onSubmit: () => void;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
 }
 
 const OpinionForm = ({
-  projectSectionId,
+  sectionId,
   initialContent = "",
   onSubmit,
   onSaveStatusChange,
@@ -45,7 +45,7 @@ const OpinionForm = ({
     onSaveStatusChange?.("saving");
 
     pendingDraftTimerRef.current = window.setTimeout(() => {
-      saveOpinionDraft(projectSectionId, opinion)
+      saveOpinionDraft(sectionId, opinion)
         .then(() => onSaveStatusChange?.("saved"))
         .catch(() => {
           // 자동 임시저장 실패는 조용히 무시한다. 다음 입력 또는 제출 시 다시 시도된다.
@@ -57,7 +57,7 @@ const OpinionForm = ({
         window.clearTimeout(pendingDraftTimerRef.current);
       }
     };
-  }, [opinion, projectSectionId, onSaveStatusChange]);
+  }, [opinion, sectionId, onSaveStatusChange]);
 
   // 섹션을 벗어나면 상태 표시를 초기화한다.
   useEffect(() => {
@@ -75,7 +75,7 @@ const OpinionForm = ({
     try {
       // submit은 요청 본문을 받지 않으므로, 먼저 임시저장으로 현재 텍스트를
       // 서버에 반영한 뒤 제출을 진행한다.
-      await saveOpinionDraft(projectSectionId, opinion);
+      await saveOpinionDraft(sectionId, opinion);
     } catch (error) {
       setErrorMessage(getSaveOpinionDraftErrorMessage(error));
       setIsSubmitting(false);
@@ -83,7 +83,7 @@ const OpinionForm = ({
     }
 
     try {
-      await submitOpinion(projectSectionId);
+      await submitOpinion(sectionId);
       onSubmit();
     } catch (error) {
       setErrorMessage(getSubmitOpinionErrorMessage(error));

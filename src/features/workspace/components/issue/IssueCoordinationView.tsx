@@ -16,11 +16,13 @@ interface IssueCoordinationViewProps {
   data: IssueCoordinationData;
   /** 모든 쟁점을 결정한 뒤 초안 생성 단계로 넘어간다. */
   onCreateDraft: () => void;
+  isCreatingDraft?: boolean;
 }
 
 const IssueCoordinationView = ({
   data,
   onCreateDraft,
+  isCreatingDraft = false,
 }: IssueCoordinationViewProps) => {
   const [decisions, setDecisions] = useState<IssueDecisionMap>({});
   const [customInputs, setCustomInputs] = useState<IssueCustomInputMap>({});
@@ -79,14 +81,18 @@ const IssueCoordinationView = ({
         <Button
           type="ai"
           onClick={onCreateDraft}
-          disabled={!canCreateDraft}
+          disabled={!canCreateDraft || isCreatingDraft}
           className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
         >
           <CreditIcon
             size={16}
             className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
           />
-          <span>결정 반영해 초안 만들기</span>
+          <span>
+            {isCreatingDraft
+              ? "초안 생성 시작 중..."
+              : "결정 반영해 초안 만들기"}
+          </span>
         </Button>
       </div>
     </div>

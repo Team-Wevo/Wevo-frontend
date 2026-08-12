@@ -10,6 +10,7 @@ import type { DraftSaveStatus } from "../layout/WorkspaceHeader";
 
 interface OpinionViewProps {
   section: WorkspaceSection;
+  sectionId: number;
   opinions: SectionOpinionsResponse | null;
   myOpinion: MyOpinionResponse | null;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
@@ -17,6 +18,7 @@ interface OpinionViewProps {
 
 const OpinionView = ({
   section,
+  sectionId,
   opinions,
   myOpinion,
   onSaveStatusChange,
@@ -69,14 +71,14 @@ const OpinionView = ({
 
       {showForm ? (
         <OpinionForm
-          projectSectionId={section.projectSectionId}
+          sectionId={sectionId}
           initialContent={myOpinion?.exists ? myOpinion.content : ""}
           onSubmit={handleOpinionSubmitted}
           onSaveStatusChange={onSaveStatusChange}
         />
       ) : (
         <CollectedOpinions
-          projectSectionId={section.projectSectionId}
+          sectionId={sectionId}
           opinions={opinions?.opinions ?? []}
           totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
           onEditOpinion={() => setIsEditingOwnOpinion(true)}

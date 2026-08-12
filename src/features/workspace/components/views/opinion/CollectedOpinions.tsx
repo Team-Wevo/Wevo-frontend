@@ -13,14 +13,14 @@ import {
 import type { SectionOpinion } from "../../../api/getSectionOpinions";
 
 interface CollectedOpinionsProps {
-  projectSectionId: number;
+  sectionId: number;
   opinions: SectionOpinion[];
   totalSubmittedCount: number;
   onEditOpinion: () => void;
 }
 
 const CollectedOpinions = ({
-  projectSectionId,
+  sectionId,
   opinions,
   totalSubmittedCount,
   onEditOpinion,
@@ -37,9 +37,10 @@ const CollectedOpinions = ({
     setCloseErrorMessage(null);
 
     try {
-      await closeOpinionGate(projectSectionId);
+      await closeOpinionGate(sectionId);
       setIsCloseConfirmOpen(false);
       // 마감 성공 시 loader를 다시 실행해 섹션 상태(SYNTHESIZING)를 반영한다.
+      // AI 정리 시작 API는 DraftView에서 SYNTHESIZING 상태 확인 후 호출한다.
       await revalidator.revalidate();
     } catch (error) {
       setCloseErrorMessage(getCloseOpinionGateErrorMessage(error));

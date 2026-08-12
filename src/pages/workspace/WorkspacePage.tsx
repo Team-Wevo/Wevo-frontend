@@ -19,6 +19,7 @@ const RESULT_TYPE_LABEL: Record<ProjectResultType, string> = {
 const WorkspacePage = () => {
   const {
     projectId,
+    sectionId,
     sections,
     currentSection,
     projectDetail,
@@ -50,6 +51,7 @@ const WorkspacePage = () => {
         <OpinionView
           key={currentSection.projectSectionId}
           section={currentSection}
+          sectionId={sectionId}
           opinions={opinions}
           myOpinion={myOpinion}
           onSaveStatusChange={setSaveStatus}
@@ -57,7 +59,10 @@ const WorkspacePage = () => {
       ) : currentPhase === "정리·초안" ? (
         <DraftView section={currentSection} />
       ) : (
-        <ReviewView section={currentSection} />
+        <ReviewView
+          section={currentSection}
+          sectionId={sectionId}
+        />
       )}
     </WorkspaceLayout>
   );

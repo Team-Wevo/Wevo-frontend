@@ -53,6 +53,7 @@ const getFallbackSectionNo = (sections: WorkspaceSection[]): number => {
 export interface WorkspaceSectionLoaderData {
   projectId: number;
   sectionNo: number;
+  sectionId: number;
   sections: WorkspaceSection[];
   currentSection: WorkspaceSection;
   projectDetail: ProjectDetailResponse;
@@ -112,6 +113,7 @@ export const workspaceSectionLoader = async ({
   return {
     projectId,
     sectionNo,
+    sectionId: currentSection.projectSectionId,
     sections,
     currentSection,
     projectDetail,
