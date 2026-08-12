@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
 import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import { cn } from "../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import SectionBlock from "../blocks/SectionBlock";
@@ -194,10 +195,7 @@ const ReviewView = ({
             {getSectionDraftErrorMessage(draftQuery.error)}
           </div>
         ) : (
-          // 초안은 문단 구분이 줄바꿈으로 들어오므로 공백을 그대로 살린다.
-          <div className="text-base leading-6 font-normal whitespace-pre-wrap text-gray-900">
-            {draftQuery.data.content}
-          </div>
+          <MarkdownContent content={draftQuery.data.content} />
         )}
       </SectionBlock>
 

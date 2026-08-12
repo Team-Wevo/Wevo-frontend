@@ -4,6 +4,7 @@ import SectionBlock from "../blocks/SectionBlock";
 import DraftReadabilityCard from "./DraftReadabilityCard";
 import type { DraftEditingMode, DraftStageViewProps } from "./types";
 import { CreditIcon } from "../../../../shared/components/icons";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 
 const DraftEditingView = ({
   state,
@@ -126,9 +127,10 @@ const DraftEditingView = ({
             aria-label="초안 편집 영역"
           />
         ) : (
-          <div className="h-48 overflow-y-auto text-base leading-6 font-normal text-gray-900">
-            {state.draftContent}
-          </div>
+          <MarkdownContent
+            content={state.draftContent ?? ""}
+            className="h-48 overflow-y-auto"
+          />
         )}
       </SectionBlock>
 

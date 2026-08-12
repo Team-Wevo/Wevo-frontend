@@ -1,4 +1,5 @@
 import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import { getSectionDraftErrorMessage } from "../../api/getSectionDraft";
 import { useSectionDraft } from "../../hooks/useSectionDraft";
 import SectionBlock from "../blocks/SectionBlock";
@@ -21,9 +22,7 @@ const DraftHistoryView = ({ sectionId }: DraftHistoryViewProps) => {
           {getSectionDraftErrorMessage(draftQuery.error)}
         </div>
       ) : (
-        <div className="text-base leading-6 font-normal whitespace-pre-wrap text-gray-900">
-          {draftQuery.data.content}
-        </div>
+        <MarkdownContent content={draftQuery.data.content} />
       )}
     </SectionBlock>
   );

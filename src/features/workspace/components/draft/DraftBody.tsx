@@ -1,4 +1,5 @@
 import { cn } from "../../../../shared/utils/cn";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import SectionBlock from "../blocks/SectionBlock";
 import { STAGE_CONTENT_BY_STAGE } from "./constants";
 import type { DraftStage } from "./types";
@@ -18,16 +19,13 @@ const DraftBody = ({
 
   return (
     <SectionBlock>
-      <div
+      <MarkdownContent
+        content={content}
         className={cn(
-          fitContent
-            ? "h-auto text-base leading-6 font-normal break-words whitespace-pre-wrap"
-            : "h-48 overflow-y-auto text-base leading-6 font-normal",
+          fitContent ? "h-auto" : "h-48 overflow-y-auto",
           stage === "generating" ? "text-gray-600" : "text-gray-900",
         )}
-      >
-        {content}
-      </div>
+      />
     </SectionBlock>
   );
 };
