@@ -62,9 +62,10 @@ const countAgreedReviewers = (reviewers: SectionReviewer[]): number => {
 
 interface ReviewViewProps {
   section: WorkspaceSection;
+  sectionId: number;
 }
 
-const ReviewView = ({ section }: ReviewViewProps) => {
+const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   const revalidator = useRevalidator();
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmErrorMessage, setConfirmErrorMessage] = useState<string | null>(
@@ -95,7 +96,7 @@ const ReviewView = ({ section }: ReviewViewProps) => {
     setConfirmErrorMessage(null);
 
     try {
-      await confirmSection(section.projectSectionId);
+      await confirmSection(sectionId);
       // 확정 성공 시 loader를 다시 실행해 갱신된 섹션 상태를 반영한다.
       // 재검증이 끝날 때까지 기다려야 버튼이 다시 열려 중복 확정 요청이 나가지 않는다.
       await revalidator.revalidate();
