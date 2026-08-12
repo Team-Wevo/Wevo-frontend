@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { CreditIcon } from "../../../../../shared/components/icons";
 import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
 import { cn } from "../../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../../shared/utils/avatarColor";
-import { getProjectMembers } from "../../../../project/api/getProjectMembers";
+import { useProjectMembers } from "../../../../project/hooks/useProjectMembers";
 import CloseCollectionModal from "./CloseCollectionModal";
 import {
   closeOpinionGate,
@@ -40,11 +39,7 @@ const CollectedOpinions = ({
     null,
   );
 
-  const membersQuery = useQuery({
-    queryKey: ["project-members", projectId],
-    queryFn: () => getProjectMembers(projectId),
-    enabled: !readOnly,
-  });
+  const membersQuery = useProjectMembers(projectId, { enabled: !readOnly });
 
   const submittedAuthorIds = new Set(
     opinions.map((opinion) => opinion.author.id),

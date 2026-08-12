@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
@@ -12,7 +11,7 @@ import {
   getCreateInviteLinkErrorMessage,
   type CreateInviteLinkResponse,
 } from "../../../project/api/createInviteLink";
-import { getProjectMembers } from "../../../project/api/getProjectMembers";
+import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 import InviteTeamPopover from "./InviteTeamPopover";
 
 export type DraftSaveStatus = "idle" | "saving" | "saved";
@@ -39,10 +38,7 @@ const WorkspaceHeader = ({
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const membersQuery = useQuery({
-    queryKey: ["project-members", projectId],
-    queryFn: () => getProjectMembers(Number(projectId)),
-  });
+  const membersQuery = useProjectMembers(Number(projectId), { live: true });
   const [inviteLink, setInviteLink] = useState<CreateInviteLinkResponse | null>(
     null,
   );

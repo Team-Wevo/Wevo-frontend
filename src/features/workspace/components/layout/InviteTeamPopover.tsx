@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Check, Link2 } from "lucide-react";
 import { getApiErrorMessage } from "@/shared/api";
 import { PRESSABLE_COPY_BUTTON_STATE_CLASS } from "@/shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
-import {
-  getProjectMembers,
-  type ProjectMemberRole,
-} from "../../../project/api/getProjectMembers";
+import { type ProjectMemberRole } from "../../../project/api/getProjectMembers";
+import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 
 const ROLE_LABEL: Record<ProjectMemberRole, string> = {
   OWNER: "팀장",
@@ -39,10 +36,7 @@ const InviteTeamPopover = ({
 }: InviteTeamPopoverProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
-  const membersQuery = useQuery({
-    queryKey: ["project-members", projectId],
-    queryFn: () => getProjectMembers(Number(projectId)),
-  });
+  const membersQuery = useProjectMembers(Number(projectId));
 
   const handleCopyLink = async () => {
     if (!inviteUrl) {

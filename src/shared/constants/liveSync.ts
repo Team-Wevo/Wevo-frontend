@@ -1,0 +1,1 @@
+export const LIVE_SYNC_REFETCH_INTERVAL_MS = 5_000;
