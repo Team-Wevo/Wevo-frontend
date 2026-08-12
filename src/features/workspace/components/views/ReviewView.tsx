@@ -17,6 +17,12 @@ import {
   getTeamReviewsErrorMessage,
   type TeamReviewStatus,
 } from "../../api/getTeamReviews";
+import {
+  CHANGE_REQUEST_REASON_MAX_LENGTH,
+  getSubmitTeamReviewErrorMessage,
+  submitTeamReview,
+  type SubmitTeamReviewStatus,
+} from "../../api/submitTeamReview";
 import type { WorkspaceSection } from "../../constants/sections";
 
 const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
@@ -45,6 +51,12 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   const [confirmErrorMessage, setConfirmErrorMessage] = useState<string | null>(
     null,
   );
+  const [isChangeRequestMode, setIsChangeRequestMode] = useState(false);
+  const [changeRequestReason, setChangeRequestReason] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [submitReviewErrorMessage, setSubmitReviewErrorMessage] = useState<
+    string | null
+  >(null);
 
   const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
 
@@ -66,6 +78,11 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   const confirmGuideMessage =
     confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
+  const trimmedChangeRequestReason = changeRequestReason.trim();
+  // 제출 직후 재조회 중에는 contentVersion이 낡은 값이라 중복 제출을 막는다.
+  const isReviewSubmitDisabled =
+    isSubmittingReview || teamReviewsQuery.isFetching || !teamReviews;
+
   const handleConfirmSection = async () => {
     setIsConfirming(true);
     setConfirmErrorMessage(null);
@@ -81,6 +98,36 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
       void readinessQuery.refetch();
     } finally {
       setIsConfirming(false);
+    }
+  };
+
+  const handleSubmitReview = async (status: SubmitTeamReviewStatus) => {
+    if (!teamReviews) {
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setSubmitReviewErrorMessage(null);
+
+    try {
+      await submitTeamReview(sectionId, {
+        status,
+        changeRequestReason:
+          status === "CHANGES_REQUESTED"
+            ? trimmedChangeRequestReason
+            : undefined,
+        // 읽는 사이 본문이 바뀌었으면 서버가 409로 거부한다.
+        contentVersion: teamReviews.currentContentVersion,
+      });
+
+      setIsChangeRequestMode(false);
+      setChangeRequestReason("");
+    } catch (error) {
+      setSubmitReviewErrorMessage(getSubmitTeamReviewErrorMessage(error));
+    } finally {
+      // 성공하면 내 검토 결과를, 실패하면 바뀐 본문 버전을 다시 받아온다.
+      await teamReviewsQuery.refetch();
+      setIsSubmittingReview(false);
     }
   };
 
@@ -257,9 +304,77 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
               <div className="text-main-700 text-base leading-6 font-normal">
                 수정 요청을 선택하면 사유를 남길 수 있어요.
               </div>
+
+              {isChangeRequestMode && (
+                <div className="flex w-full flex-col items-end gap-2">
+                  <textarea
+                    value={changeRequestReason}
+                    onChange={(event) =>
+                      setChangeRequestReason(event.target.value)
+                    }
+                    maxLength={CHANGE_REQUEST_REASON_MAX_LENGTH}
+                    rows={3}
+                    placeholder="어떤 점을 수정하면 좋을지 적어주세요."
+                    className="w-full resize-none rounded-sm border border-gray-400 bg-gray-50 p-3 text-xs leading-5 font-normal text-gray-900 placeholder:text-gray-500"
+                  />
+                  <div className="text-xs leading-4 font-normal text-gray-600">
+                    {trimmedChangeRequestReason.length}/
+                    {CHANGE_REQUEST_REASON_MAX_LENGTH}
+                  </div>
+                </div>
+              )}
+
+              {submitReviewErrorMessage && (
+                <div className="text-error text-xs leading-4 font-normal">
+                  {submitReviewErrorMessage}
+                </div>
+              )}
+
               <div className="flex w-full items-center justify-end gap-2">
-                <Button type="green">동의</Button>
-                <Button type="outline">수정 요청</Button>
+                {isChangeRequestMode ? (
+                  <>
+                    <Button
+                      type="outline"
+                      onClick={() => {
+                        setIsChangeRequestMode(false);
+                        setChangeRequestReason("");
+                        setSubmitReviewErrorMessage(null);
+                      }}
+                      disabled={isSubmittingReview}
+                    >
+                      취소
+                    </Button>
+                    <Button
+                      type="main"
+                      onClick={() => handleSubmitReview("CHANGES_REQUESTED")}
+                      disabled={
+                        isReviewSubmitDisabled || !trimmedChangeRequestReason
+                      }
+                    >
+                      {isSubmittingReview ? "제출 중..." : "수정 요청 제출"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      type="green"
+                      onClick={() => handleSubmitReview("APPROVED")}
+                      disabled={isReviewSubmitDisabled}
+                    >
+                      {isSubmittingReview ? "제출 중..." : "동의"}
+                    </Button>
+                    <Button
+                      type="outline"
+                      onClick={() => {
+                        setIsChangeRequestMode(true);
+                        setSubmitReviewErrorMessage(null);
+                      }}
+                      disabled={isReviewSubmitDisabled}
+                    >
+                      수정 요청
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}
