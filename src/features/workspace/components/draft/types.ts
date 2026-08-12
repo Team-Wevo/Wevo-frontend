@@ -71,8 +71,21 @@ export interface DraftStageViewProps {
   onEditDraft: () => void;
   onOpenEvidence: () => void;
   onRequestReadabilityCheck: () => void;
+  onApplyRevision?: () => Promise<boolean>;
+  onKeepRevision?: () => void;
+  onDraftContentChange?: (content: string) => void;
+  onSaveDraft?: () => void;
   onFinishEditing?: () => void;
   onMoveToReviewRequest?: () => void;
+  isAcquiringEditLease?: boolean;
+  isEditDraftDisabled?: boolean;
+  editActionErrorMessage?: string | null;
+  isSavingDraft?: boolean;
+  draftSaveErrorMessage?: string | null;
+  isRequestingReadabilityCheck?: boolean;
+  readabilityRequestErrorMessage?: string | null;
+  isApplyingRevision?: boolean;
+  applyRevisionErrorMessage?: string | null;
   isMovingToReviewRequest?: boolean;
   moveToReviewRequestErrorMessage?: string | null;
 }

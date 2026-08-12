@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRevalidator } from "react-router-dom";
+import { useMyProfile } from "../../../auth/hooks/useMyProfile";
 import AiDraftProgressCard from "../blocks/AiDraftProgressCard";
 import DraftEditedView from "../draft/DraftEditedView";
 import DraftEditingView from "../draft/DraftEditingView";
@@ -13,6 +14,8 @@ import {
 import DraftReviewableView from "../draft/DraftReviewableView";
 import IssueCoordinationView from "../issue/IssueCoordinationView";
 import type {
+  AiPreReviewData,
+  AiPreReviewResultType,
   DraftStage,
   DraftStageViewProps,
   DebugDraftStage,
@@ -20,6 +23,20 @@ import type {
 import type { IssueCoordinationData, WorkspaceIssue } from "../issue/types";
 import type { WorkspaceSection } from "../../constants/sections";
 import { getAiJobStatus } from "../../api/getAiJobStatus";
+import {
+  applySectionDraftPrecheck,
+  getApplySectionDraftPrecheckErrorMessage,
+} from "../../api/applySectionDraftPrecheck";
+import {
+  acquireSectionDraftLease,
+  getAcquireDraftLeaseErrorMessage,
+  getDraftLeaseStatusErrorMessage,
+  getReleaseDraftLeaseErrorMessage,
+  getRefreshDraftLeaseErrorMessage,
+  getSectionDraftLeaseStatus,
+  releaseSectionDraftLease,
+  refreshSectionDraftLease,
+} from "../../api/draftLease";
 import {
   generateSectionDraft,
   getGenerateDraftErrorMessage,
@@ -29,6 +46,11 @@ import {
   getSectionDraftErrorMessage,
   type SectionDraftResponse,
 } from "../../api/getSectionDraft";
+import {
+  getSectionDraftPrecheck,
+  type SectionDraftPrecheckCurrentResult,
+  type SectionDraftPrecheckFinding,
+} from "../../api/getSectionDraftPrecheck";
 import {
   getSectionSynthesis,
   getSectionSynthesisErrorMessage,
@@ -43,17 +65,31 @@ import {
   startSectionSynthesis,
 } from "../../api/startSynthesis";
 import {
+  getRequestSectionDraftPrecheckErrorMessage,
+  requestSectionDraftPrecheck,
+} from "../../api/requestDraftPrecheck";
+import {
+  getSaveSectionDraftErrorMessage,
+  saveSectionDraft,
+} from "../../api/saveSectionDraft";
+import {
+  clearStoredDraftRequestId,
+  clearStoredPrecheckRequestId,
   getStoredDraftRequestId,
+  getStoredPrecheckRequestId,
   getStoredSynthesisRequestId,
+  setStoredPrecheckRequestId,
   setStoredDraftRequestId,
   setStoredSynthesisRequestId,
 } from "../../utils/aiJobRequestStorage";
-
 interface DraftViewProps {
   section: WorkspaceSection;
 }
 
 const AI_JOB_POLLING_INTERVAL_MS = 5_000;
+const DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS = 10_000;
+const DRAFT_LEASE_HEARTBEAT_BUFFER_MS = 60_000;
+const DRAFT_LEASE_HEARTBEAT_MIN_INTERVAL_MS = 30_000;
 
 const toStringValue = (value: unknown): string | null => {
   if (typeof value === "string" && value.trim()) {
@@ -371,10 +407,15 @@ const toIssueCoordinationData = (
 
 const buildEditingStateFromDraft = (
   draft: SectionDraftResponse,
+  options: {
+    isLockedByAnotherEditor: boolean;
+    editorName: string | null;
+    myDisplayName: string;
+  },
 ): (typeof MOCK_DRAFT_STATE_BY_STAGE)["editing"] => {
-  const activityLabel = draft.activeEditor
-    ? `${draft.activeEditor.name} 님 편집 중`
-    : "편집 가능";
+  const activityLabel = options.isLockedByAnotherEditor
+    ? `${options.editorName ?? "팀원"} 님 편집 중`
+    : `${options.myDisplayName}가 편집 중`;
 
   return {
     ...MOCK_DRAFT_STATE_BY_STAGE.editing,
@@ -385,10 +426,117 @@ const buildEditingStateFromDraft = (
       tone: "success",
     },
     editingMeta: {
-      currentEditorName: draft.activeEditor?.name ?? "팀원",
-      myDisplayName: "내",
-      defaultMode: "self",
+      currentEditorName:
+        options.editorName ?? draft.activeEditor?.name ?? "팀원",
+      myDisplayName: options.myDisplayName,
+      defaultMode: options.isLockedByAnotherEditor ? "locked" : "self",
     },
+  };
+};
+
+const buildGeneratedStateFromDraft = (
+  draft: SectionDraftResponse,
+  isLockedByAnotherEditor: boolean,
+  editorName: string | null,
+): (typeof MOCK_DRAFT_STATE_BY_STAGE)["generated"] => {
+  return {
+    ...MOCK_DRAFT_STATE_BY_STAGE.generated,
+    version: draft.contentVersion,
+    draftContent: draft.content,
+    activity: {
+      label: isLockedByAnotherEditor
+        ? `${editorName ?? "팀원"} 님 편집 중`
+        : "초안 생성 완료",
+      tone: "success",
+    },
+  };
+};
+
+const buildEditedStateFromDraft = (
+  draft: SectionDraftResponse,
+): (typeof MOCK_DRAFT_STATE_BY_STAGE)["edited"] => {
+  return {
+    ...MOCK_DRAFT_STATE_BY_STAGE.edited,
+    version: draft.contentVersion,
+    draftContent: draft.content,
+  };
+};
+
+const buildReviewableStateFromDraft = (
+  draft: SectionDraftResponse,
+  preReview?: AiPreReviewData,
+): (typeof MOCK_DRAFT_STATE_BY_STAGE)["reviewable"] => {
+  return {
+    ...MOCK_DRAFT_STATE_BY_STAGE.reviewable,
+    version: draft.contentVersion,
+    draftContent: draft.content,
+    preReview,
+  };
+};
+
+const PRECHECK_RESULT_TYPE_MAP: Record<string, AiPreReviewResultType> = {
+  UNCLEAR_SENTENCE: "blocked_sentence",
+  BLOCKED_SENTENCE: "blocked_sentence",
+  HIDDEN_ASSUMPTION: "hidden_assumption",
+  READER_QUESTION: "reader_question",
+};
+
+const PRECHECK_RESULT_TITLE_MAP: Record<AiPreReviewResultType, string> = {
+  blocked_sentence: "막히는 문장",
+  hidden_assumption: "숨은 전제",
+  reader_question: "독자 질문",
+};
+
+const toPreReviewResultType = (value: string): AiPreReviewResultType => {
+  return (
+    PRECHECK_RESULT_TYPE_MAP[value.trim().toUpperCase()] ?? "blocked_sentence"
+  );
+};
+
+const toPreReviewResult = (
+  finding: SectionDraftPrecheckFinding,
+  index: number,
+) => {
+  const type = toPreReviewResultType(finding.type);
+  const description = finding.targetExcerpt?.trim()
+    ? `"${finding.targetExcerpt}" ${finding.comment}`
+    : finding.comment;
+
+  return {
+    id: `${type}-${index + 1}`,
+    type,
+    title: PRECHECK_RESULT_TITLE_MAP[type],
+    findings: [
+      {
+        description,
+        suggestion: finding.suggestion,
+      },
+    ],
+  };
+};
+
+const toPreReviewData = (
+  result: SectionDraftPrecheckCurrentResult | undefined,
+): AiPreReviewData | undefined => {
+  if (!result) {
+    return undefined;
+  }
+
+  const findings = Array.isArray(result.findings) ? result.findings : [];
+
+  return {
+    perspectiveLabel: `콘텐츠 v${result.checkedContentVersion} 기준`,
+    results: findings.map(toPreReviewResult),
+    revisionProposal: result.rewrite
+      ? {
+          title: "수정안",
+          changedCount: result.rewrite.changedCount,
+          content: result.rewrite.content,
+          notice: result.rewriteApplied
+            ? "* 수정안이 이미 적용된 상태예요."
+            : "* 자동 덮어쓰지 않고, 적용을 눌러야 본문이 바뀌어요.",
+        }
+      : undefined,
   };
 };
 
@@ -426,9 +574,11 @@ const getInitialStage = (
 const DraftView = ({ section }: DraftViewProps) => {
   const sectionId = section.projectSectionId;
   const revalidator = useRevalidator();
+  const myProfileQuery = useMyProfile(true);
 
   const initialSynthesisRequestId = getStoredSynthesisRequestId(sectionId);
   const initialDraftRequestId = getStoredDraftRequestId(sectionId);
+  const initialPrecheckRequestId = getStoredPrecheckRequestId(sectionId);
 
   const [draftStage, setDraftStage] = useState<DebugDraftStage>(() =>
     getInitialStage(
@@ -443,6 +593,32 @@ const DraftView = ({ section }: DraftViewProps) => {
   const [draftRequestId, setDraftRequestId] = useState<string | null>(
     initialDraftRequestId,
   );
+  const [precheckRequestId, setPrecheckRequestId] = useState<string | null>(
+    initialPrecheckRequestId,
+  );
+  const [draftContent, setDraftContent] = useState<string | null>(null);
+  const [draftVersion, setDraftVersion] = useState<number | null>(null);
+  const [isAcquiringEditLease, setIsAcquiringEditLease] = useState(false);
+  const [isDraftLeaseOwned, setIsDraftLeaseOwned] = useState(false);
+  const [leaseExpiresAt, setLeaseExpiresAt] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastSavedDraftContent, setLastSavedDraftContent] = useState<
+    string | null
+  >(null);
+  const [draftSaveErrorMessage, setDraftSaveErrorMessage] = useState<
+    string | null
+  >(null);
+  const [editActionErrorMessage, setEditActionErrorMessage] = useState<
+    string | null
+  >(null);
+  const [isRequestingReadabilityCheck, setIsRequestingReadabilityCheck] =
+    useState(false);
+  const [readabilityRequestErrorMessage, setReadabilityRequestErrorMessage] =
+    useState<string | null>(null);
+  const [isApplyingRevision, setIsApplyingRevision] = useState(false);
+  const [applyRevisionErrorMessage, setApplyRevisionErrorMessage] = useState<
+    string | null
+  >(null);
   const [isMovingToReviewRequest, setIsMovingToReviewRequest] = useState(false);
   const [moveToReviewRequestErrorMessage, setMoveToReviewRequestErrorMessage] =
     useState<string | null>(null);
@@ -451,6 +627,11 @@ const DraftView = ({ section }: DraftViewProps) => {
   );
   const [isStartingDraftGeneration, setIsStartingDraftGeneration] =
     useState(false);
+
+  const myUserId = myProfileQuery.data?.userId ?? null;
+  const myDisplayName = myProfileQuery.data?.name
+    ? `${myProfileQuery.data.name} 님`
+    : "내";
 
   useEffect(() => {
     const scrollContainer = document.querySelector<HTMLElement>(
@@ -596,25 +777,144 @@ const DraftView = ({ section }: DraftViewProps) => {
     queryKey: ["workspace-draft-result", sectionId],
     queryFn: () => getSectionDraft(sectionId),
     enabled:
-      draftJobQuery.data?.status === "SUCCEEDED" && !isDraftJobFeatureMismatch,
+      (section.sectionStatus === "DRAFTING" ||
+        draftJobQuery.data?.status === "SUCCEEDED") &&
+      !isDraftJobFeatureMismatch,
     retry: false,
   });
 
+  useEffect(() => {
+    if (draftResultQuery.data) {
+      clearStoredDraftRequestId(sectionId);
+    }
+  }, [draftResultQuery.data, sectionId]);
+
+  const leaseStatusQuery = useQuery({
+    queryKey: ["workspace-draft-lease-status", sectionId],
+    queryFn: () => getSectionDraftLeaseStatus(sectionId),
+    enabled: Boolean(draftResultQuery.data) && draftStage === "editing",
+    retry: false,
+    refetchInterval: DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS,
+  });
+
+  const precheckJobQuery = useQuery({
+    queryKey: ["workspace-ai-job", "precheck", sectionId, precheckRequestId],
+    queryFn: () => getAiJobStatus(precheckRequestId as string),
+    enabled: Boolean(precheckRequestId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return !status || status === "REQUESTED"
+        ? AI_JOB_POLLING_INTERVAL_MS
+        : false;
+    },
+  });
+
+  useEffect(() => {
+    if (
+      precheckJobQuery.data?.status === "SUCCEEDED" ||
+      precheckJobQuery.data?.status === "FAILED"
+    ) {
+      clearStoredPrecheckRequestId(sectionId);
+    }
+  }, [precheckJobQuery.data?.status, sectionId]);
+
+  const precheckResultQuery = useQuery({
+    queryKey: [
+      "workspace-precheck-result",
+      sectionId,
+      precheckRequestId,
+      precheckJobQuery.data?.status,
+      draftStage,
+    ],
+    queryFn: () => getSectionDraftPrecheck(sectionId),
+    enabled:
+      draftStage === "reviewable" ||
+      precheckJobQuery.data?.status === "SUCCEEDED",
+    retry: false,
+  });
+
+  const effectiveDraftContent =
+    draftContent ?? draftResultQuery.data?.content ?? null;
+  const effectiveDraftVersion =
+    draftVersion ?? draftResultQuery.data?.contentVersion ?? null;
+  const precheckCurrentResult = precheckResultQuery.data?.currentResult;
+  const precheckResultRequestId =
+    precheckCurrentResult?.requestId ??
+    precheckResultQuery.data?.latestJob?.requestId ??
+    null;
+  const preReviewData = useMemo(() => {
+    return toPreReviewData(precheckCurrentResult);
+  }, [precheckCurrentResult]);
+  const leaseEditor = leaseStatusQuery.data?.editor ?? null;
+  const isLockedByAnotherEditor = Boolean(
+    leaseStatusQuery.data?.locked &&
+    leaseEditor &&
+    (myUserId === null || leaseEditor.userId !== myUserId),
+  );
+  const hasPendingDraftChanges =
+    draftStage === "editing" &&
+    effectiveDraftContent !== null &&
+    effectiveDraftContent !== lastSavedDraftContent;
+
   const runtimeDraftState = useMemo(() => {
-    if (!draftResultQuery.data) {
+    if (
+      !draftResultQuery.data ||
+      effectiveDraftContent === null ||
+      effectiveDraftVersion === null
+    ) {
       return null;
     }
 
-    return buildEditingStateFromDraft(draftResultQuery.data);
-  }, [draftResultQuery.data]);
+    const runtimeDraft: SectionDraftResponse = {
+      ...draftResultQuery.data,
+      content: effectiveDraftContent,
+      contentVersion: effectiveDraftVersion,
+      activeEditor: draftResultQuery.data.activeEditor,
+    };
+
+    if (draftStage === "editing") {
+      return buildEditingStateFromDraft(runtimeDraft, {
+        isLockedByAnotherEditor,
+        editorName: leaseEditor?.name ?? null,
+        myDisplayName,
+      });
+    }
+
+    if (draftStage === "edited") {
+      return buildEditedStateFromDraft(runtimeDraft);
+    }
+
+    if (draftStage === "reviewable") {
+      return buildReviewableStateFromDraft(runtimeDraft, preReviewData);
+    }
+
+    return buildGeneratedStateFromDraft(
+      runtimeDraft,
+      isLockedByAnotherEditor,
+      leaseEditor?.name ?? null,
+    );
+  }, [
+    draftResultQuery.data,
+    effectiveDraftContent,
+    effectiveDraftVersion,
+    draftStage,
+    isLockedByAnotherEditor,
+    leaseEditor?.name,
+    myDisplayName,
+    preReviewData,
+  ]);
 
   const resolvedStage = useMemo<DebugDraftStage>(() => {
     if (runtimeDraftState) {
-      if (draftStage === "reviewable" || draftStage === "edited") {
+      if (
+        draftStage === "reviewable" ||
+        draftStage === "edited" ||
+        draftStage === "editing"
+      ) {
         return draftStage;
       }
 
-      return "editing";
+      return "generated";
     }
 
     if (draftRequestId || draftJobQuery.data?.status === "REQUESTED") {
@@ -680,6 +980,17 @@ const DraftView = ({ section }: DraftViewProps) => {
       return getSectionDraftErrorMessage(draftResultQuery.error);
     }
 
+    if (leaseStatusQuery.isError) {
+      return getDraftLeaseStatusErrorMessage(leaseStatusQuery.error);
+    }
+
+    if (precheckJobQuery.data?.status === "FAILED") {
+      return (
+        precheckJobQuery.data.failure?.message?.trim() ??
+        getAiJobFailedMessage("AI 사전 검토")
+      );
+    }
+
     return null;
   }, [
     actionErrorMessage,
@@ -696,22 +1007,169 @@ const DraftView = ({ section }: DraftViewProps) => {
     isDraftJobFeatureMismatch,
     draftResultQuery.isError,
     draftResultQuery.error,
+    leaseStatusQuery.isError,
+    leaseStatusQuery.error,
+    precheckJobQuery.data,
   ]);
+
+  const handleSaveDraft = async () => {
+    if (
+      isSavingDraft ||
+      effectiveDraftContent === null ||
+      effectiveDraftVersion === null
+    ) {
+      return;
+    }
+
+    setIsSavingDraft(true);
+    setDraftSaveErrorMessage(null);
+
+    try {
+      await saveSectionDraft(sectionId, {
+        content: effectiveDraftContent,
+        baseVersion: effectiveDraftVersion,
+      });
+
+      const latestDraftResult = await draftResultQuery.refetch();
+      const latestDraft = latestDraftResult.data ?? null;
+
+      if (latestDraft) {
+        setDraftContent(latestDraft.content);
+        setDraftVersion(latestDraft.contentVersion);
+        setLastSavedDraftContent(latestDraft.content);
+      }
+
+      try {
+        await releaseSectionDraftLease(sectionId);
+      } catch (error) {
+        setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+      } finally {
+        setIsDraftLeaseOwned(false);
+        setLeaseExpiresAt(null);
+        setDraftStage("edited");
+        void leaseStatusQuery.refetch();
+      }
+    } catch (error) {
+      setDraftSaveErrorMessage(getSaveSectionDraftErrorMessage(error));
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const handleOpenEvidence = () => {
     // TODO: 근거 상세 패널/모달 연결
   };
 
-  const handleRequestReadabilityCheck = () => {
+  const handleRequestReadabilityCheck = async () => {
+    setReadabilityRequestErrorMessage(null);
     setDraftStage("reviewable");
+
+    if (precheckRequestId) {
+      return;
+    }
+
+    setIsRequestingReadabilityCheck(true);
+
+    try {
+      const { requestId } = await requestSectionDraftPrecheck(sectionId);
+      setStoredPrecheckRequestId(sectionId, requestId);
+      setPrecheckRequestId(requestId);
+    } catch (error) {
+      setReadabilityRequestErrorMessage(
+        getRequestSectionDraftPrecheckErrorMessage(error),
+      );
+    } finally {
+      setIsRequestingReadabilityCheck(false);
+    }
   };
 
-  const handleMoveToEditing = () => {
-    setDraftStage("editing");
+  const handleApplyRevision = async (): Promise<boolean> => {
+    if (
+      isApplyingRevision ||
+      !precheckCurrentResult ||
+      !precheckResultRequestId
+    ) {
+      return false;
+    }
+
+    setIsApplyingRevision(true);
+    setApplyRevisionErrorMessage(null);
+
+    try {
+      await applySectionDraftPrecheck(sectionId, {
+        requestId: precheckResultRequestId,
+        checkedContentVersion: precheckCurrentResult.checkedContentVersion,
+      });
+
+      const latestDraftResult = await draftResultQuery.refetch();
+      const latestDraft = latestDraftResult.data ?? null;
+
+      if (!latestDraft) {
+        throw new Error("최신 초안을 불러오지 못했습니다.");
+      }
+
+      setDraftContent(latestDraft.content);
+      setDraftVersion(latestDraft.contentVersion);
+      setLastSavedDraftContent(latestDraft.content);
+      await precheckResultQuery.refetch();
+
+      return true;
+    } catch (error) {
+      setApplyRevisionErrorMessage(
+        getApplySectionDraftPrecheckErrorMessage(error),
+      );
+      return false;
+    } finally {
+      setIsApplyingRevision(false);
+    }
   };
 
-  const handleFinishEditing = () => {
-    setDraftStage("edited");
+  const handleKeepRevision = () => {
+    setApplyRevisionErrorMessage(null);
+  };
+
+  const handleMoveToEditing = async () => {
+    if (effectiveDraftContent === null || effectiveDraftVersion === null) {
+      setEditActionErrorMessage("초안을 먼저 불러온 뒤 다시 시도해 주세요.");
+      return;
+    }
+
+    setIsAcquiringEditLease(true);
+    setEditActionErrorMessage(null);
+
+    try {
+      const lease = await acquireSectionDraftLease(sectionId);
+      setLeaseExpiresAt(lease.expiresAt);
+      setIsDraftLeaseOwned(true);
+      setDraftContent(effectiveDraftContent);
+      setDraftVersion(effectiveDraftVersion);
+      setLastSavedDraftContent(effectiveDraftContent);
+      setDraftSaveErrorMessage(null);
+      setDraftStage("editing");
+      void leaseStatusQuery.refetch();
+    } catch (error) {
+      setEditActionErrorMessage(getAcquireDraftLeaseErrorMessage(error));
+    } finally {
+      setIsAcquiringEditLease(false);
+    }
+  };
+
+  const handleDraftContentChange = (content: string) => {
+    setDraftContent(content);
+    setDraftSaveErrorMessage(null);
+  };
+
+  const handleFinishEditing = async () => {
+    try {
+      await releaseSectionDraftLease(sectionId);
+    } catch (error) {
+      setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+    } finally {
+      setIsDraftLeaseOwned(false);
+      setLeaseExpiresAt(null);
+      setDraftStage("edited");
+      void leaseStatusQuery.refetch();
+    }
   };
 
   const handleMoveToReviewRequest = async () => {
@@ -746,6 +1204,51 @@ const DraftView = ({ section }: DraftViewProps) => {
 
   const isOpinionAnalyzingStage = resolvedStage === "opinion-analyzing";
   const isIssueCoordinationStage = resolvedStage === "issue-coordination";
+
+  useEffect(() => {
+    if (resolvedStage !== "editing" || !isDraftLeaseOwned || !leaseExpiresAt) {
+      return;
+    }
+
+    const expiresAtMs = Date.parse(leaseExpiresAt);
+
+    if (Number.isNaN(expiresAtMs)) {
+      return;
+    }
+
+    const dueIn = Math.max(
+      DRAFT_LEASE_HEARTBEAT_MIN_INTERVAL_MS,
+      expiresAtMs - Date.now() - DRAFT_LEASE_HEARTBEAT_BUFFER_MS,
+    );
+
+    const heartbeatTimer = window.setTimeout(async () => {
+      try {
+        const result = await refreshSectionDraftLease(sectionId);
+        setLeaseExpiresAt(result.expiresAt);
+      } catch (error) {
+        setEditActionErrorMessage(getRefreshDraftLeaseErrorMessage(error));
+      }
+    }, dueIn);
+
+    return () => {
+      window.clearTimeout(heartbeatTimer);
+    };
+  }, [resolvedStage, isDraftLeaseOwned, leaseExpiresAt, sectionId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasPendingDraftChanges || isSavingDraft) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasPendingDraftChanges, isSavingDraft]);
 
   return (
     <div
@@ -795,8 +1298,24 @@ const DraftView = ({ section }: DraftViewProps) => {
               onEditDraft={handleMoveToEditing}
               onOpenEvidence={handleOpenEvidence}
               onRequestReadabilityCheck={handleRequestReadabilityCheck}
+              onDraftContentChange={handleDraftContentChange}
+              onSaveDraft={handleSaveDraft}
               onFinishEditing={handleFinishEditing}
               onMoveToReviewRequest={handleMoveToReviewRequest}
+              isAcquiringEditLease={isAcquiringEditLease}
+              isEditDraftDisabled={isLockedByAnotherEditor}
+              editActionErrorMessage={editActionErrorMessage}
+              isSavingDraft={isSavingDraft}
+              draftSaveErrorMessage={draftSaveErrorMessage}
+              isRequestingReadabilityCheck={
+                isRequestingReadabilityCheck ||
+                precheckJobQuery.data?.status === "REQUESTED"
+              }
+              readabilityRequestErrorMessage={readabilityRequestErrorMessage}
+              onApplyRevision={handleApplyRevision}
+              onKeepRevision={handleKeepRevision}
+              isApplyingRevision={isApplyingRevision}
+              applyRevisionErrorMessage={applyRevisionErrorMessage}
               isMovingToReviewRequest={isMovingToReviewRequest}
               moveToReviewRequestErrorMessage={moveToReviewRequestErrorMessage}
             />
