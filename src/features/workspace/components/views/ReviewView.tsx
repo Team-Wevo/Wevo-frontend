@@ -11,7 +11,9 @@ import {
   getConfirmSectionErrorMessage,
 } from "../../api/confirmSection";
 import { getUnsatisfiedReasons } from "../../api/getSectionConfirmReadiness";
+import { getSectionDraftErrorMessage } from "../../api/getSectionDraft";
 import { useSectionConfirmReadiness } from "../../hooks/useSectionConfirmReadiness";
+import { useSectionDraft } from "../../hooks/useSectionDraft";
 import { useTeamReviews } from "../../hooks/useTeamReviews";
 import {
   getTeamReviewsErrorMessage,
@@ -80,6 +82,8 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
 
   const teamReviewsQuery = useTeamReviews(section.projectSectionId);
   const teamReviews = teamReviewsQuery.data;
+
+  const draftQuery = useSectionDraft(sectionId);
 
   const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
@@ -164,14 +168,20 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   return (
     <>
       <SectionBlock>
-        <div className="text-base leading-6 font-normal text-gray-900">
-          최근 대학생의 장학금 수요가 늘고 있으나, 관련 정보는 학교
-          홈페이지·장학재단·학과 공지 등 여러 곳에 흩어져 있다. 학생은 자신에게
-          맞는 장학금을 찾기 위해 여러 사이트를 오가며 반복적으로 탐색·비교해야
-          하고, 이 과정에서 적합한 공고를 놓치거나 마감을 지나치는 경우가 많다.
-          이에 흩어진 장학금 정보를 한곳에 모아, 자격 조건에 맞는 장학금을
-          비교·안내하는 서비스를 제안한다.
-        </div>
+        {draftQuery.isPending ? (
+          <div className="flex w-full justify-center py-2">
+            <LoadingSpinner size={24} />
+          </div>
+        ) : draftQuery.isError ? (
+          <div className="text-error text-xs leading-4 font-normal">
+            {getSectionDraftErrorMessage(draftQuery.error)}
+          </div>
+        ) : (
+          // 초안은 문단 구분이 줄바꿈으로 들어오므로 공백을 그대로 살린다.
+          <div className="text-base leading-6 font-normal whitespace-pre-wrap text-gray-900">
+            {draftQuery.data.content}
+          </div>
+        )}
       </SectionBlock>
 
       <div className="flex items-center justify-start gap-2">
