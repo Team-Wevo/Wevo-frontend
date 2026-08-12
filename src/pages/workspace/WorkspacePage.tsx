@@ -50,6 +50,7 @@ const WorkspacePage = () => {
       {currentPhase === "의견 모으기" ? (
         <OpinionView
           key={currentSection.projectSectionId}
+          projectId={projectId}
           section={currentSection}
           sectionId={sectionId}
           opinions={opinions}

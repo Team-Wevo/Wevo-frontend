@@ -20,6 +20,7 @@ import ProjectDetailPage from "../../pages/project/ProjectDetailPage";
 import ProjectListPage from "../../pages/project/ProjectListPage";
 import WorkspacePage from "../../pages/workspace/WorkspacePage";
 import OAuthCallbackPage from "../../pages/auth/OAuthCallbackPage";
+import InvitePage from "../../pages/invite/InvitePage";
 
 const listRoute: RouteObject = {
   path: "list",
@@ -111,6 +112,12 @@ const routes: RouteObject[] = [
           },
           // 비로그인도 목록 화면을 둘러볼 수 있도록 보호 라우트 밖에 둔다.
           listRoute,
+          // 초대 링크는 비로그인 사용자도 들어올 수 있어야 하므로 보호 라우트 밖에 둔다.
+          // 로그인 여부에 따른 안내는 InvitePage 내부에서 처리한다.
+          {
+            path: "invite/:token",
+            element: <InvitePage />,
+          },
           protectedMainRoute,
         ],
       },
