@@ -108,6 +108,7 @@ const WorkspaceLayout = ({
           progress={progress}
           activeStepId={activeStepId}
           projectId={projectId}
+          onConfirmFinal={() => navigate(`/completed/${projectId}`)}
         />
 
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">

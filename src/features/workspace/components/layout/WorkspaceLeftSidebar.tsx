@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "../../../../shared/utils/cn";
 import type {
@@ -6,6 +5,7 @@ import type {
   SectionStatusValue,
 } from "../../../../shared/types/documentType";
 import { Button } from "../../../../shared/components/Button";
+import { PRESSABLE_COMPLETION_BUTTON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 
 const SIDEBAR_STATUS_LABEL: Record<SectionStatusValue, string> = {
   "시작 전": "시작 전",
@@ -32,6 +32,7 @@ const WorkspaceLeftSidebar = ({
   const completedCount = progress.filter(
     (item) => item.status === "작성 완료",
   ).length;
+  const isCompletionAvailable = totalCount > 0 && completedCount === totalCount;
 
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col justify-between border-r border-gray-400 bg-white px-3 py-4">
@@ -90,16 +91,20 @@ const WorkspaceLeftSidebar = ({
           })}
         </nav>
         <Button
-          type="main"
+          type="transparent"
           onClick={onConfirmFinal}
-          className="mt-4 h-10 w-full items-center justify-start gap-2 overflow-hidden rounded-sm px-4 py-3 text-xs leading-4 font-medium text-gray-50"
+          disabled={!isCompletionAvailable}
+          className={cn(
+            "mt-4 h-10 w-full items-center justify-center gap-2 overflow-hidden rounded-[8px] px-4 py-3 text-[14px] leading-[22px] font-normal",
+            PRESSABLE_COMPLETION_BUTTON_STATE_CLASS,
+          )}
         >
           완성본 확인하기
-          <span className="flex items-center gap-1 overflow-hidden text-xs leading-4 font-normal text-gray-50">
+          <span className="flex items-center gap-1 overflow-hidden text-[12px] leading-[15px] font-normal">
             <span>
               {completedCount}/{totalCount}
             </span>
-            <ArrowRight className="h-3.5 w-3.5" />
+            <span aria-hidden="true">→</span>
           </span>
         </Button>
       </div>

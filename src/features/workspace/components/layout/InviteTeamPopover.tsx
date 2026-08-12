@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Link2 } from "lucide-react";
 import { getApiErrorMessage } from "@/shared/api";
+import { PRESSABLE_COPY_BUTTON_STATE_CLASS } from "@/shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import {
@@ -99,7 +100,10 @@ const InviteTeamPopover = ({
             type="button"
             onClick={handleCopyLink}
             disabled={!inviteUrl}
-            className="flex cursor-pointer items-center gap-1 rounded-[6px] border border-gray-500 px-2.5 py-1 text-[11px] leading-[14px] font-normal text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className={cn(
+              "flex cursor-pointer items-center gap-1 rounded-[6px] border px-2.5 py-1 text-[11px] leading-[14px] font-normal",
+              PRESSABLE_COPY_BUTTON_STATE_CLASS,
+            )}
           >
             {isCopied ? (
               <>
