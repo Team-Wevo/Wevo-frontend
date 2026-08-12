@@ -63,6 +63,11 @@ const WorkspacePage = () => {
           section={currentSection}
           sectionId={sectionId}
           isTeamLeader={projectDetail.myRole === "OWNER"}
+          projectId={String(projectId)}
+          nextSectionNo={
+            sections.find((item) => item.orderNo === currentSection.orderNo + 1)
+              ?.orderNo ?? null
+          }
         />
       )}
     </WorkspaceLayout>

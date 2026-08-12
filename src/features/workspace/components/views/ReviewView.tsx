@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { useRevalidator } from "react-router-dom";
+import { useNavigate, useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
 import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
 import { cn } from "../../../../shared/utils/cn";
@@ -48,9 +48,19 @@ interface ReviewViewProps {
   sectionId: number;
   // 팀장(OWNER)만 수정 요청 사유 확인·해소 처리와 섹션 확정을 할 수 있다.
   isTeamLeader: boolean;
+  projectId: string;
+  // 마지막 섹션이면 null.
+  nextSectionNo: number | null;
 }
 
-const ReviewView = ({ section, sectionId, isTeamLeader }: ReviewViewProps) => {
+const ReviewView = ({
+  section,
+  sectionId,
+  isTeamLeader,
+  projectId,
+  nextSectionNo,
+}: ReviewViewProps) => {
+  const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmErrorMessage, setConfirmErrorMessage] = useState<string | null>(
@@ -225,16 +235,21 @@ const ReviewView = ({ section, sectionId, isTeamLeader }: ReviewViewProps) => {
             </div>
           </div>
 
-          <div className="flex w-full items-center justify-end">
-            {/* TODO: 다음 섹션 경로로 이동하도록 onClick 핸들러 연결 */}
-            <Button
-              type="main"
-              className="h-auto text-lg leading-7 font-semibold"
-            >
-              다음 섹션 작성하기
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </div>
+          {/* 마지막 섹션에는 넘어갈 곳이 없어 버튼을 두지 않는다. */}
+          {nextSectionNo !== null && (
+            <div className="flex w-full items-center justify-end">
+              <Button
+                type="main"
+                className="h-auto text-lg leading-7 font-semibold"
+                onClick={() =>
+                  navigate(`/workspace/${projectId}/sections/${nextSectionNo}`)
+                }
+              >
+                다음 섹션 작성하기
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </>
       ) : (
         <>
