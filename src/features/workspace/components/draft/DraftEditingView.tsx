@@ -8,8 +8,12 @@ import { CreditIcon } from "../../../../shared/components/icons";
 const DraftEditingView = ({
   state,
   onOpenEvidence,
+  onSaveDraft,
   onFinishEditing,
   onRequestReadabilityCheck,
+  onDraftContentChange,
+  isSavingDraft,
+  draftSaveErrorMessage,
 }: DraftStageViewProps) => {
   const defaultMode = state.editingMeta?.defaultMode ?? "self";
   const [editingMode, setEditingMode] = useState<DraftEditingMode>(defaultMode);
@@ -80,6 +84,14 @@ const DraftEditingView = ({
                 </span>
               </div>
               <Button
+                type="main"
+                onClick={onSaveDraft}
+                className="h-7 rounded-sm px-3 py-1.5 text-xs leading-4 font-medium"
+                disabled={isSavingDraft}
+              >
+                편집 저장
+              </Button>
+              <Button
                 type="outline"
                 onClick={onFinishEditing}
                 className="h-7 rounded-sm px-3 py-1.5 text-xs leading-4 font-medium"
@@ -109,7 +121,8 @@ const DraftEditingView = ({
         {isSelfEditing ? (
           <textarea
             className="h-48 w-full resize-none bg-transparent text-base leading-6 font-normal text-gray-900 outline-none"
-            defaultValue={state.draftContent ?? ""}
+            value={state.draftContent ?? ""}
+            onChange={(event) => onDraftContentChange?.(event.target.value)}
             aria-label="초안 편집 영역"
           />
         ) : (
@@ -126,16 +139,22 @@ const DraftEditingView = ({
               ✓
             </span>
             <span className="text-xs leading-4 font-normal text-gray-600">
-              자동 저장됨
+              {isSavingDraft
+                ? "자동 저장 중..."
+                : draftSaveErrorMessage
+                  ? "자동 저장 실패"
+                  : "자동 저장됨"}
             </span>
           </div>
-          <button
-            type="button"
-            className="text-main-700 text-xs leading-5 font-normal"
-            onClick={onOpenEvidence}
-          >
-            근거 보기
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="text-main-700 text-xs leading-5 font-normal"
+              onClick={onOpenEvidence}
+            >
+              근거 보기
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex w-full items-center justify-between">

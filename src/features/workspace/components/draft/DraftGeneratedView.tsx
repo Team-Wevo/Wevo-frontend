@@ -9,11 +9,15 @@ import type { DraftStageViewProps, DraftViewState } from "./types";
 interface GeneratedDraftHeaderProps {
   state: DraftViewState;
   onEditDraft: () => void;
+  isAcquiringEditLease?: boolean;
+  isEditDraftDisabled?: boolean;
 }
 
 const GeneratedDraftHeader = ({
   state,
   onEditDraft,
+  isAcquiringEditLease = false,
+  isEditDraftDisabled = false,
 }: GeneratedDraftHeaderProps) => {
   return (
     <div className="flex w-full flex-col gap-2">
@@ -34,10 +38,11 @@ const GeneratedDraftHeader = ({
         <Button
           type="outline"
           onClick={onEditDraft}
+          disabled={isAcquiringEditLease || isEditDraftDisabled}
           className="h-8 rounded-sm px-3.5 py-1.5 text-xs leading-4 font-medium"
         >
           <PencilLine className="text-main-300 h-3.5 w-3.5" />
-          초안 수정
+          {isAcquiringEditLease ? "편집권 확인 중..." : "초안 수정"}
         </Button>
       </div>
     </div>
@@ -49,13 +54,23 @@ const DraftGeneratedView = ({
   onEditDraft,
   onOpenEvidence,
   onRequestReadabilityCheck,
+  isAcquiringEditLease,
+  isEditDraftDisabled,
+  editActionErrorMessage,
+  isRequestingReadabilityCheck,
+  readabilityRequestErrorMessage,
 }: DraftStageViewProps) => {
   return (
     <>
       <GeneratedDraftHeader
         state={state}
         onEditDraft={onEditDraft}
+        isAcquiringEditLease={isAcquiringEditLease}
+        isEditDraftDisabled={isEditDraftDisabled}
       />
+      {editActionErrorMessage && (
+        <p className="text-error text-xs leading-4">{editActionErrorMessage}</p>
+      )}
       <DraftBody
         stage={state.stage}
         draftContent={state.draftContent}
@@ -65,6 +80,8 @@ const DraftGeneratedView = ({
         onOpenEvidence={onOpenEvidence}
       />
       <DraftReadabilityCard
+        isLoading={isRequestingReadabilityCheck}
+        errorMessage={readabilityRequestErrorMessage}
         onRequestReadabilityCheck={onRequestReadabilityCheck}
       />
     </>

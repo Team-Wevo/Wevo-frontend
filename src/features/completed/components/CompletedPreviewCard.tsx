@@ -42,6 +42,11 @@ const CompletedPreviewCard = ({
             key={section.orderNo}
             className="group relative w-full overflow-hidden rounded-sm"
           >
+            {/* 보라색 조각은 왼쪽에서 8px만 차지하는 작은 고정폭 사각형이라, 흰 박스와
+                가장자리를 공유하지 않아 서브픽셀 반올림으로 오른쪽에 삐져나오는 문제가 없다.
+                흰 박스는 translate-x로 밀려나면서 그중 3px만 드러낸다 — translate는 레이아웃
+                너비를 바꾸지 않아 hover 시 텍스트 줄바꿈이 절대 바뀌지 않는다
+                (overflow-hidden이 안전망). */}
             <div className="bg-main-600 absolute inset-y-0 left-0 w-2 opacity-0 group-hover:opacity-100" />
             <div className="relative flex translate-x-0 flex-col items-start gap-3 rounded-sm p-4 transition-transform duration-150 group-hover:translate-x-[3px] group-hover:bg-gray-100">
               <div className="flex w-full items-center justify-between overflow-hidden">

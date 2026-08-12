@@ -67,10 +67,6 @@ const protectedMainRoute: RouteObject = {
       path: "project/:id",
       element: <ProjectDetailPage />,
     },
-    {
-      path: "completed/:id",
-      element: <CompletedDetailPage />,
-    },
   ],
 };
 
@@ -78,6 +74,19 @@ const protectedWorkspaceRoute: RouteObject = {
   element: <ProtectedRoute />,
   errorElement: <ErrorPage />,
   children: [workspaceRoute],
+};
+
+// 완성본 상세는 워크스페이스처럼 자체 헤더·사이드바를 가진 화면이라, MainLayout의
+// 메인 사이드바가 겹치지 않도록 MainLayout 밖(워크스페이스와 같은 레벨)에 둔다.
+const protectedCompletedDetailRoute: RouteObject = {
+  element: <ProtectedRoute />,
+  errorElement: <ErrorPage />,
+  children: [
+    {
+      path: "completed/:id",
+      element: <CompletedDetailPage />,
+    },
+  ],
 };
 
 const routes: RouteObject[] = [
@@ -113,6 +122,7 @@ const routes: RouteObject[] = [
         ],
       },
       protectedWorkspaceRoute,
+      protectedCompletedDetailRoute,
     ],
   },
   {
