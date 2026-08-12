@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useMyProfile } from "../../../auth/hooks/useMyProfile";
 import ProfilePopup from "./ProfilePopup";
 
 interface SidebarProfileProps {
@@ -8,6 +9,8 @@ interface SidebarProfileProps {
 const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  // 로그인 상태에서만 렌더링되는 컴포넌트라 항상 조회한다.
+  const { data: profile } = useMyProfile(true);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -55,7 +58,9 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
             className="h-8 w-8 rounded-full"
           />
         </div>
-        <span className="text-sm font-semibold text-slate-700">지현구</span>
+        <span className="text-sm font-semibold text-slate-700">
+          {profile?.name ?? ""}
+        </span>
       </div>
     </div>
   );
