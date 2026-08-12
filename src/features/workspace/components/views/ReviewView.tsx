@@ -23,6 +23,10 @@ import {
   submitTeamReview,
   type SubmitTeamReviewStatus,
 } from "../../api/submitTeamReview";
+import {
+  getResolveTeamReviewErrorMessage,
+  resolveTeamReview,
+} from "../../api/resolveTeamReview";
 import type { WorkspaceSection } from "../../constants/sections";
 
 const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
@@ -57,6 +61,14 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   const [submitReviewErrorMessage, setSubmitReviewErrorMessage] = useState<
     string | null
   >(null);
+  const [resolvingReviewId, setResolvingReviewId] = useState<number | null>(
+    null,
+  );
+  // 어떤 검토에서 실패했는지 함께 담아 해당 행에만 문구를 노출한다.
+  const [resolveError, setResolveError] = useState<{
+    reviewId: number;
+    message: string;
+  } | null>(null);
 
   const isSectionConfirmed = section.sectionStatus === "CONFIRMED";
 
@@ -128,6 +140,24 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
       // 성공하면 내 검토 결과를, 실패하면 바뀐 본문 버전을 다시 받아온다.
       await teamReviewsQuery.refetch();
       setIsSubmittingReview(false);
+    }
+  };
+
+  const handleResolveReview = async (reviewId: number) => {
+    setResolvingReviewId(reviewId);
+    setResolveError(null);
+
+    try {
+      await resolveTeamReview(sectionId, reviewId, { resolved: true });
+    } catch (error) {
+      setResolveError({
+        reviewId,
+        message: getResolveTeamReviewErrorMessage(error),
+      });
+    } finally {
+      // 미해결 수정 요청 수가 바뀌면 확정 조건(NO_UNRESOLVED_REQUEST)도 함께 달라진다.
+      await Promise.all([teamReviewsQuery.refetch(), readinessQuery.refetch()]);
+      setResolvingReviewId(null);
     }
   };
 
@@ -225,62 +255,86 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
               )}
 
               <div className="flex w-full flex-col items-start justify-start gap-3">
-                {teamReviews?.items.map((reviewer, index) => (
-                  <div
-                    key={reviewer.reviewerUserId}
-                    className="flex w-full flex-col gap-2"
-                  >
-                    <div className="flex w-full items-center justify-between">
-                      <div className="flex items-center justify-start gap-2">
-                        <div
-                          className={cn(
-                            "flex size-6 items-center justify-center rounded-full",
-                            getAvatarColorByIndex(index),
-                          )}
-                        >
-                          <div className="text-xs leading-4 font-normal text-gray-50">
-                            {reviewer.reviewerName.charAt(0)}
+                {teamReviews?.items.map((reviewer, index) => {
+                  // 파생 PENDING 항목에는 reviewId가 없어 해소 처리 대상이 아니다.
+                  const reviewId = reviewer.reviewId;
+
+                  return (
+                    <div
+                      key={reviewer.reviewerUserId}
+                      className="flex w-full flex-col gap-2"
+                    >
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center justify-start gap-2">
+                          <div
+                            className={cn(
+                              "flex size-6 items-center justify-center rounded-full",
+                              getAvatarColorByIndex(index),
+                            )}
+                          >
+                            <div className="text-xs leading-4 font-normal text-gray-50">
+                              {reviewer.reviewerName.charAt(0)}
+                            </div>
+                          </div>
+                          <div className="text-base leading-6 font-normal text-gray-900">
+                            {reviewer.reviewerName}
                           </div>
                         </div>
-                        <div className="text-base leading-6 font-normal text-gray-900">
-                          {reviewer.reviewerName}
+                        <div
+                          className={cn(
+                            "text-xs leading-4 font-medium",
+                            REVIEW_STATUS_TEXT_CLASS[reviewer.status],
+                          )}
+                        >
+                          {REVIEW_STATUS_LABEL[reviewer.status]}
                         </div>
                       </div>
-                      <div
-                        className={cn(
-                          "text-xs leading-4 font-medium",
-                          REVIEW_STATUS_TEXT_CLASS[reviewer.status],
-                        )}
-                      >
-                        {REVIEW_STATUS_LABEL[reviewer.status]}
-                      </div>
-                    </div>
 
-                    {/* 팀장만 수정 요청 사유를 확인하고 처리할 수 있습니다. */}
-                    {IS_TEAM_LEADER && reviewer.changeRequestReason && (
-                      <div className="flex w-full flex-col items-start justify-start gap-2 rounded-sm bg-amber-100 p-3">
-                        <div className="w-full text-xs leading-5 font-normal text-amber-700">
-                          “{reviewer.changeRequestReason}”
+                      {/* 팀장만 수정 요청 사유를 확인하고 처리할 수 있습니다. */}
+                      {IS_TEAM_LEADER && reviewer.changeRequestReason && (
+                        <div className="flex w-full flex-col items-start justify-start gap-2 rounded-sm bg-amber-100 p-3">
+                          <div className="w-full text-xs leading-5 font-normal text-amber-700">
+                            “{reviewer.changeRequestReason}”
+                          </div>
+                          {reviewer.resolved ? (
+                            <div className="text-xs leading-4 font-medium text-amber-700">
+                              대화로 해결 처리한 요청이에요.
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-start gap-2">
+                              {/* TODO: 초안 수정 API 연동 후 onClick 핸들러 연결 */}
+                              <Button
+                                type="outline"
+                                className="text-xs"
+                              >
+                                초안 수정
+                              </Button>
+                              {reviewId !== undefined && (
+                                <Button
+                                  type="outline"
+                                  className="text-xs"
+                                  onClick={() => handleResolveReview(reviewId)}
+                                  disabled={resolvingReviewId !== null}
+                                >
+                                  {resolvingReviewId === reviewId
+                                    ? "처리 중..."
+                                    : "논의 후 해결 처리"}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+
+                          {resolveError &&
+                            resolveError.reviewId === reviewId && (
+                              <div className="text-error text-xs leading-4 font-normal">
+                                {resolveError.message}
+                              </div>
+                            )}
                         </div>
-                        <div className="flex items-center justify-start gap-2">
-                          {/* TODO: 초안 수정 / 해결 처리 API 연동 후 onClick 핸들러 연결 */}
-                          <Button
-                            type="outline"
-                            className="text-xs"
-                          >
-                            초안 수정
-                          </Button>
-                          <Button
-                            type="outline"
-                            className="text-xs"
-                          >
-                            논의 후 해결 처리
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </SectionBlock>
