@@ -151,6 +151,10 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
             teamReviews &&
             ` · 팀 동의 ${teamReviews.approvedCount}/${teamReviews.totalMembers}`}
         </div>
+        {/* 확정 화면에는 팀 검토 현황 카드가 없어 동의 집계 상태를 여기서 알린다. */}
+        {isSectionConfirmed && teamReviewsQuery.isPending && (
+          <LoadingSpinner size={12} />
+        )}
         {/* TODO: 근거 상세 보기 UI 연동 후 onClick 핸들러 연결 */}
         <button
           type="button"
@@ -159,6 +163,12 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
           근거 보기
         </button>
       </div>
+
+      {isSectionConfirmed && teamReviewsQuery.isError && (
+        <div className="text-error text-xs leading-4 font-normal">
+          {getTeamReviewsErrorMessage(teamReviewsQuery.error)}
+        </div>
+      )}
 
       {isSectionConfirmed ? (
         <>
