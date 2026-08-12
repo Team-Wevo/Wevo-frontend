@@ -43,15 +43,14 @@ const REVIEW_STATUS_TEXT_CLASS: Record<TeamReviewStatus, string> = {
   PENDING: "text-gray-600",
 };
 
-// TODO: 프로젝트 멤버 권한 API 연동 후 실제 팀장 여부로 교체
-const IS_TEAM_LEADER = true;
-
 interface ReviewViewProps {
   section: WorkspaceSection;
   sectionId: number;
+  // 팀장(OWNER)만 수정 요청 사유 확인·해소 처리와 섹션 확정을 할 수 있다.
+  isTeamLeader: boolean;
 }
 
-const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
+const ReviewView = ({ section, sectionId, isTeamLeader }: ReviewViewProps) => {
   const revalidator = useRevalidator();
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmErrorMessage, setConfirmErrorMessage] = useState<string | null>(
@@ -77,7 +76,7 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
   // 확정 버튼이 있는 화면(팀장 시점 · 확정 전)에서만 조회한다.
   const readinessQuery = useSectionConfirmReadiness(
     section.projectSectionId,
-    IS_TEAM_LEADER && !isSectionConfirmed,
+    isTeamLeader && !isSectionConfirmed,
   );
 
   const teamReviewsQuery = useTeamReviews(section.projectSectionId);
@@ -301,7 +300,7 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
                       </div>
 
                       {/* 팀장만 수정 요청 사유를 확인하고 처리할 수 있습니다. */}
-                      {IS_TEAM_LEADER && reviewer.changeRequestReason && (
+                      {isTeamLeader && reviewer.changeRequestReason && (
                         <div className="flex w-full flex-col items-start justify-start gap-2 rounded-sm bg-amber-100 p-3">
                           <div className="w-full text-xs leading-5 font-normal text-amber-700">
                             “{reviewer.changeRequestReason}”
@@ -349,7 +348,7 @@ const ReviewView = ({ section, sectionId }: ReviewViewProps) => {
             </div>
           </SectionBlock>
 
-          {IS_TEAM_LEADER ? (
+          {isTeamLeader ? (
             <div className="flex w-full items-end justify-between">
               {confirmGuideMessage && (
                 <div

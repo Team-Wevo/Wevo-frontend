@@ -62,6 +62,7 @@ const WorkspacePage = () => {
         <ReviewView
           section={currentSection}
           sectionId={sectionId}
+          isTeamLeader={projectDetail.myRole === "OWNER"}
         />
       )}
     </WorkspaceLayout>
