@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronRightIcon,
@@ -87,20 +87,33 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(
     null,
   );
+  const hasNameDraftChangesRef = useRef(false);
 
-  const applyProfileToForm = useCallback((profile: MyProfileResponse) => {
-    setSavedProfileForm((prev) => ({
-      ...prev,
-      email: profile.email ?? "",
-      name: profile.name,
-    }));
+  const applyProfileToForm = useCallback(
+    (
+      profile: MyProfileResponse,
+      options?: {
+        preserveDraft?: boolean;
+      },
+    ) => {
+      setSavedProfileForm((prev) => ({
+        ...prev,
+        email: profile.email ?? "",
+        name: profile.name,
+      }));
 
-    setProfileForm((prev) => ({
-      ...prev,
-      email: profile.email ?? "",
-      name: profile.name,
-    }));
-  }, []);
+      if (options?.preserveDraft) {
+        return;
+      }
+
+      setProfileForm((prev) => ({
+        ...prev,
+        email: profile.email ?? "",
+        name: profile.name,
+      }));
+    },
+    [],
+  );
 
   const loadMyProfile = useCallback(async () => {
     setIsProfileLoading(true);
@@ -108,7 +121,9 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
     try {
       const profile = await getMyProfile();
-      applyProfileToForm(profile);
+      applyProfileToForm(profile, {
+        preserveDraft: hasNameDraftChangesRef.current,
+      });
       setIsProfileLoaded(true);
     } catch (error) {
       setProfileErrorMessage(getApiErrorMessage(error));
@@ -123,6 +138,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   }, [loadMyProfile]);
 
   const handleOpenSettings = () => {
+    hasNameDraftChangesRef.current = false;
     setProfileForm(savedProfileForm);
     setShowSaveToast(false);
     setProfileErrorMessage(null);
@@ -194,6 +210,10 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     field: "email" | "loginMethod" | "name",
     value: string,
   ) => {
+    if (field === "name") {
+      hasNameDraftChangesRef.current = true;
+    }
+
     setProfileForm((prev) => ({
       ...prev,
       [field]: value,
@@ -201,11 +221,25 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   };
 
   const normalizedProfileName = profileForm.name.trim();
+  const normalizedSavedProfileName = savedProfileForm.name.trim();
+  const isNameTooLong = normalizedProfileName.length > 100;
+  const saveDisabledReason = isProfileLoading
+    ? "프로필 정보를 불러오는 중입니다."
+    : isSaveLoading
+      ? "저장 중입니다."
+      : normalizedProfileName.length === 0
+        ? "이름을 입력해 주세요."
+        : isNameTooLong
+          ? "이름은 100자 이하로 입력해 주세요."
+          : normalizedProfileName === normalizedSavedProfileName
+            ? "현재 이름과 동일하여 저장할 내용이 없습니다."
+            : null;
   const canSaveProfile =
     !isProfileLoading &&
     !isSaveLoading &&
     normalizedProfileName.length > 0 &&
-    normalizedProfileName !== savedProfileForm.name.trim();
+    !isNameTooLong &&
+    normalizedProfileName !== normalizedSavedProfileName;
 
   const handleSaveProfile = async () => {
     if (!canSaveProfile) return;
@@ -218,6 +252,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
         name: normalizedProfileName,
       });
 
+      hasNameDraftChangesRef.current = false;
       applyProfileToForm(updatedProfile);
       setShowSaveToast(true);
       // 토스트가 이미 떠 있어도 저장할 때마다 3초 타이머를 다시 시작
@@ -386,6 +421,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                       onChange={(e) =>
                         handleProfileChange("name", e.target.value)
                       }
+                      maxLength={100}
                       disabled={isProfileLoading || isSaveLoading}
                       className="inline-flex items-center justify-start self-stretch rounded-sm bg-gray-100 px-4 py-3 text-sm leading-[22px] font-normal text-gray-900 outline-none focus:bg-gray-100"
                     />
@@ -394,6 +430,14 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                         {profileErrorMessage}
                       </div>
                     )}
+
+                    {!profileErrorMessage &&
+                      !canSaveProfile &&
+                      saveDisabledReason && (
+                        <div className="text-xs leading-[15px] font-normal text-gray-600">
+                          {saveDisabledReason}
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
