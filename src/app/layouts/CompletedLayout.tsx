@@ -27,7 +27,7 @@ const CompletedLayout = ({
       <WorkspaceHeader
         title={title}
         projectId={projectId}
-        isSaved={true}
+        saveStatus="saved"
       />
 
       <div className="flex flex-1 overflow-hidden">
