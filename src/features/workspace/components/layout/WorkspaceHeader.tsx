@@ -111,13 +111,11 @@ const WorkspaceHeader = ({
           <ArrowLeft className="h-3 w-3" />
         </button>
 
-        <div className="bg-main-600 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm">
-          <img
-            src="/Wevo-logo.svg"
-            alt="Wevo"
-            className="h-4 w-4 object-contain"
-          />
-        </div>
+        <img
+          src="/Wevo-logo.svg"
+          alt="Wevo"
+          className="size-7 shrink-0 object-contain"
+        />
 
         <h1 className="truncate text-[14px] font-medium text-gray-900">
           {title}
