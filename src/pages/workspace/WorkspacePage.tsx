@@ -91,6 +91,7 @@ const WorkspacePage = () => {
       projectId={String(projectId)}
       projectInfo={projectInfo}
       progress={toDocumentProgress(syncedSections)}
+      workspaceSections={syncedSections}
       activeStepId={syncedCurrentSection.orderNo}
       saveStatus={
         currentPhase === "의견 모으기" && selectedPhase === currentPhase

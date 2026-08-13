@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "../../../../shared/components/Button";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import { cn } from "../../../../shared/utils/cn";
 
 export interface FlowPreviewSection {
   sectionNo: number;
   title: string;
   content: string | null;
+  isLoading?: boolean;
+  errorMessage?: string | null;
 }
 
 interface FlowPreviewModalProps {
@@ -161,10 +165,21 @@ const FlowPreviewModal = ({
                     <h3 className="text-base text-[18px] leading-6 font-[600] text-gray-900">
                       {section.sectionNo}. {section.title}
                     </h3>
-                    {section.content ? (
-                      <p className="text-[13px] leading-6 font-normal text-gray-700">
-                        {section.content}
-                      </p>
+                    {section.isLoading ? (
+                      <div className="flex min-h-24 items-center justify-center rounded-md border border-gray-300 bg-gray-50">
+                        <LoadingSpinner size={24} />
+                      </div>
+                    ) : section.errorMessage ? (
+                      <div className="border-error/30 bg-error/5 flex min-h-24 items-center justify-center rounded-md border px-4 py-5 text-center">
+                        <p className="text-error text-[12px] leading-5 font-normal">
+                          {section.errorMessage}
+                        </p>
+                      </div>
+                    ) : section.content ? (
+                      <MarkdownContent
+                        content={section.content}
+                        className="text-[13px] leading-6 text-gray-700"
+                      />
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-[3px] rounded-md border-2 border-dashed border-gray-400 bg-gray-100/50 px-4 py-5 text-center">
                         <p className="text-[13px] leading-5 font-normal text-gray-600">
