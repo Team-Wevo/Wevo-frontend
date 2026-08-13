@@ -6,6 +6,7 @@ import { MY_PROFILE_QUERY_KEY } from "../../auth/hooks/useMyProfile";
 import {
   createOAuthState,
   buildOAuthAuthorizeUrl,
+  isOAuthReauthRequired,
   saveOAuthState,
   type OAuthProvider,
 } from "../../auth/constants/oauth";
@@ -32,7 +33,12 @@ const useOnboardingAuth = ({
     try {
       const state = createOAuthState();
       saveOAuthState(provider, state);
-      window.location.assign(buildOAuthAuthorizeUrl(provider, { state }));
+      window.location.assign(
+        buildOAuthAuthorizeUrl(provider, {
+          state,
+          forceLogin: provider === "KAKAO" && isOAuthReauthRequired(provider),
+        }),
+      );
     } catch (error) {
       const message =
         error instanceof Error

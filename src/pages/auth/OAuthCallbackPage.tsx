@@ -4,6 +4,7 @@ import { loginWithOAuth } from "../../features/auth/api/auth";
 import { getMyProfile } from "../../features/auth/api/user";
 import { MY_PROFILE_QUERY_KEY } from "../../features/auth/hooks/useMyProfile";
 import {
+  clearOAuthReauthRequired,
   clearSavedOAuthState,
   getSavedOAuthState,
   getOAuthProviderFromPath,
@@ -102,6 +103,7 @@ const OAuthCallbackPage = () => {
         }
 
         saveAuthTokens(tokens);
+        clearOAuthReauthRequired(oauthProvider);
 
         try {
           const profile = await getMyProfile();

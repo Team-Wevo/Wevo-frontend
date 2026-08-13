@@ -15,6 +15,7 @@ import {
   type MyProfileResponse,
 } from "@/features/auth/api/user";
 import { MY_PROFILE_QUERY_KEY } from "@/features/auth/hooks/useMyProfile";
+import { markOAuthReauthRequired } from "@/features/auth/constants/oauth";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -73,6 +74,18 @@ const getApiErrorMessage = (error: unknown) => {
   return "프로필 처리 중 오류가 발생했습니다.";
 };
 
+const getWithdrawErrorMessage = (error: unknown) => {
+  if (isAxiosError(error)) {
+    const responseData = error.response?.data as { code?: string } | undefined;
+
+    if (responseData?.code === "U003") {
+      return "팀장으로 참여 중인 프로젝트가 남아 있어 탈퇴할 수 없습니다. 해당 프로젝트를 먼저 삭제(보관)한 뒤 다시 시도해 주세요.";
+    }
+  }
+
+  return getApiErrorMessage(error);
+};
+
 const ProfilePopup = ({
   initialProfile,
   onClose,
@@ -98,6 +111,9 @@ const ProfilePopup = ({
   const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(
     null,
   );
+  const [withdrawErrorMessage, setWithdrawErrorMessage] = useState<
+    string | null
+  >(null);
   const hasNameDraftChangesRef = useRef(false);
 
   const applyProfileToForm = useCallback(
@@ -281,16 +297,17 @@ const ProfilePopup = ({
     if (isWithdrawLoading) return;
 
     setIsWithdrawLoading(true);
-    setProfileErrorMessage(null);
+    setWithdrawErrorMessage(null);
 
     try {
       await withdrawMyAccount();
+      markOAuthReauthRequired("KAKAO");
       setShowWithdrawModal(false);
       setIsSettingsOpen(false);
       onClose?.();
       onLogoutClick?.();
     } catch (error) {
-      setProfileErrorMessage(getApiErrorMessage(error));
+      setWithdrawErrorMessage(getWithdrawErrorMessage(error));
     } finally {
       setIsWithdrawLoading(false);
     }
@@ -299,15 +316,32 @@ const ProfilePopup = ({
   const withdrawConfirmModal = (
     <ConfirmModal
       title="정말 탈퇴할까요?"
-      description="탈퇴 시 개인정보는 삭제 처리되며, 작성한 내용은 보존됩니다. 되돌릴 수 없습니다."
+      description={
+        <>
+          <span className="block">
+            탈퇴 시 개인정보는 삭제 처리되며, 작성한 내용은 보존됩니다. 되돌릴
+            수 없습니다.
+          </span>
+          {withdrawErrorMessage && (
+            <span
+              role="alert"
+              className="text-error mt-2 block font-medium"
+            >
+              {withdrawErrorMessage}
+            </span>
+          )}
+        </>
+      }
       confirmLabel={isWithdrawLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
       onCancel={() => {
         if (isWithdrawLoading) return;
         setShowWithdrawModal(false);
+        setWithdrawErrorMessage(null);
       }}
       onConfirm={() => {
         void handleWithdrawConfirm();
       }}
+      confirmDisabled={isWithdrawLoading}
     />
   );
 
@@ -483,7 +517,10 @@ const ProfilePopup = ({
                   </p>
                   <button
                     type="button"
-                    onClick={() => setShowWithdrawModal(true)}
+                    onClick={() => {
+                      setWithdrawErrorMessage(null);
+                      setShowWithdrawModal(true);
+                    }}
                     className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     탈퇴하기

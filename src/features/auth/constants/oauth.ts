@@ -1,6 +1,7 @@
 export type OAuthProvider = "GOOGLE" | "KAKAO";
 
 const OAUTH_STATE_KEY_PREFIX = "oauth:state";
+const OAUTH_REAUTH_REQUIRED_KEY_PREFIX = "oauth:reauth-required";
 
 interface OAuthProviderConfig {
   provider: OAuthProvider;
@@ -116,6 +117,10 @@ const getOAuthStateStorageKey = (provider: OAuthProvider) => {
   return `${OAUTH_STATE_KEY_PREFIX}:${provider}`;
 };
 
+const getOAuthReauthStorageKey = (provider: OAuthProvider) => {
+  return `${OAUTH_REAUTH_REQUIRED_KEY_PREFIX}:${provider}`;
+};
+
 const trySetStorageItem = (storage: Storage, key: string, value: string) => {
   try {
     storage.setItem(key, value);
@@ -190,8 +195,36 @@ export const clearSavedOAuthState = (provider: OAuthProvider) => {
   tryRemoveStorageItem(localStorage, storageKey);
 };
 
+export const markOAuthReauthRequired = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  trySetStorageItem(localStorage, getOAuthReauthStorageKey(provider), "true");
+};
+
+export const isOAuthReauthRequired = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return (
+    tryGetStorageItem(localStorage, getOAuthReauthStorageKey(provider)) ===
+    "true"
+  );
+};
+
+export const clearOAuthReauthRequired = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  tryRemoveStorageItem(localStorage, getOAuthReauthStorageKey(provider));
+};
+
 interface BuildOAuthAuthorizeUrlOptions {
   state?: string;
+  forceLogin?: boolean;
 }
 
 export const buildOAuthAuthorizeUrl = (
@@ -221,6 +254,10 @@ export const buildOAuthAuthorizeUrl = (
 
   if (options.state) {
     params.set("state", options.state);
+  }
+
+  if (provider === "KAKAO" && options.forceLogin) {
+    params.set("prompt", "login");
   }
 
   return `${authorizeEndpoint}?${params.toString()}`;
