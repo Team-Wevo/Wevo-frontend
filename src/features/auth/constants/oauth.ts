@@ -2,6 +2,7 @@ export type OAuthProvider = "GOOGLE" | "KAKAO";
 
 const OAUTH_STATE_KEY_PREFIX = "oauth:state";
 const OAUTH_REAUTH_REQUIRED_KEY_PREFIX = "oauth:reauth-required";
+const OAUTH_LOGIN_PROVIDER_KEY = "oauth:login-provider";
 
 interface OAuthProviderConfig {
   provider: OAuthProvider;
@@ -220,6 +221,32 @@ export const clearOAuthReauthRequired = (provider: OAuthProvider) => {
   }
 
   tryRemoveStorageItem(localStorage, getOAuthReauthStorageKey(provider));
+};
+
+export const saveOAuthLoginProvider = (provider: OAuthProvider) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  trySetStorageItem(localStorage, OAUTH_LOGIN_PROVIDER_KEY, provider);
+};
+
+export const getOAuthLoginProvider = (): OAuthProvider | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const provider = tryGetStorageItem(localStorage, OAUTH_LOGIN_PROVIDER_KEY);
+
+  return provider === "GOOGLE" || provider === "KAKAO" ? provider : null;
+};
+
+export const clearOAuthLoginProvider = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  tryRemoveStorageItem(localStorage, OAUTH_LOGIN_PROVIDER_KEY);
 };
 
 interface BuildOAuthAuthorizeUrlOptions {

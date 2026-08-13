@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronRightIcon,
-  CreditIcon,
   LogoutIcon,
   SettingsIcon,
 } from "@/shared/components/icons";
@@ -15,7 +14,11 @@ import {
   type MyProfileResponse,
 } from "@/features/auth/api/user";
 import { MY_PROFILE_QUERY_KEY } from "@/features/auth/hooks/useMyProfile";
-import { markOAuthReauthRequired } from "@/features/auth/constants/oauth";
+import {
+  clearOAuthLoginProvider,
+  getOAuthLoginProvider,
+  markOAuthReauthRequired,
+} from "@/features/auth/constants/oauth";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -35,9 +38,17 @@ type TabKey = "profile" | "general";
 
 const SAVE_TOAST_DURATION_MS = 3000;
 
+const getLoginMethodLabel = () => {
+  const provider = getOAuthLoginProvider();
+
+  if (provider === "GOOGLE") return "구글";
+  if (provider === "KAKAO") return "카카오";
+  return "정보 없음";
+};
+
 const createInitialProfileForm = (profile?: MyProfileResponse) => ({
   email: profile?.email ?? "",
-  loginMethod: "카카오",
+  loginMethod: getLoginMethodLabel(),
   name: profile?.name ?? "",
 });
 
@@ -301,7 +312,13 @@ const ProfilePopup = ({
 
     try {
       await withdrawMyAccount();
-      markOAuthReauthRequired("KAKAO");
+      const loginProvider = getOAuthLoginProvider();
+
+      if (loginProvider === "KAKAO") {
+        markOAuthReauthRequired(loginProvider);
+      }
+
+      clearOAuthLoginProvider();
       setShowWithdrawModal(false);
       setIsSettingsOpen(false);
       onClose?.();
@@ -577,29 +594,6 @@ const ProfilePopup = ({
                 <span className="truncate text-xs leading-[15px] font-normal text-[#7D889C]">
                   {savedProfileForm.email || "이메일 정보 없음"}
                 </span>
-              </div>
-            </div>
-
-            <div className="flex w-full flex-col gap-2 rounded-lg bg-[#F5F7FA] px-3 py-2">
-              <div className="flex w-full items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <CreditIcon size={17} />
-                  <span className="text-[13px] leading-5 font-normal text-[#596579]">
-                    크레딧
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 leading-5">
-                  <span className="text-sm font-medium text-[#7C6FF7]">18</span>
-                  <span className="text-[13px] font-normal text-[#1C2230]">
-                    /
-                  </span>
-                  <span className="text-[13px] font-normal text-[#1C2230]">
-                    25
-                  </span>
-                </div>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#C6CEDA]">
-                <div className="h-full w-[72%] rounded-full bg-[#6B5EF0]" />
               </div>
             </div>
           </div>

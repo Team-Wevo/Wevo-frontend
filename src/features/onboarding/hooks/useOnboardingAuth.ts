@@ -6,6 +6,7 @@ import { MY_PROFILE_QUERY_KEY } from "../../auth/hooks/useMyProfile";
 import {
   createOAuthState,
   buildOAuthAuthorizeUrl,
+  clearOAuthLoginProvider,
   isOAuthReauthRequired,
   saveOAuthState,
   type OAuthProvider,
@@ -56,6 +57,7 @@ const useOnboardingAuth = ({
     }
 
     clearAuthTokens();
+    clearOAuthLoginProvider();
     queryClient.removeQueries({ queryKey: MY_PROFILE_QUERY_KEY });
     setIsLoggedIn(false);
     navigate("/");
