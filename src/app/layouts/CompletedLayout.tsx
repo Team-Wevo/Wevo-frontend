@@ -1,14 +1,14 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import WorkspaceHeader from "../../features/workspace/components/layout/WorkspaceHeader";
-import WorkspaceLeftSidebar from "../../features/workspace/components/layout/WorkspaceLeftSidebar";
+import CompletedLeftSidebar, {
+  type CompletedNavigationSection,
+} from "../../features/completed/components/layout/CompletedLeftSidebar";
 import CompletedRightSidebar from "../../features/completed/components/layout/CompletedRightSidebar";
-import type { DocumentProgress } from "../../shared/types/documentType";
 
 interface CompletedLayoutProps {
   title: string;
   projectId: string;
-  progress: DocumentProgress;
-  activeStepId: number;
+  sections: CompletedNavigationSection[];
   onCopyFullText?: () => void;
   onCopyMarkdown?: () => void;
   onDownloadTxt?: () => void;
@@ -26,8 +26,7 @@ interface CompletedLayoutProps {
 const CompletedLayout = ({
   title,
   projectId,
-  progress,
-  activeStepId,
+  sections,
   onCopyFullText,
   onCopyMarkdown,
   onDownloadTxt,
@@ -38,6 +37,92 @@ const CompletedLayout = ({
   isActionError,
   children,
 }: CompletedLayoutProps) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const scrollTargetSectionNoRef = useRef<number | undefined>(undefined);
+  const scrollEndTimerRef = useRef<number | undefined>(undefined);
+  const [activeSectionNo, setActiveSectionNo] = useState<number>();
+  const resolvedActiveSectionNo = sections.some(
+    (section) => section.orderNo === activeSectionNo,
+  )
+    ? activeSectionNo
+    : sections[0]?.orderNo;
+
+  useEffect(() => {
+    const container = contentRef.current;
+
+    if (!container || sections.length === 0) return;
+
+    const handleScroll = () => {
+      const scrollTargetSectionNo = scrollTargetSectionNoRef.current;
+
+      if (scrollTargetSectionNo !== undefined) {
+        setActiveSectionNo(scrollTargetSectionNo);
+
+        window.clearTimeout(scrollEndTimerRef.current);
+        scrollEndTimerRef.current = window.setTimeout(() => {
+          scrollTargetSectionNoRef.current = undefined;
+          scrollEndTimerRef.current = undefined;
+        }, 120);
+        return;
+      }
+
+      const containerTop = container.getBoundingClientRect().top;
+      let currentSectionNo = sections[0].orderNo;
+
+      for (const section of sections) {
+        const element = container.querySelector<HTMLElement>(
+          `[data-completed-section="${section.orderNo}"]`,
+        );
+
+        if (!element) continue;
+
+        const offsetTop = element.getBoundingClientRect().top - containerTop;
+
+        if (offsetTop <= 40) {
+          currentSectionNo = section.orderNo;
+        }
+      }
+
+      const isScrollable = container.scrollHeight > container.clientHeight + 2;
+      const isAtBottom =
+        isScrollable &&
+        container.scrollHeight - container.scrollTop - container.clientHeight <=
+          2;
+
+      if (isAtBottom) {
+        currentSectionNo = sections[sections.length - 1].orderNo;
+      }
+
+      setActiveSectionNo(currentSectionNo);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.clearTimeout(scrollEndTimerRef.current);
+    };
+  }, [sections]);
+
+  const handleSelectSection = (sectionNo: number) => {
+    const element = contentRef.current?.querySelector<HTMLElement>(
+      `[data-completed-section="${sectionNo}"]`,
+    );
+
+    setActiveSectionNo(sectionNo);
+
+    if (!element) return;
+
+    scrollTargetSectionNoRef.current = sectionNo;
+    window.clearTimeout(scrollEndTimerRef.current);
+    scrollEndTimerRef.current = window.setTimeout(() => {
+      scrollTargetSectionNoRef.current = undefined;
+      scrollEndTimerRef.current = undefined;
+    }, 500);
+    element?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white">
       <WorkspaceHeader
@@ -45,16 +130,20 @@ const CompletedLayout = ({
         projectId={projectId}
         saveStatus="saved"
         canInviteMembers={false}
+        showMembers={false}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <WorkspaceLeftSidebar
-          progress={progress}
-          activeStepId={activeStepId}
-          projectId={projectId}
+        <CompletedLeftSidebar
+          sections={sections}
+          activeSectionNo={resolvedActiveSectionNo}
+          onSelectSection={handleSelectSection}
         />
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
+        <div
+          ref={contentRef}
+          className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0"
+        >
           {children}
         </div>
 

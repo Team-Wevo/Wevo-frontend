@@ -41,7 +41,8 @@ const CompletedPreviewCard = ({
         {sections.map((section) => (
           <div
             key={section.orderNo}
-            className="group relative w-full overflow-hidden rounded-sm"
+            data-completed-section={section.orderNo}
+            className="group relative w-full scroll-mt-8 overflow-hidden rounded-sm"
           >
             {/* 보라색 조각은 왼쪽에서 8px만 차지하는 작은 고정폭 사각형이라, 흰 박스와
                 가장자리를 공유하지 않아 서브픽셀 반올림으로 오른쪽에 삐져나오는 문제가 없다.

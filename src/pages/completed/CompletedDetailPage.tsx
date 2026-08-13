@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import CompletedLayout from "../../app/layouts/CompletedLayout";
@@ -15,10 +15,6 @@ import CompletedPreviewCard, {
 import EditSectionConfirmModal from "../../features/completed/components/EditSectionConfirmModal";
 import { Button } from "../../shared/components/Button";
 import LoadingSpinner from "../../shared/components/LoadingSpinner";
-import type {
-  DocumentProgress,
-  SectionName,
-} from "../../shared/types/documentType";
 
 const RESULT_TYPE_LABEL = {
   PROPOSAL: "제안서",
@@ -49,19 +45,18 @@ export const CompletedDetailPage = () => {
     retry: false,
   });
   const finalOutput = finalOutputQuery.data;
-  const sections: CompletedPreviewSection[] = (finalOutput?.sections ?? [])
-    .slice()
-    .sort((left, right) => left.order - right.order)
-    .map((section) => ({
-      orderNo: section.order,
-      title: section.title,
-      content: section.content.trim() || null,
-    }));
-  const progress: DocumentProgress = sections.map((section) => ({
-    section: section.title as SectionName,
-    status: "작성 완료",
-  }));
-
+  const sections = useMemo<CompletedPreviewSection[]>(
+    () =>
+      (finalOutput?.sections ?? [])
+        .slice()
+        .sort((left, right) => left.order - right.order)
+        .map((section) => ({
+          orderNo: section.order,
+          title: section.title,
+          content: section.content.trim() || null,
+        })),
+    [finalOutput?.sections],
+  );
   const handleCancelEdit = () => setEditingSection(null);
 
   const handleConfirmEdit = () => {
@@ -183,10 +178,9 @@ export const CompletedDetailPage = () => {
 
   return (
     <CompletedLayout
-      title="완성본"
+      title={finalOutput?.title ?? ""}
       projectId={id ?? ""}
-      progress={progress}
-      activeStepId={1}
+      sections={sections}
       onCopyFullText={() => handleCopy("plain-text")}
       onCopyMarkdown={() => handleCopy("markdown")}
       onDownloadTxt={() => handleDownload("plain-text")}

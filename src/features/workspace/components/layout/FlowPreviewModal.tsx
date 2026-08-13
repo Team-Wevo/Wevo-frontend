@@ -33,12 +33,25 @@ const FlowPreviewModal = ({
   const [activeSectionNo, setActiveSectionNo] = useState(initialSectionNo);
   const sectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTargetSectionNoRef = useRef<number | undefined>(undefined);
+  const scrollEndTimerRef = useRef<number | undefined>(undefined);
 
   const writtenCount = sections.filter((section) => section.content).length;
 
   const handleSelectSection = (sectionNo: number) => {
     setActiveSectionNo(sectionNo);
-    sectionRefs.current[sectionNo]?.scrollIntoView({
+
+    const element = sectionRefs.current[sectionNo];
+
+    if (!element) return;
+
+    scrollTargetSectionNoRef.current = sectionNo;
+    window.clearTimeout(scrollEndTimerRef.current);
+    scrollEndTimerRef.current = window.setTimeout(() => {
+      scrollTargetSectionNoRef.current = undefined;
+      scrollEndTimerRef.current = undefined;
+    }, 500);
+    element.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
@@ -52,6 +65,19 @@ const FlowPreviewModal = ({
     }
 
     const handleScroll = () => {
+      const scrollTargetSectionNo = scrollTargetSectionNoRef.current;
+
+      if (scrollTargetSectionNo !== undefined) {
+        setActiveSectionNo(scrollTargetSectionNo);
+
+        window.clearTimeout(scrollEndTimerRef.current);
+        scrollEndTimerRef.current = window.setTimeout(() => {
+          scrollTargetSectionNoRef.current = undefined;
+          scrollEndTimerRef.current = undefined;
+        }, 120);
+        return;
+      }
+
       const containerTop = container.getBoundingClientRect().top;
       let currentSectionNo = sections[0]?.sectionNo;
 
@@ -73,7 +99,10 @@ const FlowPreviewModal = ({
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.clearTimeout(scrollEndTimerRef.current);
+    };
   }, [sections]);
 
   return (

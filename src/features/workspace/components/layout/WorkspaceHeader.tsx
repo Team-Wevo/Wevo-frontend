@@ -21,6 +21,7 @@ interface WorkspaceHeaderProps {
   projectId: string;
   saveStatus?: DraftSaveStatus;
   canInviteMembers: boolean;
+  showMembers?: boolean;
   onInvite?: () => void;
   onPreviewAll?: () => void;
 }
@@ -33,12 +34,16 @@ const WorkspaceHeader = ({
   projectId,
   saveStatus = "idle",
   canInviteMembers,
+  showMembers = true,
   onInvite,
   onPreviewAll,
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const membersQuery = useProjectMembers(Number(projectId), { live: true });
+  const membersQuery = useProjectMembers(Number(projectId), {
+    enabled: showMembers,
+    live: true,
+  });
   const [inviteLink, setInviteLink] = useState<CreateInviteLinkResponse | null>(
     null,
   );
@@ -135,17 +140,19 @@ const WorkspaceHeader = ({
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
-        <div className="flex -space-x-2">
-          {membersQuery.data?.members.slice(0, 4).map((member, index) => (
-            <UserAvatar
-              key={member.userId}
-              name={member.name}
-              imageUrl={member.profileImageUrl}
-              colorIndex={index}
-              className="h-7 w-7 border-[2px] border-gray-50 text-[11px] leading-[14px]"
-            />
-          ))}
-        </div>
+        {showMembers && (
+          <div className="flex -space-x-2">
+            {membersQuery.data?.members.slice(0, 4).map((member, index) => (
+              <UserAvatar
+                key={member.userId}
+                name={member.name}
+                imageUrl={member.profileImageUrl}
+                colorIndex={index}
+                className="h-7 w-7 border-[2px] border-gray-50 text-[11px] leading-[14px]"
+              />
+            ))}
+          </div>
+        )}
 
         {canInviteMembers && (
           <div
@@ -176,13 +183,15 @@ const WorkspaceHeader = ({
           </div>
         )}
 
-        <Button
-          type="pressableStrong"
-          onClick={onPreviewAll}
-          className={HEADER_ACTION_BUTTON_CLASS}
-        >
-          전체 미리보기
-        </Button>
+        {onPreviewAll && (
+          <Button
+            type="pressableStrong"
+            onClick={onPreviewAll}
+            className={HEADER_ACTION_BUTTON_CLASS}
+          >
+            전체 미리보기
+          </Button>
+        )}
       </div>
     </header>
   );
