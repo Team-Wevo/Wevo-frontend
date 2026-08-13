@@ -3,6 +3,7 @@ import {
   PRESSABLE_AI_BUTTON_STATE_CLASS,
   PRESSABLE_BUTTON_STATE_CLASS,
   PRESSABLE_EDIT_BUTTON_STATE_CLASS,
+  PRESSABLE_PRIMARY_BUTTON_STATE_CLASS,
   PRESSABLE_RECT_BUTTON_STATE_CLASS,
 } from "../styles/buttonStateStyles";
 import { cn } from "../utils/cn";
@@ -16,6 +17,7 @@ export type ButtonType =
   | "pressable"
   | "pressableStrong"
   | "pressableDanger"
+  | "pressablePrimary"
   | "draftEdit"
   | "ai";
 
@@ -50,6 +52,7 @@ const TYPE_STYLE_CLASS: Record<ButtonType, string> = {
     PRESSABLE_RECT_BUTTON_STATE_CLASS,
     "text-error hover:text-error active:text-white disabled:hover:text-error",
   ),
+  pressablePrimary: PRESSABLE_PRIMARY_BUTTON_STATE_CLASS,
   draftEdit: PRESSABLE_EDIT_BUTTON_STATE_CLASS,
   ai: PRESSABLE_AI_BUTTON_STATE_CLASS,
 };

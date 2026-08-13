@@ -49,6 +49,13 @@ export const PRESSABLE_AI_BUTTON_STATE_CLASS =
 export const PRESSABLE_EDIT_BUTTON_STATE_CLASS =
   "group border-gray-400 bg-gray-50 text-gray-700 transition-colors hover:border-transparent hover:bg-main-300 hover:text-white active:border-transparent active:bg-main-600 active:text-white disabled:hover:border-gray-400 disabled:hover:bg-gray-50 disabled:hover:text-gray-700";
 
+/**
+ * 화면의 대표 행동에 사용하는 Primary 버튼.
+ * 기본 main/600 → hover main/700 → pressed main/800로 전환한다.
+ */
+export const PRESSABLE_PRIMARY_BUTTON_STATE_CLASS =
+  "border-transparent bg-main-600 text-gray-50 transition-colors hover:bg-main-700 active:bg-main-800 disabled:border-transparent disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-100 disabled:hover:bg-gray-200";
+
 /*
  * 아이콘 색 전환은 버튼이 비활성일 때 일어나면 안 된다.
  * CSS :hover는 disabled 버튼에도 매칭되므로 :not(:disabled)로 직접 걸러낸다.

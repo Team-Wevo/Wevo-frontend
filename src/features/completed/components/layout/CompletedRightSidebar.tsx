@@ -14,8 +14,7 @@ interface CompletedRightSidebarProps {
 }
 
 const DIVIDER_CLASS = "h-px w-full shrink-0 bg-gray-200";
-const OUTLINE_BUTTON_CLASS =
-  "h-auto rounded-sm border-gray-400 bg-white text-gray-900";
+const SECONDARY_BUTTON_CLASS = "h-auto rounded-sm";
 
 // TODO: 복사/다운로드/작업 보드 이동 핸들러를 실제 완성본 데이터·API에 연결
 const CompletedRightSidebar = ({
@@ -38,7 +37,7 @@ const CompletedRightSidebar = ({
           완성된 내용을 필요한 형식으로 가져갈 수 있어요.
         </p>
         <Button
-          type="main"
+          type="pressablePrimary"
           onClick={onCopyFullText}
           disabled={isExporting}
           className="h-auto w-full gap-1.5 rounded-sm py-[11px] text-[13px] leading-[18px] font-medium"
@@ -47,11 +46,11 @@ const CompletedRightSidebar = ({
           전체 텍스트 복사
         </Button>
         <Button
-          type="outline"
+          type="pressableStrong"
           onClick={onCopyMarkdown}
           disabled={isExporting}
           className={cn(
-            OUTLINE_BUTTON_CLASS,
+            SECONDARY_BUTTON_CLASS,
             "w-full gap-1.5 py-[11px] text-[13px] leading-[18px] font-medium",
           )}
         >
@@ -79,11 +78,11 @@ const CompletedRightSidebar = ({
         </h2>
         <div className="flex w-full items-start gap-2 overflow-hidden">
           <Button
-            type="outline"
+            type="pressableStrong"
             onClick={onDownloadTxt}
             disabled={isExporting}
             className={cn(
-              OUTLINE_BUTTON_CLASS,
+              SECONDARY_BUTTON_CLASS,
               "flex-1 gap-1 py-2.5 text-xs leading-4 font-medium",
             )}
           >
@@ -91,11 +90,11 @@ const CompletedRightSidebar = ({
             TXT
           </Button>
           <Button
-            type="outline"
+            type="pressableStrong"
             onClick={onDownloadMd}
             disabled={isExporting}
             className={cn(
-              OUTLINE_BUTTON_CLASS,
+              SECONDARY_BUTTON_CLASS,
               "flex-1 gap-1 py-2.5 text-xs leading-4 font-medium",
             )}
           >
@@ -115,10 +114,10 @@ const CompletedRightSidebar = ({
           수정할 섹션에 마우스를 올려 ✎ 를 눌러주세요.
         </p>
         <Button
-          type="outline"
+          type="pressableStrong"
           onClick={onBackToWorkspace}
           className={cn(
-            OUTLINE_BUTTON_CLASS,
+            SECONDARY_BUTTON_CLASS,
             "w-full gap-1.5 py-[11px] text-[13px] leading-[18px] font-medium",
           )}
         >
