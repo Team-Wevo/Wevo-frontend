@@ -8,6 +8,9 @@ interface CompletedRightSidebarProps {
   onDownloadTxt?: () => void;
   onDownloadMd?: () => void;
   onBackToWorkspace?: () => void;
+  isExporting?: boolean;
+  actionMessage?: string | null;
+  isActionError?: boolean;
 }
 
 const DIVIDER_CLASS = "h-px w-full shrink-0 bg-gray-200";
@@ -21,6 +24,9 @@ const CompletedRightSidebar = ({
   onDownloadTxt,
   onDownloadMd,
   onBackToWorkspace,
+  isExporting = false,
+  actionMessage,
+  isActionError = false,
 }: CompletedRightSidebarProps) => {
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col items-start justify-start gap-6 overflow-hidden border-l border-gray-400 bg-gray-50 px-5 py-6">
@@ -34,6 +40,7 @@ const CompletedRightSidebar = ({
         <Button
           type="main"
           onClick={onCopyFullText}
+          disabled={isExporting}
           className="h-auto w-full gap-1.5 rounded-sm py-[11px] text-[13px] leading-[18px] font-medium"
         >
           <Copy className="h-3 w-3" />
@@ -42,6 +49,7 @@ const CompletedRightSidebar = ({
         <Button
           type="outline"
           onClick={onCopyMarkdown}
+          disabled={isExporting}
           className={cn(
             OUTLINE_BUTTON_CLASS,
             "w-full gap-1.5 py-[11px] text-[13px] leading-[18px] font-medium",
@@ -50,6 +58,17 @@ const CompletedRightSidebar = ({
           <Copy className="h-3 w-3" />
           마크다운 복사
         </Button>
+        {actionMessage && (
+          <p
+            role="status"
+            className={cn(
+              "w-full text-xs leading-4",
+              isActionError ? "text-error" : "text-success",
+            )}
+          >
+            {actionMessage}
+          </p>
+        )}
       </div>
 
       <div className={DIVIDER_CLASS} />
@@ -62,6 +81,7 @@ const CompletedRightSidebar = ({
           <Button
             type="outline"
             onClick={onDownloadTxt}
+            disabled={isExporting}
             className={cn(
               OUTLINE_BUTTON_CLASS,
               "flex-1 gap-1 py-2.5 text-xs leading-4 font-medium",
@@ -73,6 +93,7 @@ const CompletedRightSidebar = ({
           <Button
             type="outline"
             onClick={onDownloadMd}
+            disabled={isExporting}
             className={cn(
               OUTLINE_BUTTON_CLASS,
               "flex-1 gap-1 py-2.5 text-xs leading-4 font-medium",

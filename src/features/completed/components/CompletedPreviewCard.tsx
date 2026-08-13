@@ -1,4 +1,5 @@
 import { EditNameIcon } from "../../../shared/components/icons";
+import MarkdownContent from "../../../shared/components/MarkdownContent";
 import { cn } from "../../../shared/utils/cn";
 
 export interface CompletedPreviewSection {
@@ -69,14 +70,20 @@ const CompletedPreviewCard = ({
                   </span>
                 </button>
               </div>
-              <p
-                className={cn(
-                  "w-full text-sm leading-[22px] font-normal",
-                  section.content ? "text-gray-700" : "text-gray-600",
-                )}
-              >
-                {section.content ?? "작성된 내용이 없습니다."}
-              </p>
+              {section.content ? (
+                <MarkdownContent
+                  content={section.content}
+                  className="w-full text-sm leading-[22px] text-gray-700"
+                />
+              ) : (
+                <p
+                  className={cn(
+                    "w-full text-sm leading-[22px] font-normal text-gray-600",
+                  )}
+                >
+                  작성된 내용이 없습니다.
+                </p>
+              )}
             </div>
           </div>
         ))}

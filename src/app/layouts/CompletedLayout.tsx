@@ -9,6 +9,14 @@ interface CompletedLayoutProps {
   projectId: string;
   progress: DocumentProgress;
   activeStepId: number;
+  onCopyFullText?: () => void;
+  onCopyMarkdown?: () => void;
+  onDownloadTxt?: () => void;
+  onDownloadMd?: () => void;
+  onBackToWorkspace?: () => void;
+  isExporting?: boolean;
+  actionMessage?: string | null;
+  isActionError?: boolean;
   children: ReactNode;
 }
 
@@ -20,6 +28,14 @@ const CompletedLayout = ({
   projectId,
   progress,
   activeStepId,
+  onCopyFullText,
+  onCopyMarkdown,
+  onDownloadTxt,
+  onDownloadMd,
+  onBackToWorkspace,
+  isExporting,
+  actionMessage,
+  isActionError,
   children,
 }: CompletedLayoutProps) => {
   return (
@@ -42,7 +58,16 @@ const CompletedLayout = ({
           {children}
         </div>
 
-        <CompletedRightSidebar />
+        <CompletedRightSidebar
+          onCopyFullText={onCopyFullText}
+          onCopyMarkdown={onCopyMarkdown}
+          onDownloadTxt={onDownloadTxt}
+          onDownloadMd={onDownloadMd}
+          onBackToWorkspace={onBackToWorkspace}
+          isExporting={isExporting}
+          actionMessage={actionMessage}
+          isActionError={isActionError}
+        />
       </div>
     </div>
   );
