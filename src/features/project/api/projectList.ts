@@ -31,10 +31,26 @@ export interface ProjectSummaryResponse {
   sectionProgress: ProjectSectionProgress;
 }
 
-// 내 프로젝트 목록 — 멤버인 것만, 보관(ARCHIVED) 제외, 최신순으로 서버에서 내려줌
-export const getMyProjects = async (): Promise<ProjectSummaryResponse[]> => {
+const getProjects = async (): Promise<ProjectSummaryResponse[]> => {
   const response =
     await apiClient.get<ApiResponse<ProjectSummaryResponse[]>>("/api/projects");
 
   return unwrapApiResponse(response.data);
+};
+
+// 내 프로젝트 목록 — 멤버인 것만, 보관(ARCHIVED) 제외, 최신순으로 서버에서 내려줌
+export const getMyProjects = (): Promise<ProjectSummaryResponse[]> =>
+  getProjects();
+
+// 완성본 목록 — 모든 섹션이 확정되어 최종 결과물을 조회할 수 있는 프로젝트만 반환
+export const getCompletedProjects = async (): Promise<
+  ProjectSummaryResponse[]
+> => {
+  const projects = await getProjects();
+
+  return projects.filter(
+    ({ sectionProgress }) =>
+      sectionProgress.total > 0 &&
+      sectionProgress.confirmed === sectionProgress.total,
+  );
 };
