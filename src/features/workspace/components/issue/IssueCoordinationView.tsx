@@ -44,11 +44,11 @@ const IssueCoordinationView = ({
         data.issues.flatMap((issue) => {
           const selectedOption = issue.decision?.selectedOption;
           const customInput = issue.decision?.customInput;
-          const matchedOption = issue.options?.find(
-            (option) =>
-              option.label === selectedOption ||
+          const matchedOption =
+            issue.options?.find((option) => option.label === selectedOption) ??
+            issue.options?.find((option) =>
               Boolean(customInput && option.isCustomInput),
-          );
+            );
 
           return matchedOption ? [[issue.id, matchedOption.id]] : [];
         }),

@@ -15,12 +15,10 @@ export const useSectionOpinions = (
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (initialData) {
-      queryClient.setQueryData(
-        [SECTION_OPINIONS_QUERY_KEY, sectionId],
-        initialData,
-      );
-    }
+    queryClient.setQueryData(
+      [SECTION_OPINIONS_QUERY_KEY, sectionId],
+      initialData,
+    );
   }, [initialData, queryClient, sectionId]);
 
   return useQuery({

@@ -1234,8 +1234,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
         checkedContentVersion: precheckCurrentResult.checkedContentVersion,
       });
 
-      setIsDraftLeaseOwned(false);
-      setLeaseExpiresAt(null);
+      setIsDraftLeaseOwned(wasLeaseOwned);
+      setLeaseExpiresAt(wasLeaseOwned ? lease.expiresAt : null);
       void leaseStatusQuery.refetch();
 
       const latestDraftResult = await draftResultQuery.refetch();
