@@ -9,30 +9,84 @@ import { cn } from "../../../../shared/utils/cn";
 import type {
   IssueCoordinationData,
   IssueCustomInputMap,
+  IssueDecisionSubmission,
   IssueDecisionMap,
 } from "./types";
 
 interface IssueCoordinationViewProps {
   data: IssueCoordinationData;
   /** 모든 쟁점을 결정한 뒤 초안 생성 단계로 넘어간다. */
-  onCreateDraft: () => void;
+  onCreateDraft: (decisions: IssueDecisionSubmission[]) => void;
+  onSubmitEvidenceAnswer: (issueId: string, content: string) => Promise<void>;
+  onRequestEvidence: (issueId: string, targetUserId: number) => Promise<void>;
   isCreatingDraft?: boolean;
+  canManageIssues: boolean;
+  canGenerateDraft: boolean;
 }
 
 const IssueCoordinationView = ({
   data,
   onCreateDraft,
+  onSubmitEvidenceAnswer,
+  onRequestEvidence,
   isCreatingDraft = false,
+  canManageIssues,
+  canGenerateDraft,
 }: IssueCoordinationViewProps) => {
-  const [decisions, setDecisions] = useState<IssueDecisionMap>({});
-  const [customInputs, setCustomInputs] = useState<IssueCustomInputMap>({});
+  const [decisionOverrides, setDecisionOverrides] = useState<IssueDecisionMap>(
+    {},
+  );
+  const [customInputOverrides, setCustomInputOverrides] =
+    useState<IssueCustomInputMap>({});
+  const persistedDecisions = useMemo<IssueDecisionMap>(
+    () =>
+      Object.fromEntries(
+        data.issues.flatMap((issue) => {
+          const selectedOption = issue.decision?.selectedOption;
+          const customInput = issue.decision?.customInput;
+          const matchedOption =
+            issue.options?.find((option) => option.label === selectedOption) ??
+            issue.options?.find((option) =>
+              Boolean(customInput && option.isCustomInput),
+            );
+
+          return matchedOption ? [[issue.id, matchedOption.id]] : [];
+        }),
+      ),
+    [data.issues],
+  );
+  const persistedCustomInputs = useMemo<IssueCustomInputMap>(
+    () =>
+      Object.fromEntries(
+        data.issues.flatMap((issue) =>
+          issue.decision?.customInput
+            ? [[issue.id, issue.decision.customInput]]
+            : [],
+        ),
+      ),
+    [data.issues],
+  );
+  const decisions = useMemo(
+    () => ({ ...persistedDecisions, ...decisionOverrides }),
+    [persistedDecisions, decisionOverrides],
+  );
+  const customInputs = useMemo(
+    () => ({ ...persistedCustomInputs, ...customInputOverrides }),
+    [persistedCustomInputs, customInputOverrides],
+  );
 
   const handleSelectOption = (issueId: string, optionId: string) => {
-    setDecisions((previous) => ({ ...previous, [issueId]: optionId }));
+    setDecisionOverrides((previous) => ({
+      ...previous,
+      [issueId]: optionId,
+    }));
   };
 
   const handleChangeCustomInput = (issueId: string, value: string) => {
-    setCustomInputs((previous) => ({ ...previous, [issueId]: value }));
+    setCustomInputOverrides((previous) => ({
+      ...previous,
+      [issueId]: value,
+    }));
   };
 
   const canCreateDraft = useMemo(
@@ -42,6 +96,44 @@ const IssueCoordinationView = ({
       ),
     [data.issues, decisions, customInputs],
   );
+
+  const handleCreateDraft = () => {
+    const pendingDecisions = data.issues.flatMap((issue) => {
+      if (issue.resolutionType !== "choice") {
+        return [];
+      }
+
+      const selectedOption = issue.options?.find(
+        (option) => option.id === decisions[issue.id],
+      );
+
+      if (!selectedOption) {
+        return [];
+      }
+
+      const customInput = selectedOption.isCustomInput
+        ? (customInputs[issue.id] ?? "").trim()
+        : undefined;
+      const selectedOptionValue = selectedOption.isCustomInput
+        ? undefined
+        : selectedOption.label;
+      const isAlreadyPersisted =
+        issue.decision?.selectedOption === selectedOptionValue &&
+        issue.decision?.customInput === customInput;
+
+      return isAlreadyPersisted
+        ? []
+        : [
+            {
+              issueId: issue.id,
+              selectedOption: selectedOptionValue,
+              customInput,
+            },
+          ];
+    });
+
+    onCreateDraft(pendingDecisions);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,33 +160,38 @@ const IssueCoordinationView = ({
             isDecided={isIssueDecided(issue, decisions, customInputs)}
             onSelectOption={handleSelectOption}
             onChangeCustomInput={handleChangeCustomInput}
+            onSubmitEvidenceAnswer={onSubmitEvidenceAnswer}
+            onRequestEvidence={onRequestEvidence}
+            readOnly={!canManageIssues}
           />
         ))}
       </div>
 
-      <div className="flex flex-col items-end gap-3">
-        <p className="text-xs leading-[18px] font-normal text-gray-600">
-          쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 부족 항목은 답변을
-          기다리며 진행 가능)
-        </p>
+      {canGenerateDraft && (
+        <div className="flex flex-col items-end gap-3">
+          <p className="text-xs leading-[18px] font-normal text-gray-600">
+            쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 요청 후에는 답변을
+            기다리며 진행 가능)
+          </p>
 
-        <Button
-          type="ai"
-          onClick={onCreateDraft}
-          disabled={!canCreateDraft || isCreatingDraft}
-          className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
-        >
-          <CreditIcon
-            size={16}
-            className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
-          />
-          <span>
-            {isCreatingDraft
-              ? "초안 생성 시작 중..."
-              : "결정 반영해 초안 만들기"}
-          </span>
-        </Button>
-      </div>
+          <Button
+            type="ai"
+            onClick={handleCreateDraft}
+            disabled={!canCreateDraft || isCreatingDraft}
+            className="h-auto px-5 py-3 text-[13px] leading-5 font-medium disabled:border-transparent disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100 disabled:hover:border-transparent disabled:hover:bg-gray-100 disabled:hover:text-gray-600"
+          >
+            <CreditIcon
+              size={16}
+              className={cn("shrink-0", PRESSABLE_FILL_ICON_STATE_CLASS)}
+            />
+            <span>
+              {isCreatingDraft
+                ? "초안 생성 시작 중..."
+                : "결정 반영해 초안 만들기"}
+            </span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import type {
 
 /**
  * 쟁점이 결정된 상태인지 판단한다.
- * - 근거 요청형은 답변을 기다리며 진행할 수 있으므로 항상 결정된 것으로 본다.
+ * - 근거 요청형은 요청을 보낸 뒤에는 답변을 기다리며 진행할 수 있다.
  * - "직접 입력"을 고른 경우에는 내용을 채워야 결정으로 인정한다.
  */
 export const isIssueDecided = (
@@ -15,7 +15,7 @@ export const isIssueDecided = (
   customInputs: IssueCustomInputMap,
 ) => {
   if (issue.resolutionType !== "choice") {
-    return true;
+    return issue.evidenceRequest?.requested ?? false;
   }
 
   const selectedOptionId = decisions[issue.id];

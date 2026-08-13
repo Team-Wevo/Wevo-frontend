@@ -1,29 +1,33 @@
-import type { DraftViewState } from "./types";
+import type { ReactNode } from "react";
+import type { DraftEvidence } from "./types";
+import { Button } from "../../../../shared/components/Button";
 
 interface DraftEvidenceFooterProps {
-  state: DraftViewState;
+  evidence: DraftEvidence;
+  suffix?: ReactNode;
   onOpenEvidence: () => void;
 }
 
 const DraftEvidenceFooter = ({
-  state,
+  evidence,
+  suffix,
   onOpenEvidence,
 }: DraftEvidenceFooterProps) => {
-  const issueDecisionLabel = state.evidence.issueDecisionLabel ?? "쟁점 결정";
+  const issueDecisionLabel = evidence.issueDecisionLabel ?? "쟁점 결정";
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full items-center gap-3">
       <p className="text-xs leading-4 font-normal text-gray-600">
-        근거: 팀 의견 {state.evidence.teamOpinionCount}개 · {issueDecisionLabel}{" "}
-        {state.evidence.issueDecisionCount}건
+        근거: 팀 의견 {evidence.teamOpinionCount}개 · {issueDecisionLabel}{" "}
+        {evidence.issueDecisionCount}건{suffix}
       </p>
-      <button
-        type="button"
-        className="text-main-700 text-xs leading-5 font-normal"
+      <Button
+        type="draftEdit"
+        className="h-8 w-fit rounded-sm px-3 py-1.5 text-xs leading-4 font-medium"
         onClick={onOpenEvidence}
       >
         근거 보기
-      </button>
+      </Button>
     </div>
   );
 };

@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Check, Link2 } from "lucide-react";
 import { getApiErrorMessage } from "@/shared/api";
+import { UserAvatar } from "@/shared/components/UserAvatar";
+import { PRESSABLE_COPY_BUTTON_STATE_CLASS } from "@/shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
-import {
-  getProjectMembers,
-  type ProjectMemberRole,
-} from "../../../project/api/getProjectMembers";
+import { type ProjectMemberRole } from "../../../project/api/getProjectMembers";
+import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 
 const ROLE_LABEL: Record<ProjectMemberRole, string> = {
   OWNER: "팀장",
@@ -38,10 +36,7 @@ const InviteTeamPopover = ({
 }: InviteTeamPopoverProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
-  const membersQuery = useQuery({
-    queryKey: ["project-members", projectId],
-    queryFn: () => getProjectMembers(Number(projectId)),
-  });
+  const membersQuery = useProjectMembers(Number(projectId));
 
   const handleCopyLink = async () => {
     if (!inviteUrl) {
@@ -99,7 +94,10 @@ const InviteTeamPopover = ({
             type="button"
             onClick={handleCopyLink}
             disabled={!inviteUrl}
-            className="flex cursor-pointer items-center gap-1 rounded-[6px] border border-gray-500 px-2.5 py-1 text-[11px] leading-[14px] font-normal text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className={cn(
+              "flex cursor-pointer items-center gap-1 rounded-[6px] border px-2.5 py-1 text-[11px] leading-[14px] font-normal",
+              PRESSABLE_COPY_BUTTON_STATE_CLASS,
+            )}
           >
             {isCopied ? (
               <>
@@ -138,22 +136,12 @@ const InviteTeamPopover = ({
             key={member.userId}
             className="flex items-center gap-2"
           >
-            {member.profileImageUrl ? (
-              <img
-                src={member.profileImageUrl}
-                alt=""
-                className="h-5 w-5 shrink-0 rounded-full object-cover"
-              />
-            ) : (
-              <div
-                className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] leading-[14px] font-normal text-gray-50",
-                  getAvatarColorByIndex(index),
-                )}
-              >
-                {member.name[0]}
-              </div>
-            )}
+            <UserAvatar
+              name={member.name}
+              imageUrl={member.profileImageUrl}
+              colorIndex={index}
+              className="h-5 w-5 text-[11px] leading-[14px]"
+            />
             <span className="flex-1 truncate text-xs leading-[15px] font-normal text-gray-900">
               {member.name}
             </span>

@@ -10,6 +10,7 @@ interface ConfirmModalProps {
   cancelLabel?: ReactNode;
   confirmLabel?: ReactNode;
   confirmType?: ButtonType;
+  confirmDisabled?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -20,6 +21,7 @@ export const ConfirmModal = ({
   cancelLabel = "취소",
   confirmLabel = "확인",
   confirmType = "red",
+  confirmDisabled = false,
   onCancel,
   onConfirm,
 }: ConfirmModalProps) => {
@@ -110,6 +112,7 @@ export const ConfirmModal = ({
           <Button
             type={confirmType}
             onClick={onConfirm}
+            disabled={confirmDisabled}
             className="h-auto rounded-sm border-transparent px-4 py-2 text-[13px] leading-[18px] font-medium"
           >
             {confirmLabel}

@@ -2,6 +2,7 @@
 export type IssueResolutionType = "choice" | "evidence-request";
 
 export interface IssueOpinion {
+  authorUserId?: number;
   memberName: string;
   content: string;
 }
@@ -14,9 +15,14 @@ export interface IssueChoiceOption {
 }
 
 export interface EvidenceRequestStatus {
-  /** 예: "민수 님에게 추가 근거를 요청했어요 · 답변 대기" */
+  requested: boolean;
   message: string;
   questionCount: number;
+  answer?: {
+    authorName: string;
+    content: string;
+    answeredAt: string;
+  };
 }
 
 export interface WorkspaceIssue {
@@ -31,6 +37,11 @@ export interface WorkspaceIssue {
   options?: IssueChoiceOption[];
   /** resolutionType이 "evidence-request"일 때만 존재 */
   evidenceRequest?: EvidenceRequestStatus;
+  /** 서버에 이미 저장된 결정. 재진입·팀원 조회 화면의 선택 상태 복원에 사용한다. */
+  decision?: {
+    selectedOption?: string;
+    customInput?: string;
+  };
 }
 
 export interface SharedProblem {
@@ -50,3 +61,9 @@ export type IssueDecisionMap = Record<string, string>;
 
 /** 쟁점 id → "직접 입력"으로 작성한 내용 */
 export type IssueCustomInputMap = Record<string, string>;
+
+export interface IssueDecisionSubmission {
+  issueId: string;
+  selectedOption?: string;
+  customInput?: string;
+}

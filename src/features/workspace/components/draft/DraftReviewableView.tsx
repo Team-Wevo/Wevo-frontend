@@ -1,4 +1,5 @@
 import { Button } from "../../../../shared/components/Button";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 import AiPreReviewPanel from "./AiPreReviewPanel";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
@@ -7,16 +8,19 @@ import type { DraftStageViewProps } from "./types";
 const DraftReviewableView = ({
   state,
   onOpenEvidence,
-  onRequestReadabilityCheck,
+  isEvidenceLoading,
+  evidenceErrorMessage,
   onMoveToReviewRequest,
   isMovingToReviewRequest,
   moveToReviewRequestErrorMessage,
-  isRequestingReadabilityCheck,
   readabilityRequestErrorMessage,
+  isRequestingReadabilityCheck,
   onApplyRevision,
   onKeepRevision,
   isApplyingRevision,
   applyRevisionErrorMessage,
+  canApplyRevision,
+  canMoveToReviewRequest,
 }: DraftStageViewProps) => {
   const preReviewData = state.preReview ?? {
     perspectiveLabel: "처음 읽는 사람 관점",
@@ -34,38 +38,50 @@ const DraftReviewableView = ({
         draftContent={state.draftContent}
         fitContent
       />
-      <DraftEvidenceFooter
-        state={state}
-        onOpenEvidence={onOpenEvidence}
-      />
+      {isEvidenceLoading ? (
+        <div className="flex min-h-8 items-center">
+          <LoadingSpinner size={16} />
+        </div>
+      ) : evidenceErrorMessage ? (
+        <p className="text-error min-h-8 text-xs leading-4">
+          {evidenceErrorMessage}
+        </p>
+      ) : (
+        <DraftEvidenceFooter
+          evidence={state.evidence}
+          onOpenEvidence={onOpenEvidence}
+        />
+      )}
 
       <AiPreReviewPanel
         data={preReviewData}
-        onCheckReadability={onRequestReadabilityCheck}
         onCreateRevision={handleCreateRevision}
         onApplyRevision={onApplyRevision}
         onKeepRevision={onKeepRevision}
-        isCheckingReadability={isRequestingReadabilityCheck}
         readabilityErrorMessage={readabilityRequestErrorMessage}
+        isLoading={isRequestingReadabilityCheck}
         isApplyingRevision={isApplyingRevision}
         applyRevisionErrorMessage={applyRevisionErrorMessage}
+        canApplyRevision={canApplyRevision}
       />
 
-      <div className="flex w-full items-center justify-end gap-3">
-        {moveToReviewRequestErrorMessage && (
-          <span className="text-error text-xs">
-            {moveToReviewRequestErrorMessage}
-          </span>
-        )}
-        <Button
-          type="main"
-          onClick={onMoveToReviewRequest}
-          disabled={isMovingToReviewRequest}
-          className="h-10 rounded-sm px-4 py-2 text-sm leading-7"
-        >
-          {isMovingToReviewRequest ? "이동 중..." : "검토 요청으로 이동 →"}
-        </Button>
-      </div>
+      {canMoveToReviewRequest && (
+        <div className="flex w-full items-center justify-end gap-3">
+          {moveToReviewRequestErrorMessage && (
+            <span className="text-error text-xs">
+              {moveToReviewRequestErrorMessage}
+            </span>
+          )}
+          <Button
+            type="main"
+            onClick={onMoveToReviewRequest}
+            disabled={isMovingToReviewRequest}
+            className="h-10 rounded-sm px-4 py-2 text-sm leading-7"
+          >
+            {isMovingToReviewRequest ? "이동 중..." : "검토 요청으로 이동 →"}
+          </Button>
+        </div>
+      )}
     </>
   );
 };

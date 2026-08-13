@@ -70,6 +70,8 @@ export interface DraftStageViewProps {
   state: DraftViewState;
   onEditDraft: () => void;
   onOpenEvidence: () => void;
+  isEvidenceLoading?: boolean;
+  evidenceErrorMessage?: string | null;
   onRequestReadabilityCheck: () => void;
   onApplyRevision?: () => Promise<boolean>;
   onKeepRevision?: () => void;
@@ -84,8 +86,11 @@ export interface DraftStageViewProps {
   draftSaveErrorMessage?: string | null;
   isRequestingReadabilityCheck?: boolean;
   readabilityRequestErrorMessage?: string | null;
+  canRequestReadabilityCheck?: boolean;
   isApplyingRevision?: boolean;
   applyRevisionErrorMessage?: string | null;
+  canApplyRevision?: boolean;
+  canMoveToReviewRequest?: boolean;
   isMovingToReviewRequest?: boolean;
   moveToReviewRequestErrorMessage?: string | null;
 }

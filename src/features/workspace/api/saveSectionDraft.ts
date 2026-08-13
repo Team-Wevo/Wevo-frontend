@@ -13,7 +13,12 @@ export interface SaveSectionDraftResponse {
   contentVersion: number;
   updatedAt: string;
   sectionStatus: WorkspaceSectionStatus;
-  driftedSections: number[];
+  driftedSections: Array<{
+    sectionId: number;
+    title: string;
+    sectionStatus: WorkspaceSectionStatus;
+    driftStatus: string;
+  }>;
 }
 
 const SAVE_DRAFT_FALLBACK_MESSAGE = "초안 저장에 실패했습니다.";

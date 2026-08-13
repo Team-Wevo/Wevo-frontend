@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import WorkspaceHeader, {
   type DraftSaveStatus,
@@ -12,48 +13,119 @@ import WorkspacePhaseStepper from "../../features/workspace/components/layout/Wo
 import WorkspaceRightSidebar, {
   type ProjectInfoItem,
 } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
-import type { DocumentProgress } from "../../shared/types/documentType";
+import type {
+  DocumentProgress,
+  SectionPhase,
+} from "../../shared/types/documentType";
+import type { WorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
+import {
+  getSectionDraft,
+  getSectionDraftErrorMessage,
+} from "../../features/workspace/api/getSectionDraft";
+import type {
+  WorkspaceSection,
+  WorkspaceSectionStatus,
+} from "../../features/workspace/constants/sections";
+import { SECTION_DRAFT_QUERY_KEY } from "../../features/workspace/hooks/useSectionDraft";
+import {
+  clearPendingWorkspaceOnboarding,
+  hasPendingWorkspaceOnboarding,
+} from "../../features/workspace/utils/workspaceOnboardingStorage";
 
-// TODO: 섹션별 초안 내용 API 연동 후 실제 본문으로 교체
-const MOCK_WRITTEN_SECTION_CONTENT =
-  "최근 대학생의 장학금 수요가 늘고 있으나, 관련 정보는 학교 홈페이지·장학재단·학과 공지 등 여러 곳에 흩어져 있다. 학생은 자신에게 맞는 장학금을 찾기 위해 여러 사이트를 오가며 반복적으로 탐색·비교해야 하고, 이 과정에서 적합한 공고를 놓치거나 마감을 지나치는 경우가 많다.";
+const DRAFT_AVAILABLE_STATUSES: WorkspaceSectionStatus[] = [
+  "DRAFTING",
+  "REVIEWING",
+  "CONFIRMED",
+];
 
-const buildFlowPreviewSections = (
-  progress: DocumentProgress,
-): FlowPreviewSection[] => {
-  return progress.map((item, index) => ({
-    sectionNo: index + 1,
-    title: item.section,
-    content: item.status === "작성 완료" ? MOCK_WRITTEN_SECTION_CONTENT : null,
-  }));
-};
+const canHaveDraft = (status: WorkspaceSectionStatus) =>
+  DRAFT_AVAILABLE_STATUSES.includes(status);
 
 interface WorkspaceLayoutProps {
   title: string;
   projectId: string;
   projectInfo: ProjectInfoItem[];
   progress: DocumentProgress;
+  workspaceSections: WorkspaceSection[];
   activeStepId: number;
   saveStatus?: DraftSaveStatus;
+  permissions: WorkspacePermissions;
+  selectedPhase: SectionPhase;
+  onPhaseSelect: (phase: SectionPhase) => void;
   children: ReactNode;
 }
+
+interface WorkspaceOnboardingGateProps {
+  projectId: string;
+}
+
+const WorkspaceOnboardingGate = ({
+  projectId,
+}: WorkspaceOnboardingGateProps) => {
+  const [isVisible, setIsVisible] = useState(() =>
+    hasPendingWorkspaceOnboarding(projectId),
+  );
+
+  useEffect(() => {
+    if (isVisible) {
+      clearPendingWorkspaceOnboarding(projectId);
+    }
+  }, [isVisible, projectId]);
+
+  return isVisible ? (
+    <WorkspaceOnboarding onFinish={() => setIsVisible(false)} />
+  ) : null;
+};
 
 const WorkspaceLayout = ({
   title,
   projectId,
   projectInfo,
   progress,
+  workspaceSections,
   activeStepId,
   saveStatus,
+  permissions,
+  selectedPhase,
+  onPhaseSelect,
   children,
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
   const [isFlowPreviewOpen, setIsFlowPreviewOpen] = useState(false);
   const activeSection = progress[activeStepId - 1];
-  // TODO: 로그인/API 연동 후 "다시 보지 않기" 서버 저장으로 교체. 지금은 매번 노출.
-  const [showOnboarding, setShowOnboarding] = useState(true);
   const documentTypeLabel =
     projectInfo.find((item) => item.label === "결과물 유형")?.value ?? "제안서";
+  const previewDraftQueries = useQueries({
+    queries: workspaceSections.map((section) => ({
+      queryKey: [SECTION_DRAFT_QUERY_KEY, section.projectSectionId],
+      queryFn: () => getSectionDraft(section.projectSectionId),
+      enabled: isFlowPreviewOpen && canHaveDraft(section.sectionStatus),
+      retry: false,
+    })),
+  });
+  const flowPreviewSections: FlowPreviewSection[] = workspaceSections.map(
+    (section, index) => {
+      const draftQuery = previewDraftQueries[index];
+      const shouldLoadDraft = canHaveDraft(section.sectionStatus);
+      const content = shouldLoadDraft
+        ? draftQuery.data?.content.trim()
+        : undefined;
+
+      return {
+        sectionNo: section.orderNo,
+        title: section.title,
+        content: content || null,
+        isLoading:
+          shouldLoadDraft &&
+          draftQuery.isPending &&
+          draftQuery.fetchStatus === "fetching",
+        errorMessage:
+          shouldLoadDraft && draftQuery.isError
+            ? getSectionDraftErrorMessage(draftQuery.error)
+            : null,
+      };
+    },
+  );
 
   const handleNavigateToSection = (sectionNo: number) => {
     setIsFlowPreviewOpen(false);
@@ -68,6 +140,7 @@ const WorkspaceLayout = ({
         title={title}
         projectId={projectId}
         saveStatus={saveStatus}
+        canInviteMembers={permissions.canInviteMembers}
         onPreviewAll={() => setIsFlowPreviewOpen(true)}
       />
 
@@ -76,6 +149,7 @@ const WorkspaceLayout = ({
           progress={progress}
           activeStepId={activeStepId}
           projectId={projectId}
+          onConfirmFinal={() => navigate(`/completed/${projectId}`)}
         />
 
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
@@ -88,6 +162,8 @@ const WorkspaceLayout = ({
             </h1>
             <WorkspacePhaseStepper
               currentStatus={activeSection?.status ?? "시작 전"}
+              selectedPhase={selectedPhase}
+              onPhaseSelect={onPhaseSelect}
             />
             {children}
           </div>
@@ -96,15 +172,16 @@ const WorkspaceLayout = ({
         <WorkspaceRightSidebar projectInfo={projectInfo} />
       </div>
 
-      {showOnboarding && (
-        <WorkspaceOnboarding onFinish={() => setShowOnboarding(false)} />
-      )}
+      <WorkspaceOnboardingGate
+        key={projectId}
+        projectId={projectId}
+      />
 
       {isFlowPreviewOpen && (
         <FlowPreviewModal
           documentTitle={title}
           documentTypeLabel={documentTypeLabel}
-          sections={buildFlowPreviewSections(progress)}
+          sections={flowPreviewSections}
           onNavigateToSection={handleNavigateToSection}
           onClose={() => setIsFlowPreviewOpen(false)}
         />

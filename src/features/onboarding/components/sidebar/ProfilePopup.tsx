@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -13,6 +14,8 @@ import {
   withdrawMyAccount,
   type MyProfileResponse,
 } from "@/features/auth/api/user";
+import { MY_PROFILE_QUERY_KEY } from "@/features/auth/hooks/useMyProfile";
+import { markOAuthReauthRequired } from "@/features/auth/constants/oauth";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -23,6 +26,7 @@ import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 import { cn } from "@/shared/utils/cn";
 
 interface ProfilePopupProps {
+  initialProfile?: MyProfileResponse;
   onClose?: () => void;
   onLogoutClick?: () => void;
 }
@@ -31,11 +35,11 @@ type TabKey = "profile" | "general";
 
 const SAVE_TOAST_DURATION_MS = 3000;
 
-const INITIAL_PROFILE_FORM = {
-  email: "alexjee85@gmail.com",
+const createInitialProfileForm = (profile?: MyProfileResponse) => ({
+  email: profile?.email ?? "",
   loginMethod: "카카오",
-  name: "지현구",
-};
+  name: profile?.name ?? "",
+});
 
 const getInitialCharacter = (name: string) => {
   const normalizedName = name.trim();
@@ -70,16 +74,36 @@ const getApiErrorMessage = (error: unknown) => {
   return "프로필 처리 중 오류가 발생했습니다.";
 };
 
-const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
+const getWithdrawErrorMessage = (error: unknown) => {
+  if (isAxiosError(error)) {
+    const responseData = error.response?.data as { code?: string } | undefined;
+
+    if (responseData?.code === "U003") {
+      return "팀장으로 참여 중인 프로젝트가 남아 있어 탈퇴할 수 없습니다. 해당 프로젝트를 먼저 삭제(보관)한 뒤 다시 시도해 주세요.";
+    }
+  }
+
+  return getApiErrorMessage(error);
+};
+
+const ProfilePopup = ({
+  initialProfile,
+  onClose,
+  onLogoutClick,
+}: ProfilePopupProps) => {
+  const queryClient = useQueryClient();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [saveToastNonce, setSaveToastNonce] = useState(0);
-  const [savedProfileForm, setSavedProfileForm] =
-    useState(INITIAL_PROFILE_FORM);
-  const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
+  const [savedProfileForm, setSavedProfileForm] = useState(() =>
+    createInitialProfileForm(initialProfile),
+  );
+  const [profileForm, setProfileForm] = useState(() =>
+    createInitialProfileForm(initialProfile),
+  );
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
@@ -87,6 +111,9 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(
     null,
   );
+  const [withdrawErrorMessage, setWithdrawErrorMessage] = useState<
+    string | null
+  >(null);
   const hasNameDraftChangesRef = useRef(false);
 
   const applyProfileToForm = useCallback(
@@ -121,6 +148,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
     try {
       const profile = await getMyProfile();
+      queryClient.setQueryData(MY_PROFILE_QUERY_KEY, profile);
       applyProfileToForm(profile, {
         preserveDraft: hasNameDraftChangesRef.current,
       });
@@ -130,7 +158,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     } finally {
       setIsProfileLoading(false);
     }
-  }, [applyProfileToForm]);
+  }, [applyProfileToForm, queryClient]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -252,6 +280,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
         name: normalizedProfileName,
       });
 
+      queryClient.setQueryData(MY_PROFILE_QUERY_KEY, updatedProfile);
       hasNameDraftChangesRef.current = false;
       applyProfileToForm(updatedProfile);
       setShowSaveToast(true);
@@ -268,16 +297,17 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     if (isWithdrawLoading) return;
 
     setIsWithdrawLoading(true);
-    setProfileErrorMessage(null);
+    setWithdrawErrorMessage(null);
 
     try {
       await withdrawMyAccount();
+      markOAuthReauthRequired("KAKAO");
       setShowWithdrawModal(false);
       setIsSettingsOpen(false);
       onClose?.();
       onLogoutClick?.();
     } catch (error) {
-      setProfileErrorMessage(getApiErrorMessage(error));
+      setWithdrawErrorMessage(getWithdrawErrorMessage(error));
     } finally {
       setIsWithdrawLoading(false);
     }
@@ -286,15 +316,32 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
   const withdrawConfirmModal = (
     <ConfirmModal
       title="정말 탈퇴할까요?"
-      description="탈퇴 시 개인정보는 삭제 처리되며, 작성한 내용은 보존됩니다. 되돌릴 수 없습니다."
+      description={
+        <>
+          <span className="block">
+            탈퇴 시 개인정보는 삭제 처리되며, 작성한 내용은 보존됩니다. 되돌릴
+            수 없습니다.
+          </span>
+          {withdrawErrorMessage && (
+            <span
+              role="alert"
+              className="text-error mt-2 block font-medium"
+            >
+              {withdrawErrorMessage}
+            </span>
+          )}
+        </>
+      }
       confirmLabel={isWithdrawLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
       onCancel={() => {
         if (isWithdrawLoading) return;
         setShowWithdrawModal(false);
+        setWithdrawErrorMessage(null);
       }}
       onConfirm={() => {
         void handleWithdrawConfirm();
       }}
+      confirmDisabled={isWithdrawLoading}
     />
   );
 
@@ -470,7 +517,10 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setShowWithdrawModal(true)}
+                    onClick={() => {
+                      setWithdrawErrorMessage(null);
+                      setShowWithdrawModal(true);
+                    }}
                     className="border-error text-error hover:bg-error absolute top-[38px] right-0 flex cursor-pointer items-center justify-center overflow-hidden rounded-sm border bg-gray-50 px-4 py-2 text-[13px] leading-[18px] font-medium transition-colors hover:text-gray-50"
                   >
                     탈퇴하기

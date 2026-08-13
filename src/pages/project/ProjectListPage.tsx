@@ -127,8 +127,20 @@ export const ProjectListPage = () => {
       : projects.filter(
           (project) => project.role === ROLE_BY_FILTER[activeFilter],
         );
+  const deletableProjects = filteredProjects.filter(
+    (project) => project.role === "팀장",
+  );
+  const ownerProjectIds = new Set(
+    projects
+      .filter((project) => project.role === "팀장")
+      .map((project) => project.id),
+  );
 
   const toggleSelect = (id: number) => {
+    if (!ownerProjectIds.has(id)) {
+      return;
+    }
+
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -141,11 +153,15 @@ export const ProjectListPage = () => {
   };
 
   const handleSelectAll = () => {
-    setSelectedIds((prev) =>
-      prev.size === filteredProjects.length
+    setSelectedIds((prev) => {
+      const isEveryDeletableProjectSelected = deletableProjects.every(
+        (project) => prev.has(project.id),
+      );
+
+      return isEveryDeletableProjectSelected
         ? new Set()
-        : new Set(filteredProjects.map((project) => project.id)),
-    );
+        : new Set(deletableProjects.map((project) => project.id));
+    });
   };
 
   const handleCancelSelection = () => {
@@ -153,16 +169,30 @@ export const ProjectListPage = () => {
     setSelectedIds(new Set());
   };
 
+  const handleFilterChange = (index: number) => {
+    setActiveFilterIndex(index);
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
   const handleConfirmDelete = async () => {
     if (isDeleting) return;
+
+    const selectedOwnerIds = Array.from(selectedIds).filter((id) =>
+      ownerProjectIds.has(id),
+    );
+
+    if (selectedOwnerIds.length === 0) {
+      return;
+    }
 
     setIsDeleting(true);
     setDeleteErrorMessage(null);
 
     try {
-      await Promise.all(Array.from(selectedIds).map((id) => deleteProject(id)));
+      await Promise.all(selectedOwnerIds.map((id) => deleteProject(id)));
       setProjects((prev) =>
-        prev.filter((project) => !selectedIds.has(project.id)),
+        prev.filter((project) => !selectedOwnerIds.includes(project.id)),
       );
       setSelectedIds(new Set());
       setIsSelectionMode(false);
@@ -185,7 +215,7 @@ export const ProjectListPage = () => {
   };
 
   const handleSubmitRename = async (title: string) => {
-    if (!editingProject) return;
+    if (!editingProject || editingProject.role !== "팀장") return;
 
     setIsRenaming(true);
     setRenameErrorMessage(null);
@@ -215,7 +245,7 @@ export const ProjectListPage = () => {
         title="프로젝트"
         filters={FILTERS}
         activeFilterIndex={activeFilterIndex}
-        onFilterChange={setActiveFilterIndex}
+        onFilterChange={handleFilterChange}
         showFilterCounts={isLoggedIn}
         actions={
           !isLoggedIn ? undefined : isSelectionMode ? (
@@ -257,12 +287,14 @@ export const ProjectListPage = () => {
                 </span>
                 <span>새 프로젝트</span>
               </Button>
-              <Button
-                type="pressableStrong"
-                onClick={() => setIsSelectionMode(true)}
-              >
-                <span>선택 삭제</span>
-              </Button>
+              {deletableProjects.length > 0 && (
+                <Button
+                  type="pressableStrong"
+                  onClick={() => setIsSelectionMode(true)}
+                >
+                  <span>선택 삭제</span>
+                </Button>
+              )}
             </>
           )
         }
@@ -285,22 +317,35 @@ export const ProjectListPage = () => {
         {isLoggedIn &&
           !isLoading &&
           !errorMessage &&
-          filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              category={project.category}
-              role={project.role}
-              title={project.title}
-              statusText={project.statusText}
-              date={project.date}
-              dateLabel="생성"
-              isSelectionMode={isSelectionMode}
-              isSelected={selectedIds.has(project.id)}
-              onToggleSelect={() => toggleSelect(project.id)}
-              onOpen={() => navigate(`/workspace/${project.id}/sections/1`)}
-              onEdit={() => setEditingProject(project)}
-            />
-          ))}
+          filteredProjects.map((project) => {
+            const isOwnerProject = project.role === "팀장";
+
+            return (
+              <ProjectCard
+                key={project.id}
+                category={project.category}
+                role={project.role}
+                title={project.title}
+                statusText={project.statusText}
+                date={project.date}
+                dateLabel="생성"
+                showEditIcon={isOwnerProject}
+                isSelectionMode={isSelectionMode && isOwnerProject}
+                isSelected={selectedIds.has(project.id)}
+                onToggleSelect={
+                  isOwnerProject ? () => toggleSelect(project.id) : undefined
+                }
+                onOpen={
+                  isSelectionMode
+                    ? undefined
+                    : () => navigate(`/workspace/${project.id}/sections/1`)
+                }
+                onEdit={
+                  isOwnerProject ? () => setEditingProject(project) : undefined
+                }
+              />
+            );
+          })}
         {isDeleteModalOpen && (
           <ConfirmModal
             title="프로젝트를 삭제할까요?"

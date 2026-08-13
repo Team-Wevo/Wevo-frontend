@@ -1,6 +1,7 @@
-import { PencilLine } from "lucide-react";
-import { CreditIcon } from "../../../../shared/components/icons";
+import { CreditIcon, EditNameIcon } from "../../../../shared/components/icons";
 import { Button } from "../../../../shared/components/Button";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
+import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
 import DraftReadabilityCard from "./DraftReadabilityCard";
@@ -35,15 +36,34 @@ const GeneratedDraftHeader = ({
         <p className="text-xs leading-5 font-normal font-semibold text-gray-900">
           {state.summary}
         </p>
-        <Button
-          type="outline"
-          onClick={onEditDraft}
-          disabled={isAcquiringEditLease || isEditDraftDisabled}
-          className="h-8 rounded-sm px-3.5 py-1.5 text-xs leading-4 font-medium"
-        >
-          <PencilLine className="text-main-300 h-3.5 w-3.5" />
-          {isAcquiringEditLease ? "편집권 확인 중..." : "초안 수정"}
-        </Button>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {isEditDraftDisabled && (
+            <div className="flex items-center gap-1 text-xs leading-4 font-normal text-gray-600">
+              <span
+                className="text-success"
+                aria-hidden
+              >
+                ●
+              </span>
+              <span>
+                {state.activity?.label ?? "다른 팀원이 편집 중"} · 편집이 끝나면
+                수정할 수 있어요.
+              </span>
+            </div>
+          )}
+          <Button
+            type="draftEdit"
+            onClick={onEditDraft}
+            disabled={isAcquiringEditLease || isEditDraftDisabled}
+            className="h-8 gap-1.5 rounded-sm px-3.5 py-1.5 text-[13px] leading-[18px] font-medium"
+          >
+            <EditNameIcon
+              size={14}
+              className={PRESSABLE_STROKE_ICON_STATE_CLASS}
+            />
+            {isAcquiringEditLease ? "편집권 확인 중..." : "초안 수정"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -53,12 +73,15 @@ const DraftGeneratedView = ({
   state,
   onEditDraft,
   onOpenEvidence,
+  isEvidenceLoading,
+  evidenceErrorMessage,
   onRequestReadabilityCheck,
   isAcquiringEditLease,
   isEditDraftDisabled,
   editActionErrorMessage,
   isRequestingReadabilityCheck,
   readabilityRequestErrorMessage,
+  canRequestReadabilityCheck,
 }: DraftStageViewProps) => {
   return (
     <>
@@ -75,15 +98,27 @@ const DraftGeneratedView = ({
         stage={state.stage}
         draftContent={state.draftContent}
       />
-      <DraftEvidenceFooter
-        state={state}
-        onOpenEvidence={onOpenEvidence}
-      />
-      <DraftReadabilityCard
-        isLoading={isRequestingReadabilityCheck}
-        errorMessage={readabilityRequestErrorMessage}
-        onRequestReadabilityCheck={onRequestReadabilityCheck}
-      />
+      {isEvidenceLoading ? (
+        <div className="flex min-h-8 items-center">
+          <LoadingSpinner size={16} />
+        </div>
+      ) : evidenceErrorMessage ? (
+        <p className="text-error min-h-8 text-xs leading-4">
+          {evidenceErrorMessage}
+        </p>
+      ) : (
+        <DraftEvidenceFooter
+          evidence={state.evidence}
+          onOpenEvidence={onOpenEvidence}
+        />
+      )}
+      {canRequestReadabilityCheck && (
+        <DraftReadabilityCard
+          isLoading={isRequestingReadabilityCheck}
+          errorMessage={readabilityRequestErrorMessage}
+          onRequestReadabilityCheck={onRequestReadabilityCheck}
+        />
+      )}
     </>
   );
 };

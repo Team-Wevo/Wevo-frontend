@@ -4,6 +4,7 @@ import { useRevalidator } from "react-router-dom";
 import { useMyProfile } from "../../../auth/hooks/useMyProfile";
 import AiDraftProgressCard from "../blocks/AiDraftProgressCard";
 import DraftEditedView from "../draft/DraftEditedView";
+import DraftEvidenceModal from "../draft/DraftEvidenceModal";
 import DraftEditingView from "../draft/DraftEditingView";
 import DraftGeneratedView from "../draft/DraftGeneratedView";
 import DraftGeneratingView from "../draft/DraftGeneratingView";
@@ -20,7 +21,11 @@ import type {
   DraftStageViewProps,
   DebugDraftStage,
 } from "../draft/types";
-import type { IssueCoordinationData, WorkspaceIssue } from "../issue/types";
+import type {
+  IssueCoordinationData,
+  IssueDecisionSubmission,
+  WorkspaceIssue,
+} from "../issue/types";
 import type { WorkspaceSection } from "../../constants/sections";
 import { getAiJobStatus } from "../../api/getAiJobStatus";
 import {
@@ -41,11 +46,21 @@ import {
   generateSectionDraft,
   getGenerateDraftErrorMessage,
 } from "../../api/generateDraft";
+import { answerIssue, getAnswerIssueErrorMessage } from "../../api/answerIssue";
+import {
+  getRequestIssueEvidenceErrorMessage,
+  requestIssueEvidence,
+} from "../../api/requestIssueEvidence";
+import { decideIssue, getDecideIssueErrorMessage } from "../../api/decideIssue";
 import {
   getSectionDraft,
   getSectionDraftErrorMessage,
   type SectionDraftResponse,
 } from "../../api/getSectionDraft";
+import {
+  getSectionDraftEvidence,
+  getSectionDraftEvidenceErrorMessage,
+} from "../../api/getSectionDraftEvidence";
 import {
   getSectionDraftPrecheck,
   type SectionDraftPrecheckCurrentResult,
@@ -64,6 +79,8 @@ import {
   getStartSynthesisErrorMessage,
   startSectionSynthesis,
 } from "../../api/startSynthesis";
+import { LIVE_SYNC_REFETCH_INTERVAL_MS } from "../../../../shared/constants/liveSync";
+import { getApiErrorResponse } from "../../../../shared/api/error";
 import {
   getRequestSectionDraftPrecheckErrorMessage,
   requestSectionDraftPrecheck,
@@ -82,12 +99,19 @@ import {
   setStoredDraftRequestId,
   setStoredSynthesisRequestId,
 } from "../../utils/aiJobRequestStorage";
+import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
 interface DraftViewProps {
   section: WorkspaceSection;
+  permissions: WorkspacePermissions;
 }
 
+const isDraftLeaseNoLongerOwnedError = (error: unknown) => {
+  const code = getApiErrorResponse(error)?.code;
+
+  return code === "S004" || code === "S005";
+};
+
 const AI_JOB_POLLING_INTERVAL_MS = 5_000;
-const DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS = 10_000;
 const DRAFT_LEASE_HEARTBEAT_BUFFER_MS = 60_000;
 const DRAFT_LEASE_HEARTBEAT_MIN_INTERVAL_MS = 30_000;
 
@@ -163,7 +187,7 @@ const extractSynthesisCurrentSet = (
   }
 
   return hasIssuePayloadShape(root)
-    ? (root as SectionSynthesisCurrentSetResponse)
+    ? (root as unknown as SectionSynthesisCurrentSetResponse)
     : null;
 };
 
@@ -250,6 +274,20 @@ const toWorkspaceIssue = (
 
   const options = optionCandidates
     .map((option, optionIndex) => {
+      if (typeof option === "string") {
+        const label = option.trim();
+
+        if (!label) {
+          return null;
+        }
+
+        return {
+          id: `${index + 1}-option-${optionIndex + 1}`,
+          label,
+          isCustomInput: label.replace(/\s/g, "") === "직접입력",
+        };
+      }
+
       if (typeof option !== "object" || option === null) {
         return null;
       }
@@ -303,7 +341,12 @@ const toWorkspaceIssue = (
         return null;
       }
 
-      return { memberName, content };
+      const authorUserId =
+        typeof record.authorUserId === "number"
+          ? record.authorUserId
+          : undefined;
+
+      return { authorUserId, memberName, content };
     })
     .filter(
       (opinion): opinion is NonNullable<typeof opinion> => opinion !== null,
@@ -322,8 +365,26 @@ const toWorkspaceIssue = (
     (issueType === "GAP"
       ? "추가 근거를 요청한 상태예요. 답변을 기다리며 진행할 수 있어요."
       : "이 쟁점의 방향을 하나로 결정해 주세요.");
+  const decisionRecord = toRecordValue(issue.decision);
+  const decision = decisionRecord
+    ? {
+        selectedOption:
+          toStringValue(decisionRecord.selectedOption) ?? undefined,
+        customInput: toStringValue(decisionRecord.customInput) ?? undefined,
+      }
+    : undefined;
 
   if (issueType === "GAP") {
+    const answerRecord = toRecordValue(issue.answer);
+    const answer = answerRecord
+      ? {
+          authorName: toStringValue(answerRecord.authorName) ?? "팀원",
+          content: toStringValue(answerRecord.content) ?? "",
+          answeredAt: toStringValue(answerRecord.answeredAt) ?? "",
+        }
+      : undefined;
+    const evidenceRequested = issue.evidenceRequested === true;
+
     return {
       id:
         toStringValue(issue.id) ??
@@ -335,29 +396,34 @@ const toWorkspaceIssue = (
       aiHint,
       opinions,
       evidenceRequest: {
+        requested: evidenceRequested,
         message:
           toStringValue(issue.requestMessage) ??
-          "추가 근거를 요청했어요 · 답변 대기",
+          (answer
+            ? "추가 근거 답변이 등록되었어요."
+            : evidenceRequested
+              ? "추가 근거를 요청한 상태예요 · 답변 대기"
+              : "추가 근거 요청이 필요해요."),
         questionCount:
           typeof issue.questionCount === "number" && issue.questionCount > 0
             ? issue.questionCount
             : 1,
+        answer,
       },
+      decision,
     };
   }
 
-  const choiceOptions =
-    options.length > 0
-      ? options
-      : [
-          { id: `${index + 1}-agree`, label: "의견 A 기준으로 반영" },
-          { id: `${index + 1}-merge`, label: "의견을 통합해 반영" },
-          {
-            id: `${index + 1}-custom`,
-            label: "직접 입력",
-            isCustomInput: true,
-          },
-        ];
+  const choiceOptions = options.some((option) => option.isCustomInput)
+    ? options
+    : [
+        ...options,
+        {
+          id: `${index + 1}-custom`,
+          label: "직접 입력",
+          isCustomInput: true,
+        },
+      ];
 
   return {
     id:
@@ -370,6 +436,7 @@ const toWorkspaceIssue = (
     aiHint,
     opinions,
     options: choiceOptions,
+    decision,
   };
 };
 
@@ -487,6 +554,12 @@ const PRECHECK_RESULT_TITLE_MAP: Record<AiPreReviewResultType, string> = {
   reader_question: "독자 질문",
 };
 
+const PRECHECK_RESULT_TYPE_ORDER: AiPreReviewResultType[] = [
+  "blocked_sentence",
+  "hidden_assumption",
+  "reader_question",
+];
+
 const toPreReviewResultType = (value: string): AiPreReviewResultType => {
   return (
     PRECHECK_RESULT_TYPE_MAP[value.trim().toUpperCase()] ?? "blocked_sentence"
@@ -523,10 +596,32 @@ const toPreReviewData = (
   }
 
   const findings = Array.isArray(result.findings) ? result.findings : [];
+  const groupedResults = findings
+    .map(toPreReviewResult)
+    .reduce<AiPreReviewData["results"]>((groups, current) => {
+      const existing = groups.find((group) => group.type === current.type);
+
+      if (existing) {
+        existing.findings.push(...current.findings);
+        existing.title = `${PRECHECK_RESULT_TITLE_MAP[current.type]} ${existing.findings.length}`;
+        return groups;
+      }
+
+      groups.push({
+        ...current,
+        title: `${PRECHECK_RESULT_TITLE_MAP[current.type]} ${current.findings.length}`,
+      });
+      return groups;
+    }, [])
+    .sort(
+      (a, b) =>
+        PRECHECK_RESULT_TYPE_ORDER.indexOf(a.type) -
+        PRECHECK_RESULT_TYPE_ORDER.indexOf(b.type),
+    );
 
   return {
-    perspectiveLabel: `콘텐츠 v${result.checkedContentVersion} 기준`,
-    results: findings.map(toPreReviewResult),
+    perspectiveLabel: "처음 읽는 사람 관점",
+    results: groupedResults,
     revisionProposal: result.rewrite
       ? {
           title: "수정안",
@@ -571,7 +666,7 @@ const getInitialStage = (
   return "issue-coordination";
 };
 
-const DraftView = ({ section }: DraftViewProps) => {
+const DraftView = ({ section, permissions }: DraftViewProps) => {
   const sectionId = section.projectSectionId;
   const revalidator = useRevalidator();
   const myProfileQuery = useMyProfile(true);
@@ -608,6 +703,7 @@ const DraftView = ({ section }: DraftViewProps) => {
   const [draftSaveErrorMessage, setDraftSaveErrorMessage] = useState<
     string | null
   >(null);
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [editActionErrorMessage, setEditActionErrorMessage] = useState<
     string | null
   >(null);
@@ -653,7 +749,10 @@ const DraftView = ({ section }: DraftViewProps) => {
       setSynthesisRequestId(result.requestId);
       return result;
     },
-    enabled: section.sectionStatus === "SYNTHESIZING" && !synthesisRequestId,
+    enabled:
+      permissions.canManageOpinionCollection &&
+      section.sectionStatus === "SYNTHESIZING" &&
+      !synthesisRequestId,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
@@ -713,6 +812,8 @@ const DraftView = ({ section }: DraftViewProps) => {
     "REQUESTED";
   const synthesisFailureMessage =
     synthesisJobQuery.data?.failure?.message?.trim() ?? null;
+  const shouldFetchSynthesisResult =
+    section.sectionStatus === "DRAFTING" || synthesisJobStatus === "SUCCEEDED";
 
   const synthesisResultQuery = useQuery({
     queryKey: [
@@ -722,14 +823,16 @@ const DraftView = ({ section }: DraftViewProps) => {
       synthesisJobStatus,
     ],
     queryFn: () => getSectionSynthesis(sectionId),
-    enabled:
-      section.sectionStatus === "DRAFTING" ||
-      synthesisJobStatus === "SUCCEEDED",
+    enabled: shouldFetchSynthesisResult,
+    refetchInterval: shouldFetchSynthesisResult
+      ? LIVE_SYNC_REFETCH_INTERVAL_MS
+      : false,
+    refetchIntervalInBackground: true,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   useEffect(() => {
@@ -781,6 +884,10 @@ const DraftView = ({ section }: DraftViewProps) => {
         draftJobQuery.data?.status === "SUCCEEDED") &&
       !isDraftJobFeatureMismatch,
     retry: false,
+    refetchInterval: isDraftLeaseOwned ? false : LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   useEffect(() => {
@@ -792,9 +899,11 @@ const DraftView = ({ section }: DraftViewProps) => {
   const leaseStatusQuery = useQuery({
     queryKey: ["workspace-draft-lease-status", sectionId],
     queryFn: () => getSectionDraftLeaseStatus(sectionId),
-    enabled: Boolean(draftResultQuery.data) && draftStage === "editing",
+    enabled: Boolean(draftResultQuery.data),
     retry: false,
-    refetchInterval: DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS,
+    refetchInterval: LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   const precheckJobQuery = useQuery({
@@ -822,22 +931,35 @@ const DraftView = ({ section }: DraftViewProps) => {
     queryKey: [
       "workspace-precheck-result",
       sectionId,
-      precheckRequestId,
-      precheckJobQuery.data?.status,
-      draftStage,
+      draftResultQuery.data?.contentVersion,
     ],
     queryFn: () => getSectionDraftPrecheck(sectionId),
-    enabled:
-      draftStage === "reviewable" ||
-      precheckJobQuery.data?.status === "SUCCEEDED",
+    enabled: Boolean(draftResultQuery.data),
+    refetchInterval: LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
     retry: false,
   });
 
-  const effectiveDraftContent =
-    draftContent ?? draftResultQuery.data?.content ?? null;
-  const effectiveDraftVersion =
-    draftVersion ?? draftResultQuery.data?.contentVersion ?? null;
-  const precheckCurrentResult = precheckResultQuery.data?.currentResult;
+  const effectiveDraftContent = isDraftLeaseOwned
+    ? (draftContent ?? draftResultQuery.data?.content ?? null)
+    : (draftResultQuery.data?.content ?? draftContent ?? null);
+  const effectiveDraftVersion = isDraftLeaseOwned
+    ? (draftVersion ?? draftResultQuery.data?.contentVersion ?? null)
+    : (draftResultQuery.data?.contentVersion ?? draftVersion ?? null);
+  const draftEvidenceQuery = useQuery({
+    queryKey: ["workspace-draft-evidence", sectionId, effectiveDraftVersion],
+    queryFn: () => getSectionDraftEvidence(sectionId),
+    enabled: effectiveDraftVersion !== null,
+    refetchOnMount: "always",
+    retry: false,
+  });
+  const precheckCurrentResult =
+    precheckResultQuery.data?.currentResult?.checkedContentVersion ===
+    effectiveDraftVersion
+      ? precheckResultQuery.data.currentResult
+      : undefined;
   const precheckResultRequestId =
     precheckCurrentResult?.requestId ??
     precheckResultQuery.data?.latestJob?.requestId ??
@@ -845,6 +967,8 @@ const DraftView = ({ section }: DraftViewProps) => {
   const preReviewData = useMemo(() => {
     return toPreReviewData(precheckCurrentResult);
   }, [precheckCurrentResult]);
+  const displayedDraftStage =
+    preReviewData && draftStage !== "editing" ? "reviewable" : draftStage;
   const leaseEditor = leaseStatusQuery.data?.editor ?? null;
   const isLockedByAnotherEditor = Boolean(
     leaseStatusQuery.data?.locked &&
@@ -872,7 +996,7 @@ const DraftView = ({ section }: DraftViewProps) => {
       activeEditor: draftResultQuery.data.activeEditor,
     };
 
-    if (draftStage === "editing") {
+    if (displayedDraftStage === "editing") {
       return buildEditingStateFromDraft(runtimeDraft, {
         isLockedByAnotherEditor,
         editorName: leaseEditor?.name ?? null,
@@ -880,11 +1004,11 @@ const DraftView = ({ section }: DraftViewProps) => {
       });
     }
 
-    if (draftStage === "edited") {
+    if (displayedDraftStage === "edited") {
       return buildEditedStateFromDraft(runtimeDraft);
     }
 
-    if (draftStage === "reviewable") {
+    if (displayedDraftStage === "reviewable") {
       return buildReviewableStateFromDraft(runtimeDraft, preReviewData);
     }
 
@@ -897,7 +1021,7 @@ const DraftView = ({ section }: DraftViewProps) => {
     draftResultQuery.data,
     effectiveDraftContent,
     effectiveDraftVersion,
-    draftStage,
+    displayedDraftStage,
     isLockedByAnotherEditor,
     leaseEditor?.name,
     myDisplayName,
@@ -907,11 +1031,11 @@ const DraftView = ({ section }: DraftViewProps) => {
   const resolvedStage = useMemo<DebugDraftStage>(() => {
     if (runtimeDraftState) {
       if (
-        draftStage === "reviewable" ||
-        draftStage === "edited" ||
-        draftStage === "editing"
+        displayedDraftStage === "reviewable" ||
+        displayedDraftStage === "edited" ||
+        displayedDraftStage === "editing"
       ) {
-        return draftStage;
+        return displayedDraftStage;
       }
 
       return "generated";
@@ -932,7 +1056,7 @@ const DraftView = ({ section }: DraftViewProps) => {
     return "opinion-analyzing";
   }, [
     runtimeDraftState,
-    draftStage,
+    displayedDraftStage,
     draftRequestId,
     draftJobQuery.data,
     synthesisJobStatus,
@@ -1023,8 +1147,13 @@ const DraftView = ({ section }: DraftViewProps) => {
 
     setIsSavingDraft(true);
     setDraftSaveErrorMessage(null);
+    setEditActionErrorMessage(null);
 
     try {
+      const lease = await acquireSectionDraftLease(sectionId);
+      setIsDraftLeaseOwned(true);
+      setLeaseExpiresAt(lease.expiresAt);
+
       await saveSectionDraft(sectionId, {
         content: effectiveDraftContent,
         baseVersion: effectiveDraftVersion,
@@ -1042,13 +1171,16 @@ const DraftView = ({ section }: DraftViewProps) => {
       try {
         await releaseSectionDraftLease(sectionId);
       } catch (error) {
-        setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
-      } finally {
-        setIsDraftLeaseOwned(false);
-        setLeaseExpiresAt(null);
-        setDraftStage("edited");
-        void leaseStatusQuery.refetch();
+        if (!isDraftLeaseNoLongerOwnedError(error)) {
+          setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+          return;
+        }
       }
+
+      setIsDraftLeaseOwned(false);
+      setLeaseExpiresAt(null);
+      setDraftStage("generated");
+      void leaseStatusQuery.refetch();
     } catch (error) {
       setDraftSaveErrorMessage(getSaveSectionDraftErrorMessage(error));
     } finally {
@@ -1057,10 +1189,14 @@ const DraftView = ({ section }: DraftViewProps) => {
   };
 
   const handleOpenEvidence = () => {
-    // TODO: 근거 상세 패널/모달 연결
+    setIsEvidenceModalOpen(true);
   };
 
   const handleRequestReadabilityCheck = async () => {
+    if (!permissions.canRequestPrecheck) {
+      return;
+    }
+
     setReadabilityRequestErrorMessage(null);
     setDraftStage("reviewable");
 
@@ -1085,6 +1221,7 @@ const DraftView = ({ section }: DraftViewProps) => {
 
   const handleApplyRevision = async (): Promise<boolean> => {
     if (
+      !permissions.canApplyPrecheckRevision ||
       isApplyingRevision ||
       !precheckCurrentResult ||
       !precheckResultRequestId
@@ -1094,12 +1231,23 @@ const DraftView = ({ section }: DraftViewProps) => {
 
     setIsApplyingRevision(true);
     setApplyRevisionErrorMessage(null);
+    const wasLeaseOwned = isDraftLeaseOwned;
+    let didAcquireLease = false;
 
     try {
+      const lease = await acquireSectionDraftLease(sectionId);
+      didAcquireLease = true;
+      setIsDraftLeaseOwned(true);
+      setLeaseExpiresAt(lease.expiresAt);
+
       await applySectionDraftPrecheck(sectionId, {
         requestId: precheckResultRequestId,
         checkedContentVersion: precheckCurrentResult.checkedContentVersion,
       });
+
+      setIsDraftLeaseOwned(wasLeaseOwned);
+      setLeaseExpiresAt(wasLeaseOwned ? lease.expiresAt : null);
+      void leaseStatusQuery.refetch();
 
       const latestDraftResult = await draftResultQuery.refetch();
       const latestDraft = latestDraftResult.data ?? null;
@@ -1115,6 +1263,22 @@ const DraftView = ({ section }: DraftViewProps) => {
 
       return true;
     } catch (error) {
+      if (didAcquireLease && !wasLeaseOwned) {
+        try {
+          await releaseSectionDraftLease(sectionId);
+        } catch (releaseError) {
+          if (!isDraftLeaseNoLongerOwnedError(releaseError)) {
+            setEditActionErrorMessage(
+              getReleaseDraftLeaseErrorMessage(releaseError),
+            );
+          }
+        }
+
+        setIsDraftLeaseOwned(false);
+        setLeaseExpiresAt(null);
+        void leaseStatusQuery.refetch();
+      }
+
       setApplyRevisionErrorMessage(
         getApplySectionDraftPrecheckErrorMessage(error),
       );
@@ -1163,16 +1327,25 @@ const DraftView = ({ section }: DraftViewProps) => {
     try {
       await releaseSectionDraftLease(sectionId);
     } catch (error) {
-      setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
-    } finally {
-      setIsDraftLeaseOwned(false);
-      setLeaseExpiresAt(null);
-      setDraftStage("edited");
-      void leaseStatusQuery.refetch();
+      if (!isDraftLeaseNoLongerOwnedError(error)) {
+        setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+        return;
+      }
     }
+
+    setDraftContent(lastSavedDraftContent);
+    setDraftSaveErrorMessage(null);
+    setIsDraftLeaseOwned(false);
+    setLeaseExpiresAt(null);
+    setDraftStage("generated");
+    void leaseStatusQuery.refetch();
   };
 
   const handleMoveToReviewRequest = async () => {
+    if (!permissions.canMoveToReviewRequest) {
+      return;
+    }
+
     setIsMovingToReviewRequest(true);
     setMoveToReviewRequestErrorMessage(null);
 
@@ -1186,9 +1359,39 @@ const DraftView = ({ section }: DraftViewProps) => {
     }
   };
 
-  const handleCreateDraft = async () => {
+  const handleCreateDraft = async (decisions: IssueDecisionSubmission[]) => {
+    if (!permissions.canGenerateDraft) {
+      return;
+    }
+
     setIsStartingDraftGeneration(true);
     setActionErrorMessage(null);
+
+    try {
+      await Promise.all(
+        decisions.map((decision) => {
+          const issueId = Number(decision.issueId);
+
+          if (!Number.isInteger(issueId) || issueId <= 0) {
+            throw new Error("유효하지 않은 쟁점 번호입니다.");
+          }
+
+          return decideIssue(issueId, {
+            selectedOption: decision.selectedOption,
+            customInput: decision.customInput,
+          });
+        }),
+      );
+
+      if (decisions.length > 0) {
+        await synthesisResultQuery.refetch();
+      }
+    } catch (error) {
+      setActionErrorMessage(getDecideIssueErrorMessage(error));
+      void synthesisResultQuery.refetch();
+      setIsStartingDraftGeneration(false);
+      return;
+    }
 
     try {
       const { requestId } = await generateSectionDraft(sectionId);
@@ -1199,6 +1402,48 @@ const DraftView = ({ section }: DraftViewProps) => {
       setActionErrorMessage(getGenerateDraftErrorMessage(error));
     } finally {
       setIsStartingDraftGeneration(false);
+    }
+  };
+
+  const handleSubmitEvidenceAnswer = async (
+    issueIdValue: string,
+    content: string,
+  ) => {
+    const issueId = Number(issueIdValue);
+
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      throw new Error("유효하지 않은 쟁점 번호입니다.");
+    }
+
+    try {
+      await answerIssue(issueId, { content: content.trim() });
+      await synthesisResultQuery.refetch();
+    } catch (error) {
+      throw new Error(getAnswerIssueErrorMessage(error), { cause: error });
+    }
+  };
+
+  const handleRequestEvidence = async (
+    issueIdValue: string,
+    targetUserId: number,
+  ) => {
+    if (!permissions.canManageIssues) {
+      return;
+    }
+
+    const issueId = Number(issueIdValue);
+
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      throw new Error("유효하지 않은 쟁점 번호입니다.");
+    }
+
+    try {
+      await requestIssueEvidence(issueId, { targetUserId });
+      await synthesisResultQuery.refetch();
+    } catch (error) {
+      throw new Error(getRequestIssueEvidenceErrorMessage(error), {
+        cause: error,
+      });
     }
   };
 
@@ -1260,15 +1505,17 @@ const DraftView = ({ section }: DraftViewProps) => {
           <div className="text-error text-xs leading-4 font-normal">
             {flowErrorMessage}
           </div>
-          {synthesisStartQuery.isError && !effectiveSynthesisRequestId && (
-            <button
-              type="button"
-              onClick={() => void synthesisStartQuery.refetch()}
-              className="text-error shrink-0 text-xs leading-4 font-medium underline"
-            >
-              다시 시도
-            </button>
-          )}
+          {permissions.canManageOpinionCollection &&
+            synthesisStartQuery.isError &&
+            !effectiveSynthesisRequestId && (
+              <button
+                type="button"
+                onClick={() => void synthesisStartQuery.refetch()}
+                className="text-error shrink-0 text-xs leading-4 font-medium underline"
+              >
+                다시 시도
+              </button>
+            )}
         </div>
       )}
 
@@ -1282,21 +1529,44 @@ const DraftView = ({ section }: DraftViewProps) => {
         <IssueCoordinationView
           data={issueCoordinationData ?? toIssueCoordinationData(null)}
           onCreateDraft={handleCreateDraft}
+          onSubmitEvidenceAnswer={handleSubmitEvidenceAnswer}
+          onRequestEvidence={handleRequestEvidence}
           isCreatingDraft={isStartingDraftGeneration}
+          canManageIssues={permissions.canManageIssues}
+          canGenerateDraft={permissions.canGenerateDraft}
         />
       ) : (
         (() => {
           const currentDraftState =
             runtimeDraftState ??
             MOCK_DRAFT_STATE_BY_STAGE[resolvedStage as DraftStage];
+          const displayedDraftState = draftEvidenceQuery.data
+            ? {
+                ...currentDraftState,
+                evidence: {
+                  ...currentDraftState.evidence,
+                  teamOpinionCount: draftEvidenceQuery.data.opinions.length,
+                  issueDecisionCount: draftEvidenceQuery.data.decisions.length,
+                  issueDecisionLabel: "확정 결정",
+                },
+              }
+            : currentDraftState;
           const CurrentDraftStageView =
-            DRAFT_STAGE_VIEW_COMPONENTS[currentDraftState.stage];
+            DRAFT_STAGE_VIEW_COMPONENTS[displayedDraftState.stage];
 
           return (
             <CurrentDraftStageView
-              state={currentDraftState}
+              state={displayedDraftState}
               onEditDraft={handleMoveToEditing}
               onOpenEvidence={handleOpenEvidence}
+              isEvidenceLoading={draftEvidenceQuery.isFetching}
+              evidenceErrorMessage={
+                draftEvidenceQuery.isError
+                  ? getSectionDraftEvidenceErrorMessage(
+                      draftEvidenceQuery.error,
+                    )
+                  : null
+              }
               onRequestReadabilityCheck={handleRequestReadabilityCheck}
               onDraftContentChange={handleDraftContentChange}
               onSaveDraft={handleSaveDraft}
@@ -1309,18 +1579,34 @@ const DraftView = ({ section }: DraftViewProps) => {
               draftSaveErrorMessage={draftSaveErrorMessage}
               isRequestingReadabilityCheck={
                 isRequestingReadabilityCheck ||
-                precheckJobQuery.data?.status === "REQUESTED"
+                precheckJobQuery.data?.status === "REQUESTED" ||
+                precheckResultQuery.data?.latestJob?.status === "REQUESTED"
               }
               readabilityRequestErrorMessage={readabilityRequestErrorMessage}
+              canRequestReadabilityCheck={permissions.canRequestPrecheck}
               onApplyRevision={handleApplyRevision}
               onKeepRevision={handleKeepRevision}
               isApplyingRevision={isApplyingRevision}
               applyRevisionErrorMessage={applyRevisionErrorMessage}
+              canApplyRevision={permissions.canApplyPrecheckRevision}
+              canMoveToReviewRequest={permissions.canMoveToReviewRequest}
               isMovingToReviewRequest={isMovingToReviewRequest}
               moveToReviewRequestErrorMessage={moveToReviewRequestErrorMessage}
             />
           );
         })()
+      )}
+      {isEvidenceModalOpen && (
+        <DraftEvidenceModal
+          data={draftEvidenceQuery.data}
+          isLoading={draftEvidenceQuery.isPending}
+          errorMessage={
+            draftEvidenceQuery.isError
+              ? getSectionDraftEvidenceErrorMessage(draftEvidenceQuery.error)
+              : null
+          }
+          onClose={() => setIsEvidenceModalOpen(false)}
+        />
       )}
     </div>
   );

@@ -34,6 +34,7 @@ export const MOCK_ISSUE_COORDINATION: IssueCoordinationData = {
       aiHint: "평균 탐색 시간을 뒷받침할 근거가 필요해요.",
       opinions: [],
       evidenceRequest: {
+        requested: true,
         message: "민수 님에게 추가 근거를 요청했어요 · 답변 대기",
         questionCount: 1,
       },

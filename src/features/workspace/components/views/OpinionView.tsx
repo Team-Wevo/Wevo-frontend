@@ -7,6 +7,8 @@ import type { WorkspaceSection } from "../../constants/sections";
 import type { SectionOpinionsResponse } from "../../api/getSectionOpinions";
 import type { MyOpinionResponse } from "../../api/getMyOpinion";
 import type { DraftSaveStatus } from "../layout/WorkspaceHeader";
+import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
+import { useSectionOpinions } from "../../hooks/useSectionOpinions";
 
 interface OpinionViewProps {
   projectId: number;
@@ -15,6 +17,8 @@ interface OpinionViewProps {
   opinions: SectionOpinionsResponse | null;
   myOpinion: MyOpinionResponse | null;
   onSaveStatusChange?: (status: DraftSaveStatus) => void;
+  permissions: WorkspacePermissions;
+  readOnly?: boolean;
 }
 
 const OpinionView = ({
@@ -24,17 +28,22 @@ const OpinionView = ({
   opinions,
   myOpinion,
   onSaveStatusChange,
+  permissions,
+  readOnly = false,
 }: OpinionViewProps) => {
   const revalidator = useRevalidator();
   const [isEditingOwnOpinion, setIsEditingOwnOpinion] = useState(false);
+  const opinionsQuery = useSectionOpinions(sectionId, opinions);
+  const syncedOpinions = opinionsQuery.data ?? opinions;
 
   const handleOpinionSubmitted = () => {
     setIsEditingOwnOpinion(false);
-    // 제출 성공 시 loader를 다시 실행해 최신 의견 목록을 반영한다.
-    revalidator.revalidate();
+    // 내 제출은 즉시, 다른 팀원의 제출은 백그라운드 폴링으로 반영한다.
+    void Promise.all([revalidator.revalidate(), opinionsQuery.refetch()]);
   };
 
-  const showForm = !opinions?.everSubmitted || isEditingOwnOpinion;
+  const showForm =
+    !readOnly && (!syncedOpinions?.everSubmitted || isEditingOwnOpinion);
 
   // keyQuestion은 "? "로 이어붙은 여러 질문이 한 문자열로 내려온다.
   // 첫 질문만 대표 질문으로 강조하고 나머지는 하위 bullet로 보여준다.
@@ -47,7 +56,7 @@ const OpinionView = ({
 
   return (
     <div
-      aria-label={`${section.title} 의견 작성`}
+      aria-label={`${section.title} 의견 ${readOnly ? "조회" : "작성"}`}
       className="flex flex-col gap-6"
     >
       <SectionBlock className="flex flex-col gap-2">
@@ -82,9 +91,11 @@ const OpinionView = ({
         <CollectedOpinions
           projectId={projectId}
           sectionId={sectionId}
-          opinions={opinions?.opinions ?? []}
-          totalSubmittedCount={opinions?.totalSubmittedCount ?? 0}
+          opinions={syncedOpinions?.opinions ?? []}
+          totalSubmittedCount={syncedOpinions?.totalSubmittedCount ?? 0}
           onEditOpinion={() => setIsEditingOwnOpinion(true)}
+          canManageOpinionCollection={permissions.canManageOpinionCollection}
+          readOnly={readOnly}
         />
       )}
     </div>

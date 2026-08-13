@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, CircleDot, Plus } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
+import { UserAvatar } from "../../../../shared/components/UserAvatar";
+import { TeamInviteIcon } from "../../../../shared/components/icons/TeamInviteIcon";
+import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import {
   createInviteLink,
   getCreateInviteLinkErrorMessage,
   type CreateInviteLinkResponse,
 } from "../../../project/api/createInviteLink";
-import { getProjectMembers } from "../../../project/api/getProjectMembers";
+import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 import InviteTeamPopover from "./InviteTeamPopover";
 
 export type DraftSaveStatus = "idle" | "saving" | "saved";
@@ -19,25 +20,25 @@ interface WorkspaceHeaderProps {
   title: string;
   projectId: string;
   saveStatus?: DraftSaveStatus;
+  canInviteMembers: boolean;
   onInvite?: () => void;
   onPreviewAll?: () => void;
 }
 
-const HEADER_ACTION_BUTTON_CLASS = "gap-1 px-3 py-2 text-[12px] text-gray-700";
+const HEADER_ACTION_BUTTON_CLASS =
+  "h-8 gap-1 rounded-sm px-3 py-2 text-xs leading-4 font-medium";
 
 const WorkspaceHeader = ({
   title,
   projectId,
   saveStatus = "idle",
+  canInviteMembers,
   onInvite,
   onPreviewAll,
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const membersQuery = useQuery({
-    queryKey: ["project-members", projectId],
-    queryFn: () => getProjectMembers(Number(projectId)),
-  });
+  const membersQuery = useProjectMembers(Number(projectId), { live: true });
   const [inviteLink, setInviteLink] = useState<CreateInviteLinkResponse | null>(
     null,
   );
@@ -73,6 +74,10 @@ const WorkspaceHeader = ({
   }, [isInviteOpen]);
 
   const handleToggleInvite = async () => {
+    if (!canInviteMembers) {
+      return;
+    }
+
     onInvite?.();
     setIsInviteOpen((prev) => !prev);
 
@@ -106,13 +111,11 @@ const WorkspaceHeader = ({
           <ArrowLeft className="h-3 w-3" />
         </button>
 
-        <div className="bg-main-600 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm">
-          <img
-            src="/Wevo-logo.svg"
-            alt="Wevo"
-            className="h-4 w-4 object-contain"
-          />
-        </div>
+        <img
+          src="/Wevo-logo.svg"
+          alt="Wevo"
+          className="size-7 shrink-0 object-contain"
+        />
 
         <h1 className="truncate text-[14px] font-medium text-gray-900">
           {title}
@@ -133,56 +136,51 @@ const WorkspaceHeader = ({
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="flex -space-x-2">
-          {membersQuery.data?.members.slice(0, 4).map((member, index) =>
-            member.profileImageUrl ? (
-              <img
-                key={member.userId}
-                src={member.profileImageUrl}
-                alt=""
-                className="h-7 w-7 rounded-full border-[2px] border-gray-50 object-cover"
-              />
-            ) : (
-              <div
-                key={member.userId}
-                className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full border-[2px] border-gray-50 text-[11px] leading-[14px] font-normal text-gray-50",
-                  getAvatarColorByIndex(index),
-                )}
-              >
-                {member.name[0]}
-              </div>
-            ),
-          )}
-        </div>
-
-        <div
-          ref={inviteRef}
-          className="relative"
-        >
-          <Button
-            onClick={handleToggleInvite}
-            className={HEADER_ACTION_BUTTON_CLASS}
-          >
-            <Plus className="h-4 w-4" />
-            팀원 초대
-          </Button>
-
-          {isInviteOpen && (
-            <InviteTeamPopover
-              projectId={projectId}
-              inviteUrl={inviteLink?.inviteUrl ?? null}
-              isLoadingInviteUrl={isLoadingInviteLink}
-              inviteUrlErrorMessage={inviteLinkErrorMessage}
-              onClose={() => setIsInviteOpen(false)}
+          {membersQuery.data?.members.slice(0, 4).map((member, index) => (
+            <UserAvatar
+              key={member.userId}
+              name={member.name}
+              imageUrl={member.profileImageUrl}
+              colorIndex={index}
+              className="h-7 w-7 border-[2px] border-gray-50 text-[11px] leading-[14px]"
             />
-          )}
+          ))}
         </div>
+
+        {canInviteMembers && (
+          <div
+            ref={inviteRef}
+            className="relative"
+          >
+            <Button
+              type="pressableStrong"
+              onClick={handleToggleInvite}
+              className={HEADER_ACTION_BUTTON_CLASS}
+            >
+              <TeamInviteIcon
+                size={14}
+                className={cn("p-[1.5px]", PRESSABLE_FILL_ICON_STATE_CLASS)}
+              />
+              팀원 초대
+            </Button>
+
+            {isInviteOpen && (
+              <InviteTeamPopover
+                projectId={projectId}
+                inviteUrl={inviteLink?.inviteUrl ?? null}
+                isLoadingInviteUrl={isLoadingInviteLink}
+                inviteUrlErrorMessage={inviteLinkErrorMessage}
+                onClose={() => setIsInviteOpen(false)}
+              />
+            )}
+          </div>
+        )}
 
         <Button
+          type="pressableStrong"
           onClick={onPreviewAll}
-          className={cn(HEADER_ACTION_BUTTON_CLASS)}
+          className={HEADER_ACTION_BUTTON_CLASS}
         >
-          <CircleDot className="h-4 w-4" />
           전체 미리보기
         </Button>
       </div>

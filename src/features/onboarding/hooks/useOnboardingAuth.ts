@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../auth/api/auth";
+import { MY_PROFILE_QUERY_KEY } from "../../auth/hooks/useMyProfile";
 import {
   createOAuthState,
   buildOAuthAuthorizeUrl,
+  isOAuthReauthRequired,
   saveOAuthState,
   type OAuthProvider,
 } from "../../auth/constants/oauth";
@@ -17,6 +20,7 @@ const useOnboardingAuth = ({
   initialIsLoggedIn = false,
 }: UseOnboardingAuthOptions = {}) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const token = getAccessToken();
@@ -29,7 +33,12 @@ const useOnboardingAuth = ({
     try {
       const state = createOAuthState();
       saveOAuthState(provider, state);
-      window.location.assign(buildOAuthAuthorizeUrl(provider, { state }));
+      window.location.assign(
+        buildOAuthAuthorizeUrl(provider, {
+          state,
+          forceLogin: provider === "KAKAO" && isOAuthReauthRequired(provider),
+        }),
+      );
     } catch (error) {
       const message =
         error instanceof Error
@@ -47,6 +56,7 @@ const useOnboardingAuth = ({
     }
 
     clearAuthTokens();
+    queryClient.removeQueries({ queryKey: MY_PROFILE_QUERY_KEY });
     setIsLoggedIn(false);
     navigate("/");
   };

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../../../shared/components/Button";
+import { PRESSABLE_SUBMIT_BUTTON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { cn } from "../../../../../shared/utils/cn";
 import {
   saveOpinionDraft,
@@ -118,12 +119,12 @@ const OpinionForm = ({
             {opinion.length} / {MAX_OPINION_LENGTH}
           </span>
           <Button
-            type={isBelowMinLength ? "transparent" : "main"}
+            type="transparent"
             onClick={handleSubmit}
             disabled={isBelowMinLength || isSubmitting}
             className={cn(
-              "px-6 py-2",
-              isBelowMinLength && "bg-gray-100 text-gray-600",
+              "h-8 rounded-sm px-6 py-2 text-[12px] leading-4 font-medium",
+              PRESSABLE_SUBMIT_BUTTON_STATE_CLASS,
             )}
           >
             {isSubmitting ? "제출 중..." : "제출하기"}

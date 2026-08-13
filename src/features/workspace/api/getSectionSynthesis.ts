@@ -4,42 +4,41 @@ import { unwrapApiResponse } from "../../../shared/api/response";
 import type { ApiResponse } from "../../../shared/api/types";
 
 export interface SectionSynthesisIssueResponse {
-  id?: string | number;
-  type?: string;
-  title?: string;
-  summary?: string;
-  aiHint?: string;
+  issueId: number;
+  type: "CONFLICT" | "GAP";
+  status: "PENDING" | "RESOLVED";
+  description: string;
   question?: string;
-  opinions?: Array<{
-    memberName?: string;
-    name?: string;
-    content?: string;
-    opinion?: string;
-    text?: string;
+  relatedOpinions: Array<{
+    opinionId: number;
+    authorUserId: number;
+    authorName: string;
+    excerpt: string;
   }>;
-  options?: Array<{
-    id?: string | number;
-    label?: string;
-    content?: string;
-    text?: string;
-    isCustomInput?: boolean;
-  }>;
-  decisionOptions?: Array<{
-    id?: string | number;
-    label?: string;
-    content?: string;
-    text?: string;
-    isCustomInput?: boolean;
-  }>;
+  options?: string[];
+  decision?: {
+    selectedOption?: string;
+    customInput?: string;
+    decidedAt: string;
+  };
+  evidenceRequested: boolean;
+  answer?: {
+    answerId: number;
+    authorName: string;
+    content: string;
+    answeredAt: string;
+  };
   [key: string]: unknown;
 }
 
 export interface SectionSynthesisCurrentSetResponse {
-  consensusSummary?: string;
-  summary?: string;
-  issues?: SectionSynthesisIssueResponse[];
-  issueList?: SectionSynthesisIssueResponse[];
-  currentSet?: SectionSynthesisIssueResponse[];
+  setId?: string;
+  consensusSummary: string;
+  issues: SectionSynthesisIssueResponse[];
+  inheritedGapAnswers?: Array<{
+    issueId: number;
+    answerId: number;
+  }>;
 }
 
 export interface SectionSynthesisResponse {
