@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, CircleHelp, Lightbulb } from "lucide-react";
+import {
+  BlockedSentenceIcon,
+  HiddenAssumptionIcon,
+  ReaderQuestionIcon,
+} from "../../../../shared/components/icons";
 import type { AiPreReviewResult, AiPreReviewResultType } from "./types";
 
 interface AiPreReviewResultCardProps {
@@ -7,9 +11,9 @@ interface AiPreReviewResultCardProps {
 }
 
 const TYPE_ICON: Record<AiPreReviewResultType, ReactNode> = {
-  blocked_sentence: <AlertTriangle className="text-main-600 h-4 w-4" />,
-  hidden_assumption: <Lightbulb className="text-main-300 h-4 w-4" />,
-  reader_question: <CircleHelp className="text-main-500 h-4 w-4" />,
+  blocked_sentence: <BlockedSentenceIcon size={18} />,
+  hidden_assumption: <HiddenAssumptionIcon size={18} />,
+  reader_question: <ReaderQuestionIcon size={20} />,
 };
 
 const AiPreReviewResultCard = ({ result }: AiPreReviewResultCardProps) => {
@@ -19,7 +23,7 @@ const AiPreReviewResultCard = ({ result }: AiPreReviewResultCardProps) => {
         <span className="flex h-5 w-5 items-center justify-center">
           {TYPE_ICON[result.type]}
         </span>
-        <span className="text-xs leading-4 font-medium text-gray-900">
+        <span className="text-[13px] leading-[18px] font-medium text-gray-900">
           {result.title}
         </span>
       </div>
@@ -29,11 +33,11 @@ const AiPreReviewResultCard = ({ result }: AiPreReviewResultCardProps) => {
           key={`${result.id}-${index}`}
           className="flex flex-col gap-1"
         >
-          <p className="text-xs leading-5 font-normal text-gray-900">
+          <p className="text-[13px] leading-5 font-normal text-gray-900">
             {finding.description}
           </p>
           {finding.suggestion && (
-            <p className="text-main-700 text-xs leading-5 font-normal">
+            <p className="text-main-700 text-[13px] leading-5 font-normal">
               {finding.suggestion}
             </p>
           )}

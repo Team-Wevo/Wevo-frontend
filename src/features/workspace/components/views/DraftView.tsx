@@ -549,6 +549,12 @@ const PRECHECK_RESULT_TITLE_MAP: Record<AiPreReviewResultType, string> = {
   reader_question: "독자 질문",
 };
 
+const PRECHECK_RESULT_TYPE_ORDER: AiPreReviewResultType[] = [
+  "blocked_sentence",
+  "hidden_assumption",
+  "reader_question",
+];
+
 const toPreReviewResultType = (value: string): AiPreReviewResultType => {
   return (
     PRECHECK_RESULT_TYPE_MAP[value.trim().toUpperCase()] ?? "blocked_sentence"
@@ -585,10 +591,32 @@ const toPreReviewData = (
   }
 
   const findings = Array.isArray(result.findings) ? result.findings : [];
+  const groupedResults = findings
+    .map(toPreReviewResult)
+    .reduce<AiPreReviewData["results"]>((groups, current) => {
+      const existing = groups.find((group) => group.type === current.type);
+
+      if (existing) {
+        existing.findings.push(...current.findings);
+        existing.title = `${PRECHECK_RESULT_TITLE_MAP[current.type]} ${existing.findings.length}`;
+        return groups;
+      }
+
+      groups.push({
+        ...current,
+        title: `${PRECHECK_RESULT_TITLE_MAP[current.type]} ${current.findings.length}`,
+      });
+      return groups;
+    }, [])
+    .sort(
+      (a, b) =>
+        PRECHECK_RESULT_TYPE_ORDER.indexOf(a.type) -
+        PRECHECK_RESULT_TYPE_ORDER.indexOf(b.type),
+    );
 
   return {
-    perspectiveLabel: `콘텐츠 v${result.checkedContentVersion} 기준`,
-    results: findings.map(toPreReviewResult),
+    perspectiveLabel: "처음 읽는 사람 관점",
+    results: groupedResults,
     revisionProposal: result.rewrite
       ? {
           title: "수정안",

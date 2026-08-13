@@ -8,11 +8,9 @@ import type { AiPreReviewData } from "./types";
 
 interface AiPreReviewPanelProps {
   data: AiPreReviewData;
-  onCheckReadability: () => void;
   onCreateRevision: () => void;
   onApplyRevision?: () => Promise<boolean>;
   onKeepRevision?: () => void;
-  isCheckingReadability?: boolean;
   readabilityErrorMessage?: string | null;
   isApplyingRevision?: boolean;
   applyRevisionErrorMessage?: string | null;
@@ -20,11 +18,9 @@ interface AiPreReviewPanelProps {
 
 const AiPreReviewPanel = ({
   data,
-  onCheckReadability,
   onCreateRevision,
   onApplyRevision,
   onKeepRevision,
-  isCheckingReadability = false,
   readabilityErrorMessage = null,
   isApplyingRevision = false,
   applyRevisionErrorMessage = null,
@@ -59,28 +55,15 @@ const AiPreReviewPanel = ({
   return (
     <SectionBlock>
       <div className="flex w-full flex-col gap-4">
-        <div className="flex w-full items-center justify-between overflow-hidden">
+        <div className="flex w-full items-center overflow-hidden">
           <div className="flex items-center gap-2">
-            <h3 className="text-base leading-6 font-normal text-gray-900">
+            <h3 className="text-base leading-[26px] font-normal text-gray-900">
               AI 사전 검토
             </h3>
-            <span className="text-xs leading-4 font-normal text-gray-600">
+            <span className="text-xs leading-[15px] font-normal text-gray-600">
               · {data.perspectiveLabel}
             </span>
           </div>
-
-          <Button
-            type="ai"
-            onClick={onCheckReadability}
-            disabled={isCheckingReadability}
-            className="h-8 px-3 py-2 text-xs leading-4 font-medium"
-          >
-            <CreditIcon
-              size={16}
-              className={PRESSABLE_FILL_ICON_STATE_CLASS}
-            />
-            {isCheckingReadability ? "점검 요청 중..." : "잘 읽히는지 보기"}
-          </Button>
         </div>
 
         {readabilityErrorMessage && (
@@ -102,7 +85,7 @@ const AiPreReviewPanel = ({
           <Button
             type="ai"
             onClick={handleCreateRevision}
-            className="h-12 w-full px-4 py-3 text-lg leading-7 font-semibold"
+            className="h-[52px] w-full px-4 py-3 text-lg leading-7 font-semibold"
           >
             <CreditIcon
               size={20}

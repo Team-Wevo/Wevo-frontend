@@ -7,11 +7,9 @@ import type { DraftStageViewProps } from "./types";
 const DraftReviewableView = ({
   state,
   onOpenEvidence,
-  onRequestReadabilityCheck,
   onMoveToReviewRequest,
   isMovingToReviewRequest,
   moveToReviewRequestErrorMessage,
-  isRequestingReadabilityCheck,
   readabilityRequestErrorMessage,
   onApplyRevision,
   onKeepRevision,
@@ -41,11 +39,9 @@ const DraftReviewableView = ({
 
       <AiPreReviewPanel
         data={preReviewData}
-        onCheckReadability={onRequestReadabilityCheck}
         onCreateRevision={handleCreateRevision}
         onApplyRevision={onApplyRevision}
         onKeepRevision={onKeepRevision}
-        isCheckingReadability={isRequestingReadabilityCheck}
         readabilityErrorMessage={readabilityRequestErrorMessage}
         isApplyingRevision={isApplyingRevision}
         applyRevisionErrorMessage={applyRevisionErrorMessage}
