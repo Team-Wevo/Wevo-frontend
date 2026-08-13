@@ -7,8 +7,8 @@ import { EditNameIcon } from "../../../../shared/components/icons";
 import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
 import MarkdownContent from "../../../../shared/components/MarkdownContent";
+import { UserAvatar } from "../../../../shared/components/UserAvatar";
 import { cn } from "../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import SectionBlock from "../blocks/SectionBlock";
 import DraftEvidenceFooter from "../draft/DraftEvidenceFooter";
 import DraftEvidenceModal from "../draft/DraftEvidenceModal";
@@ -41,6 +41,7 @@ import {
 } from "../../api/resolveTeamReview";
 import type { WorkspaceSection } from "../../constants/sections";
 import type { WorkspacePermissions } from "../../utils/getWorkspacePermissions";
+import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 
 const REVIEW_STATUS_LABEL: Record<TeamReviewStatus, string> = {
   APPROVED: "동의",
@@ -102,6 +103,7 @@ const ReviewView = ({
 
   const teamReviewsQuery = useTeamReviews(section.projectSectionId);
   const teamReviews = teamReviewsQuery.data;
+  const membersQuery = useProjectMembers(Number(projectId));
 
   const draftQuery = useSectionDraft(sectionId);
   const draftEvidenceQuery = useQuery({
@@ -317,6 +319,14 @@ const ReviewView = ({
                 {teamReviews?.items.map((reviewer, index) => {
                   // 파생 PENDING 항목에는 reviewId가 없어 해소 처리 대상이 아니다.
                   const reviewId = reviewer.reviewId;
+                  const memberIndex =
+                    membersQuery.data?.members.findIndex(
+                      (member) => member.userId === reviewer.reviewerUserId,
+                    ) ?? -1;
+                  const member =
+                    memberIndex >= 0
+                      ? membersQuery.data?.members[memberIndex]
+                      : undefined;
 
                   return (
                     <div
@@ -325,16 +335,12 @@ const ReviewView = ({
                     >
                       <div className="flex w-full items-center justify-between">
                         <div className="flex items-center justify-start gap-2">
-                          <div
-                            className={cn(
-                              "flex size-6 items-center justify-center rounded-full",
-                              getAvatarColorByIndex(index),
-                            )}
-                          >
-                            <div className="text-xs leading-4 font-normal text-gray-50">
-                              {reviewer.reviewerName.charAt(0)}
-                            </div>
-                          </div>
+                          <UserAvatar
+                            name={reviewer.reviewerName}
+                            imageUrl={member?.profileImageUrl}
+                            colorIndex={memberIndex >= 0 ? memberIndex : index}
+                            className="size-6 text-xs leading-4"
+                          />
                           <div className="text-base leading-6 font-normal text-gray-900">
                             {reviewer.reviewerName}
                           </div>
