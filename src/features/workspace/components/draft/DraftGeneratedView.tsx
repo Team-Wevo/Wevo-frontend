@@ -95,7 +95,7 @@ const DraftGeneratedView = ({
         draftContent={state.draftContent}
       />
       <DraftEvidenceFooter
-        state={state}
+        evidence={state.evidence}
         onOpenEvidence={onOpenEvidence}
       />
       <DraftReadabilityCard

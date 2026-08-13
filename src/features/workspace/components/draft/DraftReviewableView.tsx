@@ -35,7 +35,7 @@ const DraftReviewableView = ({
         fitContent
       />
       <DraftEvidenceFooter
-        state={state}
+        evidence={state.evidence}
         onOpenEvidence={onOpenEvidence}
       />
 

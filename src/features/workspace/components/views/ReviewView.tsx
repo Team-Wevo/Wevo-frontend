@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
@@ -9,12 +10,18 @@ import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import { cn } from "../../../../shared/utils/cn";
 import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import SectionBlock from "../blocks/SectionBlock";
+import DraftEvidenceFooter from "../draft/DraftEvidenceFooter";
+import DraftEvidenceModal from "../draft/DraftEvidenceModal";
 import {
   confirmSection,
   getConfirmSectionErrorMessage,
 } from "../../api/confirmSection";
 import { getUnsatisfiedReasons } from "../../api/getSectionConfirmReadiness";
 import { getSectionDraftErrorMessage } from "../../api/getSectionDraft";
+import {
+  getSectionDraftEvidence,
+  getSectionDraftEvidenceErrorMessage,
+} from "../../api/getSectionDraftEvidence";
 import { useSectionConfirmReadiness } from "../../hooks/useSectionConfirmReadiness";
 import { useSectionDraft } from "../../hooks/useSectionDraft";
 import { useTeamReviews } from "../../hooks/useTeamReviews";
@@ -70,6 +77,7 @@ const ReviewView = ({
     null,
   );
   const [isChangeRequestMode, setIsChangeRequestMode] = useState(false);
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [changeRequestReason, setChangeRequestReason] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [submitReviewErrorMessage, setSubmitReviewErrorMessage] = useState<
@@ -96,6 +104,16 @@ const ReviewView = ({
   const teamReviews = teamReviewsQuery.data;
 
   const draftQuery = useSectionDraft(sectionId);
+  const draftEvidenceQuery = useQuery({
+    queryKey: [
+      "workspace-draft-evidence",
+      sectionId,
+      draftQuery.data?.contentVersion,
+    ],
+    queryFn: () => getSectionDraftEvidence(sectionId),
+    enabled: Boolean(draftQuery.data),
+    retry: false,
+  });
 
   const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
@@ -201,25 +219,31 @@ const ReviewView = ({
         )}
       </SectionBlock>
 
-      <div className="flex items-center justify-start gap-2">
-        <div className="text-xs leading-4 font-normal text-gray-600">
-          근거: 팀 의견 3개 · 확정 결정 1건
-          {isSectionConfirmed &&
-            teamReviews &&
-            ` · 팀 동의 ${teamReviews.approvedCount}/${teamReviews.totalMembers}`}
+      {draftEvidenceQuery.data ? (
+        <DraftEvidenceFooter
+          evidence={{
+            teamOpinionCount: draftEvidenceQuery.data.opinions.length,
+            issueDecisionCount: draftEvidenceQuery.data.decisions.length,
+            issueDecisionLabel: "확정 결정",
+          }}
+          suffix={
+            isSectionConfirmed && teamReviews
+              ? ` · 팀 동의 ${teamReviews.approvedCount}/${teamReviews.totalMembers}`
+              : null
+          }
+          onOpenEvidence={() => setIsEvidenceModalOpen(true)}
+        />
+      ) : (
+        <div className="flex min-h-8 items-center gap-2">
+          {draftEvidenceQuery.isPending ? (
+            <LoadingSpinner size={16} />
+          ) : (
+            <span className="text-error text-xs leading-4">
+              {getSectionDraftEvidenceErrorMessage(draftEvidenceQuery.error)}
+            </span>
+          )}
         </div>
-        {/* 확정 화면에는 팀 검토 현황 카드가 없어 동의 집계 상태를 여기서 알린다. */}
-        {isSectionConfirmed && teamReviewsQuery.isPending && (
-          <LoadingSpinner size={12} />
-        )}
-        {/* TODO: 근거 상세 보기 UI 연동 후 onClick 핸들러 연결 */}
-        <button
-          type="button"
-          className="text-main-700 cursor-pointer text-xs leading-5 font-normal"
-        >
-          근거 보기
-        </button>
-      </div>
+      )}
 
       {isSectionConfirmed && teamReviewsQuery.isError && (
         <div className="text-error text-xs leading-4 font-normal">
@@ -484,6 +508,19 @@ const ReviewView = ({
             </div>
           )}
         </>
+      )}
+
+      {isEvidenceModalOpen && (
+        <DraftEvidenceModal
+          data={draftEvidenceQuery.data}
+          isLoading={draftEvidenceQuery.isPending}
+          errorMessage={
+            draftEvidenceQuery.isError
+              ? getSectionDraftEvidenceErrorMessage(draftEvidenceQuery.error)
+              : null
+          }
+          onClose={() => setIsEvidenceModalOpen(false)}
+        />
       )}
     </>
   );
