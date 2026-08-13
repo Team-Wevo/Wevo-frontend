@@ -111,7 +111,7 @@ const CompletedRightSidebar = ({
           결과물 수정
         </h2>
         <p className="w-full text-xs leading-[15px] font-normal text-gray-600">
-          수정할 섹션에 마우스를 올려 ✎ 를 눌러주세요.
+          수정할 섹션에 마우스를 올려 수정을 눌러주세요.
         </p>
         <Button
           type="pressableStrong"
