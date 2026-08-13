@@ -14,6 +14,7 @@ const DraftReviewableView = ({
   isMovingToReviewRequest,
   moveToReviewRequestErrorMessage,
   readabilityRequestErrorMessage,
+  isRequestingReadabilityCheck,
   onApplyRevision,
   onKeepRevision,
   isApplyingRevision,
@@ -58,6 +59,7 @@ const DraftReviewableView = ({
         onApplyRevision={onApplyRevision}
         onKeepRevision={onKeepRevision}
         readabilityErrorMessage={readabilityRequestErrorMessage}
+        isLoading={isRequestingReadabilityCheck}
         isApplyingRevision={isApplyingRevision}
         applyRevisionErrorMessage={applyRevisionErrorMessage}
         canApplyRevision={canApplyRevision}

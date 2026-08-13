@@ -1579,7 +1579,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
               draftSaveErrorMessage={draftSaveErrorMessage}
               isRequestingReadabilityCheck={
                 isRequestingReadabilityCheck ||
-                precheckJobQuery.data?.status === "REQUESTED"
+                precheckJobQuery.data?.status === "REQUESTED" ||
+                precheckResultQuery.data?.latestJob?.status === "REQUESTED"
               }
               readabilityRequestErrorMessage={readabilityRequestErrorMessage}
               canRequestReadabilityCheck={permissions.canRequestPrecheck}
