@@ -68,12 +68,12 @@ AI와 함께 아이디어를 모으고,<br />
 
 # ✨ Features
 
-| 기능 | 설명 | 주요 화면 |
-| :--- | :--- | :--- |
-| **🔐 Authentication** | Google / Kakao OAuth 2.0 로그인<br>JWT 기반 토큰 인증 및 자동 갱신<br>인증 상태에 따른 Route Guard 적용 | <img src="https://github.com/user-attachments/assets/2178c932-8156-4b24-9ff1-8676169b5e98" width="400" /> <img src="https://github.com/user-attachments/assets/e026f55b-e03d-4a13-b965-ebb92250eb11" width="400" /> |
-| **👥 Collaboration** | 실시간 팀원 의견 작성 및 공유<br>팀원별 참여 현황 및 상태 확인 | <img src="https://github.com/user-attachments/assets/565d6617-631c-4e76-a153-d09e7f06dc90" width="400" /> <img src="https://github.com/user-attachments/assets/0f3a5629-9f30-4b1d-9e69-9fceaba5d934" width="400" /> |
-| **🤖 AI Facilitator** | 팀원 의견 종합 분석 및 근거 기반 AI 초안 자동 생성 | <img src="https://github.com/user-attachments/assets/37e87a0b-8a4a-46a1-99b1-a38702df1c96" width="400" /> <img src="https://github.com/user-attachments/assets/00527666-7a0a-4c51-82d7-caddf07c1094" width="400" /> |
-| **📄 Review & Export** | AI 초안에 대한 팀원별 검토 및 피드백/수정 요청<br>최종 결과물 미리보기 및 다각도 Export 지원 | <img src="https://github.com/user-attachments/assets/5b743249-f9f5-459e-9ec7-b601ab108b87" width="400" /> <img src="https://github.com/user-attachments/assets/d3712e92-2668-489c-9d87-ce0b56071135" width="400" /> |
+| 기능                   | 설명                                                                                                    | 주요 화면                                                                                                                                                                                                           |
+| :--------------------- | :------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **🔐 Authentication**  | Google / Kakao OAuth 2.0 로그인<br>JWT 기반 토큰 인증 및 자동 갱신<br>인증 상태에 따른 Route Guard 적용 | <img src="https://github.com/user-attachments/assets/2178c932-8156-4b24-9ff1-8676169b5e98" width="400" /> <img src="https://github.com/user-attachments/assets/e026f55b-e03d-4a13-b965-ebb92250eb11" width="400" /> |
+| **👥 Collaboration**   | 실시간 팀원 의견 작성 및 공유<br>팀원별 참여 현황 및 상태 확인                                          | <img src="https://github.com/user-attachments/assets/565d6617-631c-4e76-a153-d09e7f06dc90" width="400" /> <img src="https://github.com/user-attachments/assets/0f3a5629-9f30-4b1d-9e69-9fceaba5d934" width="400" /> |
+| **🤖 AI Facilitator**  | 팀원 의견 종합 분석 및 근거 기반 AI 초안 자동 생성                                                      | <img src="https://github.com/user-attachments/assets/37e87a0b-8a4a-46a1-99b1-a38702df1c96" width="400" /> <img src="https://github.com/user-attachments/assets/00527666-7a0a-4c51-82d7-caddf07c1094" width="400" /> |
+| **📄 Review & Export** | AI 초안에 대한 팀원별 검토 및 피드백/수정 요청<br>최종 결과물 미리보기 및 다각도 Export 지원            | <img src="https://github.com/user-attachments/assets/5b743249-f9f5-459e-9ec7-b601ab108b87" width="400" /> <img src="https://github.com/user-attachments/assets/d3712e92-2668-489c-9d87-ce0b56071135" width="400" /> |
 
 ---
 
@@ -152,7 +152,7 @@ pnpm dev
 | Rule                  | Description                                                        |
 | :-------------------- | :----------------------------------------------------------------- |
 | 🟢 **Client**         | 일반 요청은 `apiClient`, 토큰 재발급은 `tokenClient`를 사용합니다. |
-| 🟢 **Response**       | 응답은 `ApiResponse<T>` 형태를 따릅니다.                          |
+| 🟢 **Response**       | 응답은 `ApiResponse<T>` 형태를 따릅니다.                           |
 | 🟢 **Parsing**        | `unwrapApiResponse()`를 통해 데이터를 검증하고 추출합니다.         |
 | 🟢 **Error Handling** | `getApiErrorMessage()`를 통해 서버 에러를 표준화합니다.            |
 | 🟢 **Server State**   | TanStack Query를 기반으로 서버 상태를 관리합니다.                  |
@@ -330,12 +330,12 @@ PR은 프로젝트 템플릿을 사용하며 아래 내용을 포함합니다.
 
 # 👥 Team
 
-| Member    | Role |
-| :-------- | :--- |
-| 👤 구다연 | 계정 설정 팝업 및 사용자 프로필 관리 |
-| 👤 신연우 | 배포 설정, 작업보드-검토·확정 |
-| 👤 유금진 | 초기세팅, 작업보드-레이아웃, 작업보드-의견 모으기 |
-| 👤 장현빈 | 초기세팅, 온보딩·사이드바, 라우팅 구조, 작업보드-정리·초안|
+| Member    | Role                                                       |
+| :-------- | :--------------------------------------------------------- |
+| 👤 구다연 | 계정 설정 팝업 및 사용자 프로필 관리                       |
+| 👤 신연우 | 배포 설정, 작업보드-검토·확정                              |
+| 👤 유금진 | 초기세팅, 작업보드-레이아웃, 작업보드-의견 모으기          |
+| 👤 장현빈 | 초기세팅, 온보딩·사이드바, 라우팅 구조, 작업보드-정리·초안 |
 
 ---
 
