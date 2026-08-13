@@ -1,6 +1,6 @@
-import { PencilLine } from "lucide-react";
-import { CreditIcon } from "../../../../shared/components/icons";
+import { CreditIcon, EditNameIcon } from "../../../../shared/components/icons";
 import { Button } from "../../../../shared/components/Button";
+import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
 import DraftReadabilityCard from "./DraftReadabilityCard";
@@ -36,12 +36,15 @@ const GeneratedDraftHeader = ({
           {state.summary}
         </p>
         <Button
-          type="outline"
+          type="draftEdit"
           onClick={onEditDraft}
           disabled={isAcquiringEditLease || isEditDraftDisabled}
-          className="h-8 rounded-sm px-3.5 py-1.5 text-xs leading-4 font-medium"
+          className="h-8 gap-1.5 rounded-sm px-3.5 py-1.5 text-[13px] leading-[18px] font-medium"
         >
-          <PencilLine className="text-main-300 h-3.5 w-3.5" />
+          <EditNameIcon
+            size={14}
+            className={PRESSABLE_STROKE_ICON_STATE_CLASS}
+          />
           {isAcquiringEditLease ? "편집권 확인 중..." : "초안 수정"}
         </Button>
       </div>

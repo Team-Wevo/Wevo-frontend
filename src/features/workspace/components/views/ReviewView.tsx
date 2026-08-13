@@ -2,6 +2,8 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate, useRevalidator } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
+import { EditNameIcon } from "../../../../shared/components/icons";
+import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { LoadingSpinner } from "../../../../shared/components/LoadingSpinner";
 import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import { cn } from "../../../../shared/utils/cn";
@@ -335,9 +337,15 @@ const ReviewView = ({
                               <div className="flex items-center justify-start gap-2">
                                 {/* TODO: 초안 수정 API 연동 후 onClick 핸들러 연결 */}
                                 <Button
-                                  type="outline"
-                                  className="text-xs"
+                                  type="draftEdit"
+                                  className="h-8 gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] leading-[18px] font-medium"
                                 >
+                                  <EditNameIcon
+                                    size={14}
+                                    className={
+                                      PRESSABLE_STROKE_ICON_STATE_CLASS
+                                    }
+                                  />
                                   초안 수정
                                 </Button>
                                 {reviewId !== undefined && (
