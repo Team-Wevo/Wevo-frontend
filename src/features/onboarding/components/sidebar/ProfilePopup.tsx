@@ -15,7 +15,11 @@ import {
   type MyProfileResponse,
 } from "@/features/auth/api/user";
 import { MY_PROFILE_QUERY_KEY } from "@/features/auth/hooks/useMyProfile";
-import { markOAuthReauthRequired } from "@/features/auth/constants/oauth";
+import {
+  clearOAuthLoginProvider,
+  getOAuthLoginProvider,
+  markOAuthReauthRequired,
+} from "@/features/auth/constants/oauth";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -35,9 +39,17 @@ type TabKey = "profile" | "general";
 
 const SAVE_TOAST_DURATION_MS = 3000;
 
+const getLoginMethodLabel = () => {
+  const provider = getOAuthLoginProvider();
+
+  if (provider === "GOOGLE") return "구글";
+  if (provider === "KAKAO") return "카카오";
+  return "정보 없음";
+};
+
 const createInitialProfileForm = (profile?: MyProfileResponse) => ({
   email: profile?.email ?? "",
-  loginMethod: "카카오",
+  loginMethod: getLoginMethodLabel(),
   name: profile?.name ?? "",
 });
 
@@ -301,7 +313,13 @@ const ProfilePopup = ({
 
     try {
       await withdrawMyAccount();
-      markOAuthReauthRequired("KAKAO");
+      const loginProvider = getOAuthLoginProvider();
+
+      if (loginProvider === "KAKAO") {
+        markOAuthReauthRequired(loginProvider);
+      }
+
+      clearOAuthLoginProvider();
       setShowWithdrawModal(false);
       setIsSettingsOpen(false);
       onClose?.();

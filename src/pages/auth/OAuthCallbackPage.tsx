@@ -8,6 +8,7 @@ import {
   clearSavedOAuthState,
   getSavedOAuthState,
   getOAuthProviderFromPath,
+  saveOAuthLoginProvider,
   type OAuthProvider,
 } from "../../features/auth/constants/oauth";
 import {
@@ -103,6 +104,7 @@ const OAuthCallbackPage = () => {
         }
 
         saveAuthTokens(tokens);
+        saveOAuthLoginProvider(oauthProvider);
         clearOAuthReauthRequired(oauthProvider);
 
         try {
