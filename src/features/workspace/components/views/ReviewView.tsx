@@ -112,15 +112,17 @@ const ReviewView = ({
     ],
     queryFn: () => getSectionDraftEvidence(sectionId),
     enabled: Boolean(draftQuery.data),
+    refetchOnMount: "always",
     retry: false,
   });
 
   const unsatisfiedReasons = getUnsatisfiedReasons(readinessQuery.data);
   // 조회 실패로 조건을 모를 때는 막지 않는다. 확정 시 서버가 다시 검증한다.
   const isConfirmBlocked = readinessQuery.data?.canConfirm === false;
-  // 조회 중에는 canConfirm이 낡은 값이므로 중복 확정을 막기 위해 함께 잠근다.
+  // 최초 조회 중에만 잠근다. 백그라운드 폴링의 isFetching까지 사용하면
+  // 갱신 주기마다 버튼이 비활성 색상으로 바뀌어 깜빡임이 발생한다.
   const isConfirmDisabled =
-    isConfirming || readinessQuery.isFetching || isConfirmBlocked;
+    isConfirming || readinessQuery.isPending || isConfirmBlocked;
   const confirmGuideMessage =
     confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
@@ -219,7 +221,7 @@ const ReviewView = ({
         )}
       </SectionBlock>
 
-      {draftEvidenceQuery.data ? (
+      {draftEvidenceQuery.data && !draftEvidenceQuery.isFetching ? (
         <DraftEvidenceFooter
           evidence={{
             teamOpinionCount: draftEvidenceQuery.data.opinions.length,
@@ -235,7 +237,7 @@ const ReviewView = ({
         />
       ) : (
         <div className="flex min-h-8 items-center gap-2">
-          {draftEvidenceQuery.isPending ? (
+          {draftQuery.isPending || draftEvidenceQuery.isFetching ? (
             <LoadingSpinner size={16} />
           ) : (
             <span className="text-error text-xs leading-4">

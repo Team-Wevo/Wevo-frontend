@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { LIVE_SYNC_REFETCH_INTERVAL_MS } from "@/shared/constants/liveSync";
 import { getTeamReviews } from "../api/getTeamReviews";
 
 export const TEAM_REVIEWS_QUERY_KEY = "team-reviews";
@@ -11,4 +12,8 @@ export const useTeamReviews = (sectionId: number) =>
   useQuery({
     queryKey: [TEAM_REVIEWS_QUERY_KEY, sectionId],
     queryFn: () => getTeamReviews(sectionId),
+    refetchInterval: LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });

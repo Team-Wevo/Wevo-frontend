@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { LIVE_SYNC_REFETCH_INTERVAL_MS } from "@/shared/constants/liveSync";
 import { getSectionConfirmReadiness } from "../api/getSectionConfirmReadiness";
 
 export const SECTION_CONFIRM_READINESS_QUERY_KEY = "section-confirm-readiness";
@@ -15,4 +16,8 @@ export const useSectionConfirmReadiness = (
     queryKey: [SECTION_CONFIRM_READINESS_QUERY_KEY, sectionId],
     queryFn: () => getSectionConfirmReadiness(sectionId),
     enabled,
+    refetchInterval: enabled ? LIVE_SYNC_REFETCH_INTERVAL_MS : false,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });

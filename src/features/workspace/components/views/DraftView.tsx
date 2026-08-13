@@ -931,14 +931,14 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     queryKey: [
       "workspace-precheck-result",
       sectionId,
-      precheckRequestId,
-      precheckJobQuery.data?.status,
-      draftStage,
+      draftResultQuery.data?.contentVersion,
     ],
     queryFn: () => getSectionDraftPrecheck(sectionId),
-    enabled:
-      draftStage === "reviewable" ||
-      precheckJobQuery.data?.status === "SUCCEEDED",
+    enabled: Boolean(draftResultQuery.data),
+    refetchInterval: LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
     retry: false,
   });
 
@@ -951,10 +951,15 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const draftEvidenceQuery = useQuery({
     queryKey: ["workspace-draft-evidence", sectionId, effectiveDraftVersion],
     queryFn: () => getSectionDraftEvidence(sectionId),
-    enabled: isEvidenceModalOpen && effectiveDraftVersion !== null,
+    enabled: effectiveDraftVersion !== null,
+    refetchOnMount: "always",
     retry: false,
   });
-  const precheckCurrentResult = precheckResultQuery.data?.currentResult;
+  const precheckCurrentResult =
+    precheckResultQuery.data?.currentResult?.checkedContentVersion ===
+    effectiveDraftVersion
+      ? precheckResultQuery.data.currentResult
+      : undefined;
   const precheckResultRequestId =
     precheckCurrentResult?.requestId ??
     precheckResultQuery.data?.latestJob?.requestId ??
@@ -962,6 +967,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const preReviewData = useMemo(() => {
     return toPreReviewData(precheckCurrentResult);
   }, [precheckCurrentResult]);
+  const displayedDraftStage =
+    preReviewData && draftStage !== "editing" ? "reviewable" : draftStage;
   const leaseEditor = leaseStatusQuery.data?.editor ?? null;
   const isLockedByAnotherEditor = Boolean(
     leaseStatusQuery.data?.locked &&
@@ -989,7 +996,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
       activeEditor: draftResultQuery.data.activeEditor,
     };
 
-    if (draftStage === "editing") {
+    if (displayedDraftStage === "editing") {
       return buildEditingStateFromDraft(runtimeDraft, {
         isLockedByAnotherEditor,
         editorName: leaseEditor?.name ?? null,
@@ -997,11 +1004,11 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
       });
     }
 
-    if (draftStage === "edited") {
+    if (displayedDraftStage === "edited") {
       return buildEditedStateFromDraft(runtimeDraft);
     }
 
-    if (draftStage === "reviewable") {
+    if (displayedDraftStage === "reviewable") {
       return buildReviewableStateFromDraft(runtimeDraft, preReviewData);
     }
 
@@ -1014,7 +1021,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     draftResultQuery.data,
     effectiveDraftContent,
     effectiveDraftVersion,
-    draftStage,
+    displayedDraftStage,
     isLockedByAnotherEditor,
     leaseEditor?.name,
     myDisplayName,
@@ -1024,11 +1031,11 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const resolvedStage = useMemo<DebugDraftStage>(() => {
     if (runtimeDraftState) {
       if (
-        draftStage === "reviewable" ||
-        draftStage === "edited" ||
-        draftStage === "editing"
+        displayedDraftStage === "reviewable" ||
+        displayedDraftStage === "edited" ||
+        displayedDraftStage === "editing"
       ) {
-        return draftStage;
+        return displayedDraftStage;
       }
 
       return "generated";
@@ -1049,7 +1056,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     return "opinion-analyzing";
   }, [
     runtimeDraftState,
-    draftStage,
+    displayedDraftStage,
     draftRequestId,
     draftJobQuery.data,
     synthesisJobStatus,
@@ -1186,6 +1193,10 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   };
 
   const handleRequestReadabilityCheck = async () => {
+    if (!permissions.canRequestPrecheck) {
+      return;
+    }
+
     setReadabilityRequestErrorMessage(null);
     setDraftStage("reviewable");
 
@@ -1548,6 +1559,14 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
               state={displayedDraftState}
               onEditDraft={handleMoveToEditing}
               onOpenEvidence={handleOpenEvidence}
+              isEvidenceLoading={draftEvidenceQuery.isFetching}
+              evidenceErrorMessage={
+                draftEvidenceQuery.isError
+                  ? getSectionDraftEvidenceErrorMessage(
+                      draftEvidenceQuery.error,
+                    )
+                  : null
+              }
               onRequestReadabilityCheck={handleRequestReadabilityCheck}
               onDraftContentChange={handleDraftContentChange}
               onSaveDraft={handleSaveDraft}
@@ -1563,6 +1582,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
                 precheckJobQuery.data?.status === "REQUESTED"
               }
               readabilityRequestErrorMessage={readabilityRequestErrorMessage}
+              canRequestReadabilityCheck={permissions.canRequestPrecheck}
               onApplyRevision={handleApplyRevision}
               onKeepRevision={handleKeepRevision}
               isApplyingRevision={isApplyingRevision}

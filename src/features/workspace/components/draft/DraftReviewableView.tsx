@@ -1,4 +1,5 @@
 import { Button } from "../../../../shared/components/Button";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 import AiPreReviewPanel from "./AiPreReviewPanel";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
@@ -7,6 +8,8 @@ import type { DraftStageViewProps } from "./types";
 const DraftReviewableView = ({
   state,
   onOpenEvidence,
+  isEvidenceLoading,
+  evidenceErrorMessage,
   onMoveToReviewRequest,
   isMovingToReviewRequest,
   moveToReviewRequestErrorMessage,
@@ -34,10 +37,20 @@ const DraftReviewableView = ({
         draftContent={state.draftContent}
         fitContent
       />
-      <DraftEvidenceFooter
-        evidence={state.evidence}
-        onOpenEvidence={onOpenEvidence}
-      />
+      {isEvidenceLoading ? (
+        <div className="flex min-h-8 items-center">
+          <LoadingSpinner size={16} />
+        </div>
+      ) : evidenceErrorMessage ? (
+        <p className="text-error min-h-8 text-xs leading-4">
+          {evidenceErrorMessage}
+        </p>
+      ) : (
+        <DraftEvidenceFooter
+          evidence={state.evidence}
+          onOpenEvidence={onOpenEvidence}
+        />
+      )}
 
       <AiPreReviewPanel
         data={preReviewData}

@@ -14,6 +14,7 @@ const DraftEditingView = ({
   onDraftContentChange,
   isSavingDraft,
   draftSaveErrorMessage,
+  canRequestReadabilityCheck,
 }: DraftStageViewProps) => {
   const defaultMode = state.editingMeta?.defaultMode ?? "self";
 
@@ -150,11 +151,13 @@ const DraftEditingView = ({
         </div>
       )}
 
-      <DraftReadabilityCard
-        description={helperMessage}
-        disabled={true}
-        onRequestReadabilityCheck={onRequestReadabilityCheck}
-      />
+      {canRequestReadabilityCheck && (
+        <DraftReadabilityCard
+          description={helperMessage}
+          disabled={true}
+          onRequestReadabilityCheck={onRequestReadabilityCheck}
+        />
+      )}
     </>
   );
 };

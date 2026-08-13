@@ -6,6 +6,7 @@ import type { DraftStageViewProps } from "./types";
 const DraftEditedView = ({
   state,
   onRequestReadabilityCheck,
+  canRequestReadabilityCheck,
 }: DraftStageViewProps) => {
   return (
     <>
@@ -14,10 +15,12 @@ const DraftEditedView = ({
         stage={state.stage}
         draftContent={state.draftContent}
       />
-      <DraftFooter
-        canRequestReview={true}
-        onRequestReview={onRequestReadabilityCheck}
-      />
+      {canRequestReadabilityCheck && (
+        <DraftFooter
+          canRequestReview={true}
+          onRequestReview={onRequestReadabilityCheck}
+        />
+      )}
     </>
   );
 };

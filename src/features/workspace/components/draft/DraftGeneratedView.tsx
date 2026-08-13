@@ -1,5 +1,6 @@
 import { CreditIcon, EditNameIcon } from "../../../../shared/components/icons";
 import { Button } from "../../../../shared/components/Button";
+import LoadingSpinner from "../../../../shared/components/LoadingSpinner";
 import { PRESSABLE_STROKE_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import DraftBody from "./DraftBody";
 import DraftEvidenceFooter from "./DraftEvidenceFooter";
@@ -72,12 +73,15 @@ const DraftGeneratedView = ({
   state,
   onEditDraft,
   onOpenEvidence,
+  isEvidenceLoading,
+  evidenceErrorMessage,
   onRequestReadabilityCheck,
   isAcquiringEditLease,
   isEditDraftDisabled,
   editActionErrorMessage,
   isRequestingReadabilityCheck,
   readabilityRequestErrorMessage,
+  canRequestReadabilityCheck,
 }: DraftStageViewProps) => {
   return (
     <>
@@ -94,15 +98,27 @@ const DraftGeneratedView = ({
         stage={state.stage}
         draftContent={state.draftContent}
       />
-      <DraftEvidenceFooter
-        evidence={state.evidence}
-        onOpenEvidence={onOpenEvidence}
-      />
-      <DraftReadabilityCard
-        isLoading={isRequestingReadabilityCheck}
-        errorMessage={readabilityRequestErrorMessage}
-        onRequestReadabilityCheck={onRequestReadabilityCheck}
-      />
+      {isEvidenceLoading ? (
+        <div className="flex min-h-8 items-center">
+          <LoadingSpinner size={16} />
+        </div>
+      ) : evidenceErrorMessage ? (
+        <p className="text-error min-h-8 text-xs leading-4">
+          {evidenceErrorMessage}
+        </p>
+      ) : (
+        <DraftEvidenceFooter
+          evidence={state.evidence}
+          onOpenEvidence={onOpenEvidence}
+        />
+      )}
+      {canRequestReadabilityCheck && (
+        <DraftReadabilityCard
+          isLoading={isRequestingReadabilityCheck}
+          errorMessage={readabilityRequestErrorMessage}
+          onRequestReadabilityCheck={onRequestReadabilityCheck}
+        />
+      )}
     </>
   );
 };
