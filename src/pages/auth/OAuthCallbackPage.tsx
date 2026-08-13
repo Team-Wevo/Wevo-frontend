@@ -13,6 +13,7 @@ import {
   clearAuthTokens,
   saveAuthTokens,
 } from "../../features/auth/utils/tokenStorage";
+import { consumePostLoginRedirect } from "../../features/auth/utils/postLoginRedirect";
 import {
   getApiErrorMessage,
   getApiErrorResponse,
@@ -111,7 +112,7 @@ const OAuthCallbackPage = () => {
         }
 
         sessionStorage.setItem(requestKey, "done");
-        navigate("/home", { replace: true });
+        navigate(consumePostLoginRedirect() ?? "/home", { replace: true });
       } catch (error) {
         sessionStorage.removeItem(requestKey);
         clearAuthTokens();
