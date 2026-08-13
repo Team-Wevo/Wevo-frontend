@@ -35,7 +35,7 @@ const DraftEvidenceModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="draft-evidence-title"
-        className="flex max-h-[min(640px,calc(100vh-32px))] w-[372px] flex-col overflow-hidden rounded-[12px] border border-gray-400 bg-gray-50 shadow-[0_12px_32px_rgba(28,34,48,0.18)]"
+        className="flex max-h-[min(640px,calc(100vh-32px))] w-full max-w-[600px] flex-col overflow-hidden rounded-[12px] border border-gray-400 bg-gray-50 shadow-[0_12px_32px_rgba(28,34,48,0.18)]"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-300 px-4">

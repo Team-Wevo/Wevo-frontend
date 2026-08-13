@@ -25,14 +25,14 @@ const EditSectionConfirmModal = ({
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="text-[15px] leading-[22px] text-[#E8912D]">⚠</span>
           <h2 className="text-lg leading-[26px] font-bold text-gray-900">
-            이 섹션을 수정할까요?
+            작업 보드로 이동할까요?
           </h2>
         </div>
 
         <p className="w-96 text-sm leading-[23px] font-normal text-gray-700">
-          '{sectionTitle}'는 확정된 섹션이에요.
+          '{sectionTitle}' 섹션의 작업 보드로 이동해요.
           <br />
-          수정하면 확정이 해제돼요.
+          작업 보드에서 내용을 확인하고 수정할 수 있어요.
         </p>
 
         <div className="flex w-full items-center justify-end gap-2 overflow-hidden">
@@ -48,7 +48,7 @@ const EditSectionConfirmModal = ({
             onClick={onConfirm}
             className="h-auto rounded-sm px-[18px] py-2.5 text-[13px] leading-[18px] font-medium"
           >
-            수정하러 가기
+            작업 보드로 이동
           </Button>
         </div>
       </div>

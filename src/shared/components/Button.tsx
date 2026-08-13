@@ -2,6 +2,8 @@ import type { ButtonHTMLAttributes } from "react";
 import {
   PRESSABLE_AI_BUTTON_STATE_CLASS,
   PRESSABLE_BUTTON_STATE_CLASS,
+  PRESSABLE_EDIT_BUTTON_STATE_CLASS,
+  PRESSABLE_PRIMARY_BUTTON_STATE_CLASS,
   PRESSABLE_RECT_BUTTON_STATE_CLASS,
 } from "../styles/buttonStateStyles";
 import { cn } from "../utils/cn";
@@ -15,6 +17,7 @@ export type ButtonType =
   | "pressable"
   | "pressableStrong"
   | "pressableDanger"
+  | "pressablePrimary"
   | "draftEdit"
   | "ai";
 
@@ -49,8 +52,8 @@ const TYPE_STYLE_CLASS: Record<ButtonType, string> = {
     PRESSABLE_RECT_BUTTON_STATE_CLASS,
     "text-error hover:text-error active:text-white disabled:hover:text-error",
   ),
-  draftEdit:
-    "group border-gray-400 bg-gray-50 text-gray-700 transition-colors hover:border-transparent hover:bg-main-300 hover:text-white active:border-transparent active:bg-main-600 active:text-white disabled:hover:border-gray-400 disabled:hover:bg-gray-50 disabled:hover:text-gray-700",
+  pressablePrimary: PRESSABLE_PRIMARY_BUTTON_STATE_CLASS,
+  draftEdit: PRESSABLE_EDIT_BUTTON_STATE_CLASS,
   ai: PRESSABLE_AI_BUTTON_STATE_CLASS,
 };
 

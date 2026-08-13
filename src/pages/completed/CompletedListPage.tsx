@@ -1,8 +1,17 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import ListLayout from "../../app/layouts/ListLayout";
 import { useMainLayoutContext } from "../../app/layouts/mainLayoutContext";
+import {
+  getCompletedProjects,
+  type ProjectResultType,
+} from "../../features/project/api/projectList";
 import { GuestPreview } from "../../shared/components/GuestPreview";
-import { ProjectCard } from "../../shared/components/ProjectCard";
+import {
+  ProjectCard,
+  type ProjectCategory,
+} from "../../shared/components/ProjectCard";
 
 const GUEST_PREVIEW_BY_FILTER: Record<
   string,
@@ -29,77 +38,102 @@ const GUEST_PREVIEW_BY_FILTER: Record<
   },
 };
 
-const FILTERS = [
-  { label: "전체", count: 4 },
-  { label: "제안서", count: 2 },
-  { label: "발표 구성안", count: 2 },
-];
+const RESULT_TYPE_TO_CATEGORY: Record<ProjectResultType, ProjectCategory> = {
+  PROPOSAL: "제안서",
+  PRESENTATION: "발표 구성안",
+};
 
-const COMPLETED_PROJECTS = [
-  {
-    id: 1,
-    category: "제안서",
-    title: "동아리 지원사업 제안서",
-    date: "2026.07.02",
-  },
-  {
-    id: 2,
-    category: "발표 구성안",
-    title: "신입 부원 모집 발표",
-    date: "2026.06.28",
-  },
-  {
-    id: 3,
-    category: "발표 구성안",
-    title: "봉사활동 성과 발표",
-    date: "2026.06.30",
-  },
-  {
-    id: 4,
-    category: "제안서",
-    title: "학과 행사 후원 제안서",
-    date: "2026.06.02",
-  },
-] as const;
+const formatDate = (isoString: string): string => {
+  const date = new Date(isoString);
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join(".");
+};
 
 export const CompletedListPage = () => {
+  const navigate = useNavigate();
   const { isLoggedIn, openLoginModal } = useMainLayoutContext();
   const [activeFilterIndex, setActiveFilterIndex] = useState(0);
-  const activeFilter = FILTERS[activeFilterIndex].label;
+  const completedProjectsQuery = useQuery({
+    queryKey: ["my-projects", "completed"],
+    queryFn: getCompletedProjects,
+    enabled: isLoggedIn,
+    staleTime: 30_000,
+  });
+  const completedProjects = completedProjectsQuery.data ?? [];
+  const filters = [
+    { label: "전체", count: completedProjects.length },
+    {
+      label: "제안서",
+      count: completedProjects.filter(
+        (project) => project.resultType === "PROPOSAL",
+      ).length,
+    },
+    {
+      label: "발표 구성안",
+      count: completedProjects.filter(
+        (project) => project.resultType === "PRESENTATION",
+      ).length,
+    },
+  ];
+  const activeFilter = filters[activeFilterIndex].label;
   const guestPreview = GUEST_PREVIEW_BY_FILTER[activeFilter];
   const filteredProjects =
     activeFilter === "전체"
-      ? COMPLETED_PROJECTS
-      : COMPLETED_PROJECTS.filter(
-          (project) => project.category === activeFilter,
+      ? completedProjects
+      : completedProjects.filter(
+          (project) =>
+            RESULT_TYPE_TO_CATEGORY[project.resultType] === activeFilter,
         );
 
   return (
     <ListLayout
       title="완성본"
-      filters={FILTERS}
+      filters={filters}
       activeFilterIndex={activeFilterIndex}
       onFilterChange={setActiveFilterIndex}
       showFilterCounts={isLoggedIn}
     >
-      {isLoggedIn ? (
-        filteredProjects.map((project) => (
-          <ProjectCard
-            key={project.id}
-            category={project.category}
-            title={project.title}
-            date={project.date}
-            dateLabel="완성"
-            showEditIcon={false}
-          />
-        ))
-      ) : (
+      {!isLoggedIn && (
         <GuestPreview
           title={guestPreview.title}
           descriptions={guestPreview.descriptions}
           onAction={openLoginModal}
         />
       )}
+      {isLoggedIn && completedProjectsQuery.isPending && (
+        <p className="col-span-4 text-sm text-gray-600">
+          완성본 목록을 불러오는 중이에요...
+        </p>
+      )}
+      {isLoggedIn && completedProjectsQuery.isError && (
+        <p className="text-error col-span-4 text-sm">
+          완성본 목록을 불러오지 못했습니다.
+        </p>
+      )}
+      {isLoggedIn &&
+        completedProjectsQuery.isSuccess &&
+        filteredProjects.map((project) => (
+          <ProjectCard
+            key={project.projectId}
+            category={RESULT_TYPE_TO_CATEGORY[project.resultType]}
+            title={project.title}
+            date={formatDate(project.createdAt)}
+            dateLabel="생성"
+            showEditIcon={false}
+            onOpen={() => navigate(`/completed/${project.projectId}`)}
+          />
+        ))}
+      {isLoggedIn &&
+        completedProjectsQuery.isSuccess &&
+        filteredProjects.length === 0 && (
+          <p className="col-span-4 text-sm text-gray-600">
+            해당하는 완성본이 아직 없어요.
+          </p>
+        )}
     </ListLayout>
   );
 };
