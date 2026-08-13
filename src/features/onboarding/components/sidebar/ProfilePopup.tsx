@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -13,6 +14,7 @@ import {
   withdrawMyAccount,
   type MyProfileResponse,
 } from "@/features/auth/api/user";
+import { MY_PROFILE_QUERY_KEY } from "@/features/auth/hooks/useMyProfile";
 import { ConfirmModal } from "@/shared/components/ConfirmModal";
 import { SuccessToast } from "@/shared/components/SuccessToast";
 import {
@@ -23,6 +25,7 @@ import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 import { cn } from "@/shared/utils/cn";
 
 interface ProfilePopupProps {
+  initialProfile?: MyProfileResponse;
   onClose?: () => void;
   onLogoutClick?: () => void;
 }
@@ -31,11 +34,11 @@ type TabKey = "profile" | "general";
 
 const SAVE_TOAST_DURATION_MS = 3000;
 
-const INITIAL_PROFILE_FORM = {
-  email: "alexjee85@gmail.com",
+const createInitialProfileForm = (profile?: MyProfileResponse) => ({
+  email: profile?.email ?? "",
   loginMethod: "카카오",
-  name: "지현구",
-};
+  name: profile?.name ?? "",
+});
 
 const getInitialCharacter = (name: string) => {
   const normalizedName = name.trim();
@@ -70,16 +73,24 @@ const getApiErrorMessage = (error: unknown) => {
   return "프로필 처리 중 오류가 발생했습니다.";
 };
 
-const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
+const ProfilePopup = ({
+  initialProfile,
+  onClose,
+  onLogoutClick,
+}: ProfilePopupProps) => {
+  const queryClient = useQueryClient();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [saveToastNonce, setSaveToastNonce] = useState(0);
-  const [savedProfileForm, setSavedProfileForm] =
-    useState(INITIAL_PROFILE_FORM);
-  const [profileForm, setProfileForm] = useState(INITIAL_PROFILE_FORM);
+  const [savedProfileForm, setSavedProfileForm] = useState(() =>
+    createInitialProfileForm(initialProfile),
+  );
+  const [profileForm, setProfileForm] = useState(() =>
+    createInitialProfileForm(initialProfile),
+  );
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
@@ -121,6 +132,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
 
     try {
       const profile = await getMyProfile();
+      queryClient.setQueryData(MY_PROFILE_QUERY_KEY, profile);
       applyProfileToForm(profile, {
         preserveDraft: hasNameDraftChangesRef.current,
       });
@@ -130,7 +142,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
     } finally {
       setIsProfileLoading(false);
     }
-  }, [applyProfileToForm]);
+  }, [applyProfileToForm, queryClient]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -252,6 +264,7 @@ const ProfilePopup = ({ onClose, onLogoutClick }: ProfilePopupProps) => {
         name: normalizedProfileName,
       });
 
+      queryClient.setQueryData(MY_PROFILE_QUERY_KEY, updatedProfile);
       hasNameDraftChangesRef.current = false;
       applyProfileToForm(updatedProfile);
       setShowSaveToast(true);

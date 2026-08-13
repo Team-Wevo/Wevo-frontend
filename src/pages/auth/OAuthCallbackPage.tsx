@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loginWithOAuth } from "../../features/auth/api/auth";
+import { getMyProfile } from "../../features/auth/api/user";
+import { MY_PROFILE_QUERY_KEY } from "../../features/auth/hooks/useMyProfile";
 import {
   clearSavedOAuthState,
   getSavedOAuthState,
@@ -17,6 +19,7 @@ import {
 } from "../../shared/api/error";
 import { Button } from "../../shared/components/Button";
 import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
+import { queryClient } from "../../shared/api/queryClient";
 
 const getErrorMessage = (error: unknown) => {
   const response = getApiErrorResponse(error);
@@ -98,6 +101,15 @@ const OAuthCallbackPage = () => {
         }
 
         saveAuthTokens(tokens);
+
+        try {
+          const profile = await getMyProfile();
+          queryClient.setQueryData(MY_PROFILE_QUERY_KEY, profile);
+        } catch {
+          // 프로필 사전 조회가 실패해도 로그인은 유지하고 홈에서 다시 조회한다.
+          queryClient.removeQueries({ queryKey: MY_PROFILE_QUERY_KEY });
+        }
+
         sessionStorage.setItem(requestKey, "done");
         navigate("/home", { replace: true });
       } catch (error) {

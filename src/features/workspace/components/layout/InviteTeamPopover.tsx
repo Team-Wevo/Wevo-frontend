@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
 import { getApiErrorMessage } from "@/shared/api";
+import { UserAvatar } from "@/shared/components/UserAvatar";
 import { PRESSABLE_COPY_BUTTON_STATE_CLASS } from "@/shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import { type ProjectMemberRole } from "../../../project/api/getProjectMembers";
 import { useProjectMembers } from "../../../project/hooks/useProjectMembers";
 
@@ -136,22 +136,12 @@ const InviteTeamPopover = ({
             key={member.userId}
             className="flex items-center gap-2"
           >
-            {member.profileImageUrl ? (
-              <img
-                src={member.profileImageUrl}
-                alt=""
-                className="h-5 w-5 shrink-0 rounded-full object-cover"
-              />
-            ) : (
-              <div
-                className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] leading-[14px] font-normal text-gray-50",
-                  getAvatarColorByIndex(index),
-                )}
-              >
-                {member.name[0]}
-              </div>
-            )}
+            <UserAvatar
+              name={member.name}
+              imageUrl={member.profileImageUrl}
+              colorIndex={index}
+              className="h-5 w-5 text-[11px] leading-[14px]"
+            />
             <span className="flex-1 truncate text-xs leading-[15px] font-normal text-gray-900">
               {member.name}
             </span>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useMyProfile } from "../../../auth/hooks/useMyProfile";
 import ProfilePopup from "./ProfilePopup";
 
 interface SidebarProfileProps {
@@ -8,6 +9,7 @@ interface SidebarProfileProps {
 const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const { data: profile } = useMyProfile(true);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -39,6 +41,7 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
     >
       {isProfileOpen && (
         <ProfilePopup
+          initialProfile={profile}
           onClose={() => setIsProfileOpen(false)}
           onLogoutClick={onLogoutClick}
         />
@@ -55,7 +58,9 @@ const SidebarProfile = ({ onLogoutClick }: SidebarProfileProps) => {
             className="h-8 w-8 rounded-full"
           />
         </div>
-        <span className="text-sm font-semibold text-slate-700">지현구</span>
+        <span className="truncate text-sm font-semibold text-slate-700">
+          {profile?.name ?? "사용자"}
+        </span>
       </div>
     </div>
   );

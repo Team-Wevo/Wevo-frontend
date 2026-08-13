@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
+import { UserAvatar } from "../../../../shared/components/UserAvatar";
 import { TeamInviteIcon } from "../../../../shared/components/icons/TeamInviteIcon";
 import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { cn } from "../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../shared/utils/avatarColor";
 import {
   createInviteLink,
   getCreateInviteLinkErrorMessage,
@@ -136,26 +136,15 @@ const WorkspaceHeader = ({
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="flex -space-x-2">
-          {membersQuery.data?.members.slice(0, 4).map((member, index) =>
-            member.profileImageUrl ? (
-              <img
-                key={member.userId}
-                src={member.profileImageUrl}
-                alt=""
-                className="h-7 w-7 rounded-full border-[2px] border-gray-50 object-cover"
-              />
-            ) : (
-              <div
-                key={member.userId}
-                className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full border-[2px] border-gray-50 text-[11px] leading-[14px] font-normal text-gray-50",
-                  getAvatarColorByIndex(index),
-                )}
-              >
-                {member.name[0]}
-              </div>
-            ),
-          )}
+          {membersQuery.data?.members.slice(0, 4).map((member, index) => (
+            <UserAvatar
+              key={member.userId}
+              name={member.name}
+              imageUrl={member.profileImageUrl}
+              colorIndex={index}
+              className="h-7 w-7 border-[2px] border-gray-50 text-[11px] leading-[14px]"
+            />
+          ))}
         </div>
 
         {canInviteMembers && (

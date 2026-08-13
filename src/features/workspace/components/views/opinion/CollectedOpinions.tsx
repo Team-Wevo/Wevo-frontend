@@ -3,8 +3,7 @@ import { CreditIcon } from "../../../../../shared/components/icons";
 import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../../shared/styles/buttonStateStyles";
 import { useRevalidator } from "react-router-dom";
 import { Button } from "../../../../../shared/components/Button";
-import { cn } from "../../../../../shared/utils/cn";
-import { getAvatarColorByIndex } from "../../../../../shared/utils/avatarColor";
+import { UserAvatar } from "../../../../../shared/components/UserAvatar";
 import { useProjectMembers } from "../../../../project/hooks/useProjectMembers";
 import CloseCollectionModal from "./CloseCollectionModal";
 import {
@@ -106,22 +105,12 @@ const CollectedOpinions = ({
             className="flex flex-col gap-2 rounded-[12px] border border-gray-400 bg-gray-50 p-4"
           >
             <div className="flex items-center gap-2">
-              {opinion.author.profileImageUrl ? (
-                <img
-                  src={opinion.author.profileImageUrl}
-                  alt=""
-                  className="h-6 w-6 rounded-full object-cover"
-                />
-              ) : (
-                <span
-                  className={cn(
-                    "flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-gray-50",
-                    getAvatarColorByIndex(index),
-                  )}
-                >
-                  {opinion.author.name[0]}
-                </span>
-              )}
+              <UserAvatar
+                name={opinion.author.name}
+                imageUrl={opinion.author.profileImageUrl}
+                colorIndex={index}
+                className="h-6 w-6 text-[11px]"
+              />
               <span className="text-[13px] font-medium text-gray-700">
                 {opinion.author.name}
               </span>
