@@ -127,9 +127,10 @@ const ReviewView = ({
     confirmErrorMessage ?? unsatisfiedReasons.join(" ");
 
   const trimmedChangeRequestReason = changeRequestReason.trim();
-  // 제출 직후 재조회 중에는 contentVersion이 낡은 값이라 중복 제출을 막는다.
+  // 최초 조회와 실제 제출 중에만 잠근다. 백그라운드 폴링의 isFetching까지
+  // 사용하면 갱신 주기마다 동의·수정 요청 버튼이 깜빡인다.
   const isReviewSubmitDisabled =
-    isSubmittingReview || teamReviewsQuery.isFetching || !teamReviews;
+    isSubmittingReview || teamReviewsQuery.isPending || !teamReviews;
 
   const handleConfirmSection = async () => {
     if (!permissions.canConfirmSection) {
