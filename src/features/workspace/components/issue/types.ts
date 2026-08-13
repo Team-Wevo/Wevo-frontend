@@ -2,6 +2,7 @@
 export type IssueResolutionType = "choice" | "evidence-request";
 
 export interface IssueOpinion {
+  authorUserId?: number;
   memberName: string;
   content: string;
 }
@@ -14,9 +15,14 @@ export interface IssueChoiceOption {
 }
 
 export interface EvidenceRequestStatus {
-  /** 예: "민수 님에게 추가 근거를 요청했어요 · 답변 대기" */
+  requested: boolean;
   message: string;
   questionCount: number;
+  answer?: {
+    authorName: string;
+    content: string;
+    answeredAt: string;
+  };
 }
 
 export interface WorkspaceIssue {

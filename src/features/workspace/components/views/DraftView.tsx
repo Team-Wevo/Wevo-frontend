@@ -45,6 +45,11 @@ import {
   generateSectionDraft,
   getGenerateDraftErrorMessage,
 } from "../../api/generateDraft";
+import { answerIssue, getAnswerIssueErrorMessage } from "../../api/answerIssue";
+import {
+  getRequestIssueEvidenceErrorMessage,
+  requestIssueEvidence,
+} from "../../api/requestIssueEvidence";
 import { decideIssue, getDecideIssueErrorMessage } from "../../api/decideIssue";
 import {
   getSectionDraft,
@@ -69,6 +74,7 @@ import {
   getStartSynthesisErrorMessage,
   startSectionSynthesis,
 } from "../../api/startSynthesis";
+import { LIVE_SYNC_REFETCH_INTERVAL_MS } from "../../../../shared/constants/liveSync";
 import {
   getRequestSectionDraftPrecheckErrorMessage,
   requestSectionDraftPrecheck,
@@ -324,7 +330,12 @@ const toWorkspaceIssue = (
         return null;
       }
 
-      return { memberName, content };
+      const authorUserId =
+        typeof record.authorUserId === "number"
+          ? record.authorUserId
+          : undefined;
+
+      return { authorUserId, memberName, content };
     })
     .filter(
       (opinion): opinion is NonNullable<typeof opinion> => opinion !== null,
@@ -353,6 +364,16 @@ const toWorkspaceIssue = (
     : undefined;
 
   if (issueType === "GAP") {
+    const answerRecord = toRecordValue(issue.answer);
+    const answer = answerRecord
+      ? {
+          authorName: toStringValue(answerRecord.authorName) ?? "팀원",
+          content: toStringValue(answerRecord.content) ?? "",
+          answeredAt: toStringValue(answerRecord.answeredAt) ?? "",
+        }
+      : undefined;
+    const evidenceRequested = issue.evidenceRequested === true;
+
     return {
       id:
         toStringValue(issue.id) ??
@@ -364,13 +385,19 @@ const toWorkspaceIssue = (
       aiHint,
       opinions,
       evidenceRequest: {
+        requested: evidenceRequested,
         message:
           toStringValue(issue.requestMessage) ??
-          "추가 근거를 요청했어요 · 답변 대기",
+          (answer
+            ? "추가 근거 답변이 등록되었어요."
+            : evidenceRequested
+              ? "추가 근거를 요청한 상태예요 · 답변 대기"
+              : "추가 근거 요청이 필요해요."),
         questionCount:
           typeof issue.questionCount === "number" && issue.questionCount > 0
             ? issue.questionCount
             : 1,
+        answer,
       },
       decision,
     };
@@ -745,6 +772,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     "REQUESTED";
   const synthesisFailureMessage =
     synthesisJobQuery.data?.failure?.message?.trim() ?? null;
+  const shouldFetchSynthesisResult =
+    section.sectionStatus === "DRAFTING" || synthesisJobStatus === "SUCCEEDED";
 
   const synthesisResultQuery = useQuery({
     queryKey: [
@@ -754,14 +783,16 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
       synthesisJobStatus,
     ],
     queryFn: () => getSectionSynthesis(sectionId),
-    enabled:
-      section.sectionStatus === "DRAFTING" ||
-      synthesisJobStatus === "SUCCEEDED",
+    enabled: shouldFetchSynthesisResult,
+    refetchInterval: shouldFetchSynthesisResult
+      ? LIVE_SYNC_REFETCH_INTERVAL_MS
+      : false,
+    refetchIntervalInBackground: true,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   useEffect(() => {
@@ -1264,6 +1295,48 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     }
   };
 
+  const handleSubmitEvidenceAnswer = async (
+    issueIdValue: string,
+    content: string,
+  ) => {
+    const issueId = Number(issueIdValue);
+
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      throw new Error("유효하지 않은 쟁점 번호입니다.");
+    }
+
+    try {
+      await answerIssue(issueId, { content: content.trim() });
+      await synthesisResultQuery.refetch();
+    } catch (error) {
+      throw new Error(getAnswerIssueErrorMessage(error), { cause: error });
+    }
+  };
+
+  const handleRequestEvidence = async (
+    issueIdValue: string,
+    targetUserId: number,
+  ) => {
+    if (!permissions.canManageIssues) {
+      return;
+    }
+
+    const issueId = Number(issueIdValue);
+
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      throw new Error("유효하지 않은 쟁점 번호입니다.");
+    }
+
+    try {
+      await requestIssueEvidence(issueId, { targetUserId });
+      await synthesisResultQuery.refetch();
+    } catch (error) {
+      throw new Error(getRequestIssueEvidenceErrorMessage(error), {
+        cause: error,
+      });
+    }
+  };
+
   const isOpinionAnalyzingStage = resolvedStage === "opinion-analyzing";
   const isIssueCoordinationStage = resolvedStage === "issue-coordination";
 
@@ -1346,6 +1419,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
         <IssueCoordinationView
           data={issueCoordinationData ?? toIssueCoordinationData(null)}
           onCreateDraft={handleCreateDraft}
+          onSubmitEvidenceAnswer={handleSubmitEvidenceAnswer}
+          onRequestEvidence={handleRequestEvidence}
           isCreatingDraft={isStartingDraftGeneration}
           canManageIssues={permissions.canManageIssues}
           canGenerateDraft={permissions.canGenerateDraft}

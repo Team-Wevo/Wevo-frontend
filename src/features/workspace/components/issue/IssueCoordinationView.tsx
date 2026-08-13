@@ -17,6 +17,8 @@ interface IssueCoordinationViewProps {
   data: IssueCoordinationData;
   /** 모든 쟁점을 결정한 뒤 초안 생성 단계로 넘어간다. */
   onCreateDraft: (decisions: IssueDecisionSubmission[]) => void;
+  onSubmitEvidenceAnswer: (issueId: string, content: string) => Promise<void>;
+  onRequestEvidence: (issueId: string, targetUserId: number) => Promise<void>;
   isCreatingDraft?: boolean;
   canManageIssues: boolean;
   canGenerateDraft: boolean;
@@ -25,6 +27,8 @@ interface IssueCoordinationViewProps {
 const IssueCoordinationView = ({
   data,
   onCreateDraft,
+  onSubmitEvidenceAnswer,
+  onRequestEvidence,
   isCreatingDraft = false,
   canManageIssues,
   canGenerateDraft,
@@ -156,6 +160,8 @@ const IssueCoordinationView = ({
             isDecided={isIssueDecided(issue, decisions, customInputs)}
             onSelectOption={handleSelectOption}
             onChangeCustomInput={handleChangeCustomInput}
+            onSubmitEvidenceAnswer={onSubmitEvidenceAnswer}
+            onRequestEvidence={onRequestEvidence}
             readOnly={!canManageIssues}
           />
         ))}
@@ -164,7 +170,7 @@ const IssueCoordinationView = ({
       {canGenerateDraft && (
         <div className="flex flex-col items-end gap-3">
           <p className="text-xs leading-[18px] font-normal text-gray-600">
-            쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 부족 항목은 답변을
+            쟁점을 모두 결정하면 초안을 만들 수 있어요. (근거 요청 후에는 답변을
             기다리며 진행 가능)
           </p>
 
