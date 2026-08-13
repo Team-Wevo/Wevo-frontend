@@ -42,6 +42,13 @@ export const PRESSABLE_COMPLETION_BUTTON_STATE_CLASS =
 export const PRESSABLE_AI_BUTTON_STATE_CLASS =
   "group border-gray-400 bg-white text-gray-800 transition-colors hover:border-transparent hover:bg-main-300 hover:text-white active:border-transparent active:bg-main-600 active:text-white disabled:hover:border-gray-400 disabled:hover:bg-white disabled:hover:text-gray-800";
 
+/**
+ * 초안·완성본 수정 버튼.
+ * 기본 테두리형에서 hover main/300, pressed main/600으로 전환한다.
+ */
+export const PRESSABLE_EDIT_BUTTON_STATE_CLASS =
+  "group border-gray-400 bg-gray-50 text-gray-700 transition-colors hover:border-transparent hover:bg-main-300 hover:text-white active:border-transparent active:bg-main-600 active:text-white disabled:hover:border-gray-400 disabled:hover:bg-gray-50 disabled:hover:text-gray-700";
+
 /*
  * 아이콘 색 전환은 버튼이 비활성일 때 일어나면 안 된다.
  * CSS :hover는 disabled 버튼에도 매칭되므로 :not(:disabled)로 직접 걸러낸다.
