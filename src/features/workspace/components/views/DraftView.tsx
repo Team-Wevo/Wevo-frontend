@@ -1210,6 +1210,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
 
   const handleApplyRevision = async (): Promise<boolean> => {
     if (
+      !permissions.canApplyPrecheckRevision ||
       isApplyingRevision ||
       !precheckCurrentResult ||
       !precheckResultRequestId
@@ -1219,12 +1220,23 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
 
     setIsApplyingRevision(true);
     setApplyRevisionErrorMessage(null);
+    const wasLeaseOwned = isDraftLeaseOwned;
+    let didAcquireLease = false;
 
     try {
+      const lease = await acquireSectionDraftLease(sectionId);
+      didAcquireLease = true;
+      setIsDraftLeaseOwned(true);
+      setLeaseExpiresAt(lease.expiresAt);
+
       await applySectionDraftPrecheck(sectionId, {
         requestId: precheckResultRequestId,
         checkedContentVersion: precheckCurrentResult.checkedContentVersion,
       });
+
+      setIsDraftLeaseOwned(false);
+      setLeaseExpiresAt(null);
+      void leaseStatusQuery.refetch();
 
       const latestDraftResult = await draftResultQuery.refetch();
       const latestDraft = latestDraftResult.data ?? null;
@@ -1240,6 +1252,22 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
 
       return true;
     } catch (error) {
+      if (didAcquireLease && !wasLeaseOwned) {
+        try {
+          await releaseSectionDraftLease(sectionId);
+        } catch (releaseError) {
+          if (!isDraftLeaseNoLongerOwnedError(releaseError)) {
+            setEditActionErrorMessage(
+              getReleaseDraftLeaseErrorMessage(releaseError),
+            );
+          }
+        }
+
+        setIsDraftLeaseOwned(false);
+        setLeaseExpiresAt(null);
+        void leaseStatusQuery.refetch();
+      }
+
       setApplyRevisionErrorMessage(
         getApplySectionDraftPrecheckErrorMessage(error),
       );
@@ -1303,6 +1331,10 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   };
 
   const handleMoveToReviewRequest = async () => {
+    if (!permissions.canMoveToReviewRequest) {
+      return;
+    }
+
     setIsMovingToReviewRequest(true);
     setMoveToReviewRequestErrorMessage(null);
 
@@ -1535,6 +1567,8 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
               onKeepRevision={handleKeepRevision}
               isApplyingRevision={isApplyingRevision}
               applyRevisionErrorMessage={applyRevisionErrorMessage}
+              canApplyRevision={permissions.canApplyPrecheckRevision}
+              canMoveToReviewRequest={permissions.canMoveToReviewRequest}
               isMovingToReviewRequest={isMovingToReviewRequest}
               moveToReviewRequestErrorMessage={moveToReviewRequestErrorMessage}
             />

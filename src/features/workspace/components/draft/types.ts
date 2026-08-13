@@ -86,6 +86,8 @@ export interface DraftStageViewProps {
   readabilityRequestErrorMessage?: string | null;
   isApplyingRevision?: boolean;
   applyRevisionErrorMessage?: string | null;
+  canApplyRevision?: boolean;
+  canMoveToReviewRequest?: boolean;
   isMovingToReviewRequest?: boolean;
   moveToReviewRequestErrorMessage?: string | null;
 }

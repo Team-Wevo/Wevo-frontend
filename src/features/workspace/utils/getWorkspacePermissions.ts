@@ -6,6 +6,8 @@ export interface WorkspacePermissions {
   canManageOpinionCollection: boolean;
   canManageIssues: boolean;
   canGenerateDraft: boolean;
+  canApplyPrecheckRevision: boolean;
+  canMoveToReviewRequest: boolean;
   canSubmitTeamReview: boolean;
   canResolveTeamReview: boolean;
   canConfirmSection: boolean;
@@ -23,6 +25,8 @@ export const getWorkspacePermissions = (
     canManageOpinionCollection: isOwner,
     canManageIssues: isOwner,
     canGenerateDraft: isOwner,
+    canApplyPrecheckRevision: isOwner,
+    canMoveToReviewRequest: isOwner,
     canSubmitTeamReview: !isOwner,
     canResolveTeamReview: isOwner,
     canConfirmSection: isOwner,

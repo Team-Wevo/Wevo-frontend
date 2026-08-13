@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CreditIcon } from "../../../../shared/components/icons";
 import { PRESSABLE_FILL_ICON_STATE_CLASS } from "../../../../shared/styles/buttonStateStyles";
 import { Button } from "../../../../shared/components/Button";
+import MarkdownContent from "../../../../shared/components/MarkdownContent";
 import SectionBlock from "../blocks/SectionBlock";
 import AiPreReviewResultCard from "./AiPreReviewResultCard";
 import type { AiPreReviewData } from "./types";
@@ -14,6 +15,7 @@ interface AiPreReviewPanelProps {
   readabilityErrorMessage?: string | null;
   isApplyingRevision?: boolean;
   applyRevisionErrorMessage?: string | null;
+  canApplyRevision?: boolean;
 }
 
 const AiPreReviewPanel = ({
@@ -24,6 +26,7 @@ const AiPreReviewPanel = ({
   readabilityErrorMessage = null,
   isApplyingRevision = false,
   applyRevisionErrorMessage = null,
+  canApplyRevision = false,
 }: AiPreReviewPanelProps) => {
   const [isRevisionVisible, setIsRevisionVisible] = useState(false);
 
@@ -101,9 +104,10 @@ const AiPreReviewPanel = ({
               {data.revisionProposal.title} (변경{" "}
               {data.revisionProposal.changedCount}곳)
             </h4>
-            <p className="text-xs leading-5 font-normal text-gray-900">
-              {data.revisionProposal.content}
-            </p>
+            <MarkdownContent
+              content={data.revisionProposal.content}
+              className="text-[13px] leading-5 [&_h1]:mt-3 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:leading-7 [&_h2]:mt-3 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:leading-6 [&_h3]:mt-3 [&_h3]:mb-2 [&_h3]:text-[15px] [&_h3]:leading-6 [&_h4]:mt-3 [&_h4]:mb-2 [&_h4]:text-sm [&_p]:my-2"
+            />
 
             <div className="flex w-full items-end justify-end gap-2">
               <p className="text-xs leading-4 font-normal text-gray-600">
@@ -116,14 +120,16 @@ const AiPreReviewPanel = ({
               >
                 유지하기
               </Button>
-              <Button
-                type="main"
-                onClick={() => void handleApplyRevision()}
-                disabled={isApplyingRevision}
-                className="h-8 rounded-sm px-4 py-2 text-xs leading-4 font-medium"
-              >
-                {isApplyingRevision ? "적용 중..." : "수정안 적용"}
-              </Button>
+              {canApplyRevision && (
+                <Button
+                  type="main"
+                  onClick={() => void handleApplyRevision()}
+                  disabled={isApplyingRevision}
+                  className="h-8 rounded-sm px-4 py-2 text-xs leading-4 font-medium"
+                >
+                  {isApplyingRevision ? "적용 중..." : "수정안 적용"}
+                </Button>
+              )}
             </div>
             {applyRevisionErrorMessage && (
               <p className="text-error text-xs leading-4">
