@@ -75,6 +75,7 @@ import {
   startSectionSynthesis,
 } from "../../api/startSynthesis";
 import { LIVE_SYNC_REFETCH_INTERVAL_MS } from "../../../../shared/constants/liveSync";
+import { getApiErrorResponse } from "../../../../shared/api/error";
 import {
   getRequestSectionDraftPrecheckErrorMessage,
   requestSectionDraftPrecheck,
@@ -99,8 +100,13 @@ interface DraftViewProps {
   permissions: WorkspacePermissions;
 }
 
+const isDraftLeaseNoLongerOwnedError = (error: unknown) => {
+  const code = getApiErrorResponse(error)?.code;
+
+  return code === "S004" || code === "S005";
+};
+
 const AI_JOB_POLLING_INTERVAL_MS = 5_000;
-const DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS = 10_000;
 const DRAFT_LEASE_HEARTBEAT_BUFFER_MS = 60_000;
 const DRAFT_LEASE_HEARTBEAT_MIN_INTERVAL_MS = 30_000;
 
@@ -844,6 +850,10 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
         draftJobQuery.data?.status === "SUCCEEDED") &&
       !isDraftJobFeatureMismatch,
     retry: false,
+    refetchInterval: isDraftLeaseOwned ? false : LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   useEffect(() => {
@@ -855,9 +865,11 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const leaseStatusQuery = useQuery({
     queryKey: ["workspace-draft-lease-status", sectionId],
     queryFn: () => getSectionDraftLeaseStatus(sectionId),
-    enabled: Boolean(draftResultQuery.data) && draftStage === "editing",
+    enabled: Boolean(draftResultQuery.data),
     retry: false,
-    refetchInterval: DRAFT_LEASE_STATUS_POLLING_INTERVAL_MS,
+    refetchInterval: LIVE_SYNC_REFETCH_INTERVAL_MS,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
   });
 
   const precheckJobQuery = useQuery({
@@ -896,10 +908,12 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     retry: false,
   });
 
-  const effectiveDraftContent =
-    draftContent ?? draftResultQuery.data?.content ?? null;
-  const effectiveDraftVersion =
-    draftVersion ?? draftResultQuery.data?.contentVersion ?? null;
+  const effectiveDraftContent = isDraftLeaseOwned
+    ? (draftContent ?? draftResultQuery.data?.content ?? null)
+    : (draftResultQuery.data?.content ?? draftContent ?? null);
+  const effectiveDraftVersion = isDraftLeaseOwned
+    ? (draftVersion ?? draftResultQuery.data?.contentVersion ?? null)
+    : (draftResultQuery.data?.contentVersion ?? draftVersion ?? null);
   const precheckCurrentResult = precheckResultQuery.data?.currentResult;
   const precheckResultRequestId =
     precheckCurrentResult?.requestId ??
@@ -1086,8 +1100,13 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
 
     setIsSavingDraft(true);
     setDraftSaveErrorMessage(null);
+    setEditActionErrorMessage(null);
 
     try {
+      const lease = await acquireSectionDraftLease(sectionId);
+      setIsDraftLeaseOwned(true);
+      setLeaseExpiresAt(lease.expiresAt);
+
       await saveSectionDraft(sectionId, {
         content: effectiveDraftContent,
         baseVersion: effectiveDraftVersion,
@@ -1105,13 +1124,16 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
       try {
         await releaseSectionDraftLease(sectionId);
       } catch (error) {
-        setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
-      } finally {
-        setIsDraftLeaseOwned(false);
-        setLeaseExpiresAt(null);
-        setDraftStage("edited");
-        void leaseStatusQuery.refetch();
+        if (!isDraftLeaseNoLongerOwnedError(error)) {
+          setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+          return;
+        }
       }
+
+      setIsDraftLeaseOwned(false);
+      setLeaseExpiresAt(null);
+      setDraftStage("generated");
+      void leaseStatusQuery.refetch();
     } catch (error) {
       setDraftSaveErrorMessage(getSaveSectionDraftErrorMessage(error));
     } finally {
@@ -1226,13 +1248,18 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
     try {
       await releaseSectionDraftLease(sectionId);
     } catch (error) {
-      setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
-    } finally {
-      setIsDraftLeaseOwned(false);
-      setLeaseExpiresAt(null);
-      setDraftStage("edited");
-      void leaseStatusQuery.refetch();
+      if (!isDraftLeaseNoLongerOwnedError(error)) {
+        setEditActionErrorMessage(getReleaseDraftLeaseErrorMessage(error));
+        return;
+      }
     }
+
+    setDraftContent(lastSavedDraftContent);
+    setDraftSaveErrorMessage(null);
+    setIsDraftLeaseOwned(false);
+    setLeaseExpiresAt(null);
+    setDraftStage("generated");
+    void leaseStatusQuery.refetch();
   };
 
   const handleMoveToReviewRequest = async () => {

@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
 import { Button } from "../../../../shared/components/Button";
 import SectionBlock from "../blocks/SectionBlock";
 import DraftReadabilityCard from "./DraftReadabilityCard";
-import type { DraftEditingMode, DraftStageViewProps } from "./types";
+import type { DraftStageViewProps } from "./types";
 import { CreditIcon } from "../../../../shared/components/icons";
 import MarkdownContent from "../../../../shared/components/MarkdownContent";
 
@@ -17,42 +16,16 @@ const DraftEditingView = ({
   draftSaveErrorMessage,
 }: DraftStageViewProps) => {
   const defaultMode = state.editingMeta?.defaultMode ?? "self";
-  const [editingMode, setEditingMode] = useState<DraftEditingMode>(defaultMode);
 
   const editorName = state.editingMeta?.currentEditorName ?? "팀원";
   const myDisplayName = state.editingMeta?.myDisplayName ?? "내";
-  const isSelfEditing = editingMode === "self";
-
-  const helperMessage = useMemo(() => {
-    if (isSelfEditing) {
-      return "초안 편집을 마치면 읽힘 점검을 진행할 수 있어요.";
-    }
-
-    return "현재 초안 편집이 끝난 뒤 점검할 수 있어요.";
-  }, [isSelfEditing]);
+  const isSelfEditing = defaultMode === "self";
+  const helperMessage = isSelfEditing
+    ? "초안 편집을 마치면 읽힘 점검을 진행할 수 있어요."
+    : "현재 초안 편집이 끝난 뒤 점검할 수 있어요.";
 
   return (
     <>
-      <div className="flex items-center gap-2 rounded-sm border border-dashed border-gray-400 bg-gray-50 p-2">
-        <span className="text-xs leading-4 font-medium text-gray-700">
-          편집 상태 확인 (개발용)
-        </span>
-        <Button
-          type={isSelfEditing ? "main" : "outline"}
-          onClick={() => setEditingMode("self")}
-          className="h-7 px-3 py-1 text-xs"
-        >
-          내가 편집 중
-        </Button>
-        <Button
-          type={!isSelfEditing ? "main" : "outline"}
-          onClick={() => setEditingMode("locked")}
-          className="h-7 px-3 py-1 text-xs"
-        >
-          다른 사람이 편집 중
-        </Button>
-      </div>
-
       <div className="flex w-full flex-col gap-2">
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
@@ -137,15 +110,19 @@ const DraftEditingView = ({
       {isSelfEditing ? (
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-1">
-            <span className="text-success text-xs leading-4 font-medium">
-              ✓
+            <span
+              className={`${draftSaveErrorMessage ? "text-error" : "text-success"} text-xs leading-4 font-medium`}
+            >
+              {draftSaveErrorMessage ? "!" : "✓"}
             </span>
-            <span className="text-xs leading-4 font-normal text-gray-600">
+            <span
+              className={`${draftSaveErrorMessage ? "text-error" : "text-gray-600"} text-xs leading-4 font-normal`}
+            >
               {isSavingDraft
-                ? "자동 저장 중..."
+                ? "편집 내용 저장 중..."
                 : draftSaveErrorMessage
-                  ? "자동 저장 실패"
-                  : "자동 저장됨"}
+                  ? draftSaveErrorMessage
+                  : "편집 저장 버튼을 눌러 변경 내용을 저장해 주세요."}
             </span>
           </div>
           <div className="flex items-center gap-3">
