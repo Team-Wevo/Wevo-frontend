@@ -4,6 +4,7 @@ import { useRevalidator } from "react-router-dom";
 import { useMyProfile } from "../../../auth/hooks/useMyProfile";
 import AiDraftProgressCard from "../blocks/AiDraftProgressCard";
 import DraftEditedView from "../draft/DraftEditedView";
+import DraftEvidenceModal from "../draft/DraftEvidenceModal";
 import DraftEditingView from "../draft/DraftEditingView";
 import DraftGeneratedView from "../draft/DraftGeneratedView";
 import DraftGeneratingView from "../draft/DraftGeneratingView";
@@ -56,6 +57,10 @@ import {
   getSectionDraftErrorMessage,
   type SectionDraftResponse,
 } from "../../api/getSectionDraft";
+import {
+  getSectionDraftEvidence,
+  getSectionDraftEvidenceErrorMessage,
+} from "../../api/getSectionDraftEvidence";
 import {
   getSectionDraftPrecheck,
   type SectionDraftPrecheckCurrentResult,
@@ -698,6 +703,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const [draftSaveErrorMessage, setDraftSaveErrorMessage] = useState<
     string | null
   >(null);
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
   const [editActionErrorMessage, setEditActionErrorMessage] = useState<
     string | null
   >(null);
@@ -942,6 +948,12 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   const effectiveDraftVersion = isDraftLeaseOwned
     ? (draftVersion ?? draftResultQuery.data?.contentVersion ?? null)
     : (draftResultQuery.data?.contentVersion ?? draftVersion ?? null);
+  const draftEvidenceQuery = useQuery({
+    queryKey: ["workspace-draft-evidence", sectionId, effectiveDraftVersion],
+    queryFn: () => getSectionDraftEvidence(sectionId),
+    enabled: isEvidenceModalOpen && effectiveDraftVersion !== null,
+    retry: false,
+  });
   const precheckCurrentResult = precheckResultQuery.data?.currentResult;
   const precheckResultRequestId =
     precheckCurrentResult?.requestId ??
@@ -1170,7 +1182,7 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
   };
 
   const handleOpenEvidence = () => {
-    // TODO: 근거 상세 패널/모달 연결
+    setIsEvidenceModalOpen(true);
   };
 
   const handleRequestReadabilityCheck = async () => {
@@ -1485,12 +1497,23 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
           const currentDraftState =
             runtimeDraftState ??
             MOCK_DRAFT_STATE_BY_STAGE[resolvedStage as DraftStage];
+          const displayedDraftState = draftEvidenceQuery.data
+            ? {
+                ...currentDraftState,
+                evidence: {
+                  ...currentDraftState.evidence,
+                  teamOpinionCount: draftEvidenceQuery.data.opinions.length,
+                  issueDecisionCount: draftEvidenceQuery.data.decisions.length,
+                  issueDecisionLabel: "확정 결정",
+                },
+              }
+            : currentDraftState;
           const CurrentDraftStageView =
-            DRAFT_STAGE_VIEW_COMPONENTS[currentDraftState.stage];
+            DRAFT_STAGE_VIEW_COMPONENTS[displayedDraftState.stage];
 
           return (
             <CurrentDraftStageView
-              state={currentDraftState}
+              state={displayedDraftState}
               onEditDraft={handleMoveToEditing}
               onOpenEvidence={handleOpenEvidence}
               onRequestReadabilityCheck={handleRequestReadabilityCheck}
@@ -1517,6 +1540,18 @@ const DraftView = ({ section, permissions }: DraftViewProps) => {
             />
           );
         })()
+      )}
+      {isEvidenceModalOpen && (
+        <DraftEvidenceModal
+          data={draftEvidenceQuery.data}
+          isLoading={draftEvidenceQuery.isPending}
+          errorMessage={
+            draftEvidenceQuery.isError
+              ? getSectionDraftEvidenceErrorMessage(draftEvidenceQuery.error)
+              : null
+          }
+          onClose={() => setIsEvidenceModalOpen(false)}
+        />
       )}
     </div>
   );
