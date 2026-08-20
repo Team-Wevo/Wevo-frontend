@@ -4,6 +4,7 @@ import type { WorkspaceSectionLoaderData } from "../../app/router/loaders/worksp
 import WorkspaceLayout from "../../app/layouts/WorkspaceLayout";
 import type { DraftSaveStatus } from "../../features/workspace/components/layout/WorkspaceHeader";
 import type { ProjectResultType } from "../../features/project/api/projectList";
+import { DEFAULT_PROJECT_TITLE } from "../../features/project/api/projects";
 import type { ProjectInfoItem } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
 import DraftView from "../../features/workspace/components/views/DraftView";
 import DraftHistoryView from "../../features/workspace/components/views/DraftHistoryView";
@@ -13,6 +14,7 @@ import { getWorkspacePhase } from "../../features/workspace/utils/getWorkspacePh
 import { getWorkspacePermissions } from "../../features/workspace/utils/getWorkspacePermissions";
 import { toDocumentProgress } from "../../features/workspace/utils/toDocumentProgress";
 import { useWorkspaceSections } from "../../features/workspace/hooks/useWorkspaceSections";
+import { useProjectDetail } from "../../features/project/hooks/useProjectDetail";
 import {
   SECTION_PHASES,
   type SectionPhase,
@@ -33,6 +35,12 @@ const WorkspacePage = () => {
     opinions,
     myOpinion,
   } = useLoaderData() as WorkspaceSectionLoaderData;
+  const projectDetailQuery = useProjectDetail(projectId, projectDetail);
+  const syncedProjectDetail = projectDetailQuery.data ?? projectDetail;
+  const visibleProjectTitle =
+    syncedProjectDetail.title.trim() === DEFAULT_PROJECT_TITLE
+      ? ""
+      : syncedProjectDetail.title;
   const sectionsQuery = useWorkspaceSections(projectId, sections);
   const syncedSections = sectionsQuery.data ?? sections;
   const syncedCurrentSection =
@@ -40,7 +48,7 @@ const WorkspacePage = () => {
     currentSection;
   const sectionId = syncedCurrentSection.projectSectionId;
   const currentPhase = getWorkspacePhase(syncedCurrentSection.sectionStatus);
-  const permissions = getWorkspacePermissions(projectDetail.myRole);
+  const permissions = getWorkspacePermissions(syncedProjectDetail.myRole);
   const [saveStatus, setSaveStatus] = useState<DraftSaveStatus>("idle");
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedPhaseByView: Record<string, SectionPhase> = {
@@ -79,15 +87,15 @@ const WorkspacePage = () => {
   const projectInfo: ProjectInfoItem[] = [
     {
       label: "결과물 유형",
-      value: RESULT_TYPE_LABEL[projectDetail.resultType],
+      value: RESULT_TYPE_LABEL[syncedProjectDetail.resultType],
     },
-    { label: "전달 대상", value: projectDetail.audience },
-    { label: "시작 아이디어", value: projectDetail.ideaText },
+    { label: "전달 대상", value: syncedProjectDetail.audience },
+    { label: "시작 아이디어", value: syncedProjectDetail.ideaText },
   ];
 
   return (
     <WorkspaceLayout
-      title={projectDetail.title}
+      title={visibleProjectTitle}
       projectId={String(projectId)}
       projectInfo={projectInfo}
       progress={toDocumentProgress(syncedSections)}

@@ -107,7 +107,6 @@ const CreateFlowModal = ({
 
     try {
       const result = await createProject({
-        title: "",
         ideaText: idea.trim(),
         resultType: RESULT_TYPE_BY_DOCUMENT_TYPE[documentType],
         audience: audienceText,
