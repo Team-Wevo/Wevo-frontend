@@ -62,12 +62,12 @@ const LoginModal = ({
 
   return (
     <div
-      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[2px] duration-200"
+      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/10 p-4 backdrop-blur-[2px] duration-200"
       onClick={handleOverlayClick}
     >
       <div
         ref={dialogRef}
-        className="animate-in zoom-in-95 relative flex w-[400px] flex-col items-center gap-6 overflow-hidden rounded-lg bg-white p-8 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)] duration-150"
+        className="animate-in zoom-in-95 relative flex w-full max-w-[400px] flex-col items-center gap-6 overflow-hidden rounded-lg bg-white p-8 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)] duration-150"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

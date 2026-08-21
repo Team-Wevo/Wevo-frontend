@@ -321,12 +321,12 @@ export const ProjectListPage = () => {
           />
         )}
         {isLoggedIn && isLoading && (
-          <p className="col-span-4 text-sm text-gray-600">
+          <p className="col-span-full text-sm text-gray-600">
             프로젝트 목록을 불러오는 중이에요...
           </p>
         )}
         {isLoggedIn && errorMessage && (
-          <p className="text-error col-span-4 text-sm">{errorMessage}</p>
+          <p className="text-error col-span-full text-sm">{errorMessage}</p>
         )}
         {isLoggedIn &&
           !isLoading &&

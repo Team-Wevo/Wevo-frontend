@@ -71,7 +71,7 @@ const CollectedOpinions = ({
   return (
     <div className="flex flex-col gap-6">
       {!readOnly && (
-        <div className="bg-main-50 flex items-center justify-between overflow-hidden rounded-[8px] px-4 py-3">
+        <div className="bg-main-50 flex flex-col gap-2 overflow-hidden rounded-[8px] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-main-700 text-xs font-medium">
             ✓ 의견을 제출했어요.
           </span>

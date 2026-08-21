@@ -24,12 +24,12 @@ const CompletedPreviewCard = ({
   onEditSection,
 }: CompletedPreviewCardProps) => {
   return (
-    <div className="flex w-full flex-col items-start gap-6 overflow-hidden rounded-lg border border-gray-200 bg-white px-10 pt-10 pb-8">
+    <div className="flex w-full flex-col items-start gap-6 overflow-hidden rounded-lg border border-gray-200 bg-white px-5 pt-6 pb-8 md:px-10 md:pt-10">
       <div className="flex w-full flex-col items-start gap-2 overflow-hidden">
         <span className="bg-main-50 text-main-700 rounded-[6px] px-2.5 py-[5px] text-[11px] leading-[14px] font-normal">
           완성본 미리보기
         </span>
-        <h1 className="text-[28px] leading-[38px] font-semibold text-gray-900">
+        <h1 className="text-[28px] leading-[38px] font-semibold break-words text-gray-900">
           {documentTitle}
         </h1>
         <p className="text-[13px] leading-5 font-normal text-gray-600">
@@ -47,12 +47,12 @@ const CompletedPreviewCard = ({
             className="relative w-full scroll-mt-8 overflow-hidden rounded-sm"
           >
             <div className="relative flex flex-col items-start gap-3 rounded-sm p-4 transition-colors hover:bg-gray-100">
-              <div className="flex w-full items-center justify-between overflow-hidden">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <span className="text-main-600 text-[13px] leading-5 font-normal">
+              <div className="flex w-full items-center justify-between gap-2 overflow-hidden">
+                <div className="flex min-w-0 items-center gap-3 overflow-hidden">
+                  <span className="text-main-600 shrink-0 text-[13px] leading-5 font-normal">
                     {String(section.orderNo).padStart(2, "0")}
                   </span>
-                  <span className="text-lg leading-7 font-semibold text-gray-900">
+                  <span className="truncate text-lg leading-7 font-semibold text-gray-900">
                     {section.title}
                   </span>
                 </div>

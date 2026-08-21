@@ -12,7 +12,7 @@ const DraftFooter = ({
   onRequestReview,
 }: DraftFooterProps) => {
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs leading-4 font-normal text-gray-600">
         초안을 다듬은 뒤 AI 사전 검토를 받아보세요.
       </p>

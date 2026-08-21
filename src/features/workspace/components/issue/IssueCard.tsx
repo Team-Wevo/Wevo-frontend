@@ -207,7 +207,7 @@ const IssueCard = ({
         {issue.evidenceRequest && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-main-600 text-[13px] leading-5 font-normal">
+              <span className="text-main-600 min-w-0 text-[13px] leading-5 font-normal break-words">
                 {issue.evidenceRequest.message}
               </span>
               <span className="shrink-0 text-xs leading-5 font-normal text-gray-600">
@@ -244,8 +244,8 @@ const IssueCard = ({
                   aria-label={`${issue.order}번 쟁점 추가 근거 답변`}
                   className="focus:border-main-500 min-h-20 w-full resize-none rounded-sm border border-gray-400 bg-gray-50 px-4 py-3 text-[13px] leading-5 text-gray-900 placeholder:text-gray-500 focus:outline-none"
                 />
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-xs leading-5 font-normal text-gray-600">
                       추가 근거를 요청받은 팀원만 답변할 수 있어요.
                     </span>

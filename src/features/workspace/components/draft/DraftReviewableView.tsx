@@ -66,7 +66,7 @@ const DraftReviewableView = ({
       />
 
       {canMoveToReviewRequest && (
-        <div className="flex w-full items-center justify-end gap-3">
+        <div className="flex w-full flex-wrap items-center justify-end gap-3">
           {moveToReviewRequestErrorMessage && (
             <span className="text-error text-xs">
               {moveToReviewRequestErrorMessage}

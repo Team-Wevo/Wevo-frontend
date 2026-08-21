@@ -111,7 +111,7 @@ const OpinionForm = ({
           placeholder="의견을 입력해주세요. (20자 이상)"
           className="flex-1 resize-none text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
         />
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           {errorMessage && (
             <span className="text-error text-xs">{errorMessage}</span>
           )}
