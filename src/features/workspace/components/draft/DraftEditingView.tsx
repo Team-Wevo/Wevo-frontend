@@ -40,7 +40,7 @@ const DraftEditingView = ({
           </div>
         </div>
 
-        <div className="flex w-full items-end justify-between gap-4">
+        <div className="flex w-full flex-col items-start gap-2 md:flex-row md:items-end md:justify-between md:gap-4">
           <p className="text-xs leading-5 font-normal text-gray-600">
             AI가 팀 의견과 쟁점 결정을 반영해 만든 초안이에요.
           </p>
@@ -109,7 +109,7 @@ const DraftEditingView = ({
       </SectionBlock>
 
       {isSelfEditing ? (
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-1">
             <span
               className={`${draftSaveErrorMessage ? "text-error" : "text-success"} text-xs leading-4 font-medium`}

@@ -121,7 +121,7 @@ const AiPreReviewPanel = ({
                   className="text-[13px] leading-5 [&_h1]:mt-3 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:leading-7 [&_h2]:mt-3 [&_h2]:mb-2 [&_h2]:text-base [&_h2]:leading-6 [&_h3]:mt-3 [&_h3]:mb-2 [&_h3]:text-[15px] [&_h3]:leading-6 [&_h4]:mt-3 [&_h4]:mb-2 [&_h4]:text-sm [&_p]:my-2"
                 />
 
-                <div className="flex w-full items-end justify-end gap-2">
+                <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-end sm:justify-end">
                   <p className="text-xs leading-4 font-normal text-gray-600">
                     {data.revisionProposal.notice}
                   </p>

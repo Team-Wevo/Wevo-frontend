@@ -32,7 +32,7 @@ const GeneratedDraftHeader = ({
         </span>
       </div>
 
-      <div className="flex w-full items-end justify-between gap-4">
+      <div className="flex w-full flex-col items-start gap-3 md:flex-row md:items-end md:justify-between md:gap-4">
         <p className="text-xs leading-5 font-normal font-semibold text-gray-900">
           {state.summary}
         </p>
