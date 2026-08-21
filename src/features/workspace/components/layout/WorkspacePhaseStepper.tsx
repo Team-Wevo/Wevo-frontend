@@ -26,7 +26,7 @@ const WorkspacePhaseStepper = ({
   const currentPhaseIndex = SECTION_PHASES.indexOf(currentPhase);
 
   return (
-    <div className="flex w-full items-center justify-start gap-3">
+    <div className="flex w-full items-center justify-start gap-2 md:gap-3">
       {SECTION_PHASES.map((phase, index) => {
         const isActive = phase === selectedPhase;
         const isFuturePhase = index > currentPhaseIndex;
@@ -60,8 +60,9 @@ const WorkspacePhaseStepper = ({
               </span>
               <span
                 className={cn(
+                  "whitespace-nowrap",
                   isActive
-                    ? "text-lg leading-7 font-semibold text-gray-900"
+                    ? "text-base leading-6 font-semibold text-gray-900 md:text-lg md:leading-7"
                     : "text-xs leading-4 font-medium text-gray-600",
                 )}
               >

@@ -13,6 +13,7 @@ import WorkspacePhaseStepper from "../../features/workspace/components/layout/Wo
 import WorkspaceRightSidebar, {
   type ProjectInfoItem,
 } from "../../features/workspace/components/layout/WorkspaceRightSidebar";
+import MobileDrawer from "../../shared/components/MobileDrawer";
 import type {
   DocumentProgress,
   SectionPhase,
@@ -92,7 +93,19 @@ const WorkspaceLayout = ({
 }: WorkspaceLayoutProps) => {
   const navigate = useNavigate();
   const [isFlowPreviewOpen, setIsFlowPreviewOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const activeSection = progress[activeStepId - 1];
+
+  // 섹션이 바뀌면 모바일 작업 흐름 드로어를 닫는다.
+  // effect 대신 렌더 중 이전 값과 비교해 조정한다(React 권장 — 불필요한 재렌더 방지).
+  const [navDrawerStep, setNavDrawerStep] = useState(activeStepId);
+  if (activeStepId !== navDrawerStep) {
+    setNavDrawerStep(activeStepId);
+    if (isNavOpen) {
+      setIsNavOpen(false);
+    }
+  }
   const documentTypeLabel =
     projectInfo.find((item) => item.label === "결과물 유형")?.value ?? "제안서";
   const previewDraftQueries = useQueries({
@@ -141,23 +154,27 @@ const WorkspaceLayout = ({
         projectId={projectId}
         saveStatus={saveStatus}
         canInviteMembers={permissions.canInviteMembers}
+        onOpenNav={() => setIsNavOpen(true)}
+        onOpenInfo={() => setIsInfoOpen(true)}
         onPreviewAll={() => setIsFlowPreviewOpen(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <WorkspaceLeftSidebar
-          progress={progress}
-          activeStepId={activeStepId}
-          projectId={projectId}
-          onConfirmFinal={() => navigate(`/completed/${projectId}`)}
-        />
+        <div className="hidden md:flex">
+          <WorkspaceLeftSidebar
+            progress={progress}
+            activeStepId={activeStepId}
+            projectId={projectId}
+            onConfirmFinal={() => navigate(`/completed/${projectId}`)}
+          />
+        </div>
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0">
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-4 py-5 md:px-12 md:py-8 [&>*]:shrink-0">
           <div
             data-onboarding-highlight="opinion-box"
             className="flex flex-col gap-6"
           >
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-gray-900 md:text-2xl">
               {activeStepId}. {activeSection?.section}
             </h1>
             <WorkspacePhaseStepper
@@ -169,8 +186,36 @@ const WorkspaceLayout = ({
           </div>
         </div>
 
-        <WorkspaceRightSidebar projectInfo={projectInfo} />
+        <div className="hidden md:flex">
+          <WorkspaceRightSidebar projectInfo={projectInfo} />
+        </div>
       </div>
+
+      <MobileDrawer
+        open={isNavOpen}
+        onClose={() => setIsNavOpen(false)}
+        side="left"
+        label="작업 흐름"
+      >
+        <WorkspaceLeftSidebar
+          progress={progress}
+          activeStepId={activeStepId}
+          projectId={projectId}
+          onConfirmFinal={() => {
+            setIsNavOpen(false);
+            navigate(`/completed/${projectId}`);
+          }}
+        />
+      </MobileDrawer>
+
+      <MobileDrawer
+        open={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        side="right"
+        label="프로젝트 정보"
+      >
+        <WorkspaceRightSidebar projectInfo={projectInfo} />
+      </MobileDrawer>
 
       <WorkspaceOnboardingGate
         key={projectId}

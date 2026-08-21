@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Info, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../shared/components/Button";
 import { UserAvatar } from "../../../../shared/components/UserAvatar";
@@ -24,6 +24,10 @@ interface WorkspaceHeaderProps {
   showMembers?: boolean;
   onInvite?: () => void;
   onPreviewAll?: () => void;
+  /** 모바일에서 작업 흐름(좌측) 드로어 열기 */
+  onOpenNav?: () => void;
+  /** 모바일에서 프로젝트 정보(우측) 드로어 열기 */
+  onOpenInfo?: () => void;
 }
 
 const HEADER_ACTION_BUTTON_CLASS =
@@ -37,6 +41,8 @@ const WorkspaceHeader = ({
   showMembers = true,
   onInvite,
   onPreviewAll,
+  onOpenNav,
+  onOpenInfo,
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -107,6 +113,17 @@ const WorkspaceHeader = ({
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between border border-gray-400 px-6 py-1">
       <div className="flex min-w-0 items-center gap-3">
+        {onOpenNav && (
+          <button
+            type="button"
+            aria-label="작업 흐름 열기"
+            onClick={onOpenNav}
+            className="flex shrink-0 cursor-pointer items-center rounded-sm text-gray-700 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+
         <button
           type="button"
           aria-label="뒤로 가기"
@@ -141,7 +158,7 @@ const WorkspaceHeader = ({
 
       <div className="flex shrink-0 items-center gap-3">
         {showMembers && (
-          <div className="flex -space-x-2">
+          <div className="hidden -space-x-2 md:flex">
             {membersQuery.data?.members.slice(0, 4).map((member, index) => (
               <UserAvatar
                 key={member.userId}
@@ -157,7 +174,7 @@ const WorkspaceHeader = ({
         {canInviteMembers && (
           <div
             ref={inviteRef}
-            className="relative"
+            className="relative hidden md:block"
           >
             <Button
               type="pressableStrong"
@@ -187,10 +204,21 @@ const WorkspaceHeader = ({
           <Button
             type="pressableStrong"
             onClick={onPreviewAll}
-            className={HEADER_ACTION_BUTTON_CLASS}
+            className={cn(HEADER_ACTION_BUTTON_CLASS, "hidden md:flex")}
           >
             전체 미리보기
           </Button>
+        )}
+
+        {onOpenInfo && (
+          <button
+            type="button"
+            aria-label="프로젝트 정보 열기"
+            onClick={onOpenInfo}
+            className="flex shrink-0 cursor-pointer items-center rounded-sm text-gray-700 md:hidden"
+          >
+            <Info className="h-5 w-5" />
+          </button>
         )}
       </div>
     </header>

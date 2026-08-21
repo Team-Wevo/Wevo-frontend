@@ -19,11 +19,11 @@ const CloseCollectionModal = ({
 }: CloseCollectionModalProps) => {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={isClosing ? undefined : onCancel}
     >
       <div
-        className="flex w-110 flex-col gap-5 overflow-hidden rounded-[16px] bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
+        className="flex w-full max-w-110 flex-col gap-5 overflow-hidden rounded-[16px] bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-col gap-2">
