@@ -4,6 +4,7 @@ import CompletedLeftSidebar, {
   type CompletedNavigationSection,
 } from "../../features/completed/components/layout/CompletedLeftSidebar";
 import CompletedRightSidebar from "../../features/completed/components/layout/CompletedRightSidebar";
+import MobileDrawer from "../../shared/components/MobileDrawer";
 
 interface CompletedLayoutProps {
   title: string;
@@ -41,6 +42,8 @@ const CompletedLayout = ({
   const scrollTargetSectionNoRef = useRef<number | undefined>(undefined);
   const scrollEndTimerRef = useRef<number | undefined>(undefined);
   const [activeSectionNo, setActiveSectionNo] = useState<number>();
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const resolvedActiveSectionNo = sections.some(
     (section) => section.orderNo === activeSectionNo,
   )
@@ -131,22 +134,62 @@ const CompletedLayout = ({
         saveStatus="saved"
         canInviteMembers={false}
         showMembers={false}
+        onOpenNav={() => setIsNavOpen(true)}
+        onOpenInfo={() => setIsInfoOpen(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <CompletedLeftSidebar
-          sections={sections}
-          activeSectionNo={resolvedActiveSectionNo}
-          onSelectSection={handleSelectSection}
-        />
+        <div className="hidden md:flex">
+          <CompletedLeftSidebar
+            sections={sections}
+            activeSectionNo={resolvedActiveSectionNo}
+            onSelectSection={handleSelectSection}
+          />
+        </div>
 
         <div
           ref={contentRef}
-          className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-12 py-8 [&>*]:shrink-0"
+          className="flex flex-1 flex-col gap-6 overflow-y-auto bg-gray-100 px-4 py-5 md:px-12 md:py-8 [&>*]:shrink-0"
         >
           {children}
         </div>
 
+        <div className="hidden md:flex">
+          <CompletedRightSidebar
+            onCopyFullText={onCopyFullText}
+            onCopyMarkdown={onCopyMarkdown}
+            onDownloadTxt={onDownloadTxt}
+            onDownloadMd={onDownloadMd}
+            onBackToWorkspace={onBackToWorkspace}
+            isExporting={isExporting}
+            actionMessage={actionMessage}
+            isActionError={isActionError}
+          />
+        </div>
+      </div>
+
+      <MobileDrawer
+        open={isNavOpen}
+        onClose={() => setIsNavOpen(false)}
+        side="left"
+        label="섹션 이동"
+      >
+        <CompletedLeftSidebar
+          sections={sections}
+          activeSectionNo={resolvedActiveSectionNo}
+          onSelectSection={(sectionNo) => {
+            setIsNavOpen(false);
+            handleSelectSection(sectionNo);
+          }}
+        />
+      </MobileDrawer>
+
+      <MobileDrawer
+        open={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        side="right"
+        label="내보내기"
+      >
         <CompletedRightSidebar
           onCopyFullText={onCopyFullText}
           onCopyMarkdown={onCopyMarkdown}
@@ -157,7 +200,7 @@ const CompletedLayout = ({
           actionMessage={actionMessage}
           isActionError={isActionError}
         />
-      </div>
+      </MobileDrawer>
     </div>
   );
 };

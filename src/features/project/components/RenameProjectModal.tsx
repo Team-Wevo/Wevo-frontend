@@ -36,11 +36,11 @@ export const RenameProjectModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/20 p-4"
       onClick={onCancel}
     >
       <div
-        className="flex w-[380px] flex-col items-start gap-5 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
+        className="flex w-full max-w-[380px] flex-col items-start gap-5 overflow-hidden rounded-lg bg-gray-50 p-6 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

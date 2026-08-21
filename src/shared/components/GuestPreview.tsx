@@ -10,7 +10,7 @@ interface GuestPreviewProps {
 
 /**
  * 비로그인 사용자가 목록 화면을 둘러볼 때, 카드 그리드 자리에 노출되는 안내 영역.
- * ListLayout의 4열 그리드 안에 들어가므로 전체 폭을 차지하도록 col-span-4를 쓴다.
+ * ListLayout의 반응형 그리드 안에 들어가므로 전체 폭을 차지하도록 col-span-full을 쓴다.
  */
 export const GuestPreview = ({
   title,
@@ -19,7 +19,7 @@ export const GuestPreview = ({
   onAction,
 }: GuestPreviewProps) => {
   return (
-    <div className="col-span-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-gray-400 bg-gray-50 px-6 py-16 text-center">
+    <div className="col-span-full flex flex-col items-center gap-3 rounded-lg border border-dashed border-gray-400 bg-gray-50 px-6 py-16 text-center">
       <h2 className="text-lg leading-7 font-semibold text-gray-900">{title}</h2>
       <div className="space-y-1">
         {descriptions.map((sentence) => (

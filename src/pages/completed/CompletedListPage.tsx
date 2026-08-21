@@ -105,12 +105,12 @@ export const CompletedListPage = () => {
         />
       )}
       {isLoggedIn && completedProjectsQuery.isPending && (
-        <p className="col-span-4 text-sm text-gray-600">
+        <p className="col-span-full text-sm text-gray-600">
           완성본 목록을 불러오는 중이에요...
         </p>
       )}
       {isLoggedIn && completedProjectsQuery.isError && (
-        <p className="text-error col-span-4 text-sm">
+        <p className="text-error col-span-full text-sm">
           완성본 목록을 불러오지 못했습니다.
         </p>
       )}
@@ -130,7 +130,7 @@ export const CompletedListPage = () => {
       {isLoggedIn &&
         completedProjectsQuery.isSuccess &&
         filteredProjects.length === 0 && (
-          <p className="col-span-4 text-sm text-gray-600">
+          <p className="col-span-full text-sm text-gray-600">
             해당하는 완성본이 아직 없어요.
           </p>
         )}

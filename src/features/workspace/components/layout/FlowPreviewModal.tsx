@@ -107,11 +107,11 @@ const FlowPreviewModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onClose}
     >
       <div
-        className="flex h-[640px] w-[1040px] flex-col overflow-hidden rounded-lg border border-[#CDD0DF] bg-white shadow-[0_12px_40px_0_rgba(0,0,0,0.18)]"
+        className="flex h-[min(640px,calc(100vh-32px))] w-full max-w-[1040px] flex-col overflow-hidden rounded-lg border border-[#CDD0DF] bg-white shadow-[0_12px_40px_0_rgba(0,0,0,0.18)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex shrink-0 items-center justify-between px-6 py-4">
@@ -134,9 +134,9 @@ const FlowPreviewModal = ({
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 border-t border-gray-300">
-          <nav className="flex w-[224px] flex-col gap-[2px] overflow-y-auto border-r border-gray-300 bg-gray-100/50 px-2 py-3">
-            <h3 className="px-3 pb-1 text-[11px] leading-[14px] font-normal text-gray-600">
+        <div className="flex min-h-0 flex-1 flex-col border-t border-gray-300 md:flex-row">
+          <nav className="flex w-full shrink-0 flex-row gap-[2px] overflow-x-auto border-b border-gray-300 bg-gray-100/50 px-2 py-3 md:w-[224px] md:flex-col md:overflow-x-visible md:overflow-y-auto md:border-r md:border-b-0">
+            <h3 className="hidden px-3 pb-1 text-[11px] leading-[14px] font-normal text-gray-600 md:block">
               섹션
             </h3>
             {sections.map((section) => {
@@ -147,7 +147,7 @@ const FlowPreviewModal = ({
                   type="button"
                   onClick={() => handleSelectSection(section.sectionNo)}
                   className={cn(
-                    "flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left",
+                    "flex shrink-0 cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left whitespace-nowrap",
                     isActive ? "bg-gray-200" : "hover:bg-gray-100",
                   )}
                 >
@@ -169,9 +169,9 @@ const FlowPreviewModal = ({
 
           <div
             ref={scrollContainerRef}
-            className="min-h-0 w-160 flex-1 overflow-y-auto px-8 py-6"
+            className="min-h-0 w-full flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-6"
           >
-            <div className="mx-auto flex w-[640px] flex-col gap-7 px-8 py-7">
+            <div className="mx-auto flex w-full max-w-[640px] flex-col gap-7 px-0 py-4 md:px-8 md:py-7">
               <div className="flex flex-col gap-1 border-b border-gray-300 pb-5">
                 <h1 className="text-[20px] leading-7 font-semibold text-gray-900">
                   {documentTitle}

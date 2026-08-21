@@ -204,7 +204,7 @@ const WorkspaceHeader = ({
           <Button
             type="pressableStrong"
             onClick={onPreviewAll}
-            className={cn(HEADER_ACTION_BUTTON_CLASS, "hidden md:flex")}
+            className={HEADER_ACTION_BUTTON_CLASS}
           >
             전체 미리보기
           </Button>

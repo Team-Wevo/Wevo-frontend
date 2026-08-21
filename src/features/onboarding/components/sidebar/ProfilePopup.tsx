@@ -368,24 +368,24 @@ const ProfilePopup = ({
   const modalContent = (
     <div
       data-profile-popup="true"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center ${MODAL_SCRIM_CLASS}`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 ${MODAL_SCRIM_CLASS}`}
       onClick={handleCloseSettings}
     >
       <div
-        className="relative inline-flex h-[500px] w-[800px] items-start justify-start overflow-hidden rounded-lg bg-gray-50 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]"
+        className="relative flex h-[min(500px,calc(100vh-32px))] w-full max-w-[800px] flex-col items-stretch justify-start overflow-hidden rounded-lg bg-gray-50 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)] md:h-[500px] md:flex-row md:items-start"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="inline-flex w-60 flex-col items-start justify-start gap-4 self-stretch overflow-hidden bg-gray-50 px-4 py-6">
+        <div className="flex w-full shrink-0 flex-col items-start justify-start gap-4 overflow-hidden bg-gray-50 px-4 py-6 md:w-60 md:self-stretch">
           <div className="text-lg leading-7 font-semibold text-[#171A23]">
             설정
           </div>
-          <div className="flex flex-col items-start justify-start gap-1 self-stretch overflow-hidden">
+          <div className="flex flex-row items-start justify-start gap-1 self-stretch overflow-hidden md:flex-col">
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
+              className={`inline-flex flex-1 cursor-pointer items-center justify-center self-stretch overflow-hidden rounded-sm px-3 py-2 whitespace-nowrap transition-colors md:flex-initial md:justify-start ${
                 activeTab === "profile"
                   ? "bg-gray-100 font-medium text-gray-900"
                   : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
@@ -397,7 +397,7 @@ const ProfilePopup = ({
             <button
               type="button"
               onClick={() => setActiveTab("general")}
-              className={`inline-flex cursor-pointer items-center justify-start self-stretch overflow-hidden rounded-sm px-3 py-2 transition-colors ${
+              className={`inline-flex flex-1 cursor-pointer items-center justify-center self-stretch overflow-hidden rounded-sm px-3 py-2 whitespace-nowrap transition-colors md:flex-initial md:justify-start ${
                 activeTab === "general"
                   ? "bg-gray-100 font-medium text-gray-900"
                   : "bg-gray-50 font-normal text-gray-700 hover:bg-gray-100"
@@ -408,9 +408,9 @@ const ProfilePopup = ({
           </div>
         </div>
 
-        <div className="w-px self-stretch bg-gray-400" />
+        <div className="hidden w-px self-stretch bg-gray-400 md:block" />
 
-        <div className="inline-flex flex-1 flex-col items-start justify-start gap-6 self-stretch overflow-hidden p-6">
+        <div className="flex min-h-0 flex-1 flex-col items-start justify-start gap-6 self-stretch overflow-y-auto p-6">
           {activeTab === "profile" && (
             <div className="inline-flex items-center justify-between self-stretch overflow-hidden">
               <div className="text-lg leading-7 font-semibold text-gray-900">

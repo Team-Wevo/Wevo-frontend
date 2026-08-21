@@ -60,6 +60,18 @@ const WorkspaceOnboarding = ({ onFinish }: WorkspaceOnboardingProps) => {
   );
   const step = ONBOARDING_STEPS[stepIndex];
   const isLastStep = stepIndex === ONBOARDING_STEPS.length - 1;
+  // 모바일에서는 좌/우 사이드바가 드로어로 숨겨져 데스크톱 기준 앵커 위치가 어긋난다.
+  // 툴팁은 화면 하단 중앙에, 사이드바를 가리키던 하이라이트는 전체 딤으로 대체한다.
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia("(max-width: 767px)").matches,
+  );
+
+  useLayoutEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   useLayoutEffect(() => {
     if (!step.highlightTarget) {
@@ -113,6 +125,8 @@ const WorkspaceOnboarding = ({ onFinish }: WorkspaceOnboardingProps) => {
             }}
           />
         )
+      ) : isMobile ? (
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
       ) : (
         <div
           className={cn(
@@ -124,8 +138,8 @@ const WorkspaceOnboarding = ({ onFinish }: WorkspaceOnboardingProps) => {
 
       <div
         className={cn(
-          "fixed z-50 flex w-80 flex-col gap-5 rounded-[12px] bg-gray-50 p-5 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]",
-          step.position,
+          "fixed z-50 flex flex-col gap-5 rounded-[12px] bg-gray-50 p-5 shadow-[0px_20px_48px_-8px_rgba(0,0,0,0.12)]",
+          isMobile ? "inset-x-4 bottom-6" : cn("w-80", step.position),
         )}
       >
         <span className="text-main text-xs">
