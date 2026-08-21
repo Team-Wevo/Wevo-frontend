@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import ListLayout from "../../app/layouts/ListLayout";
 import { useMainLayoutContext } from "../../app/layouts/mainLayoutContext";
@@ -7,7 +8,10 @@ import {
   deleteProject,
   getDeleteProjectErrorMessage,
 } from "../../features/project/api/deleteProject";
-import { getMyProjects } from "../../features/project/api/projectList";
+import {
+  getMyProjects,
+  type ProjectSummaryResponse,
+} from "../../features/project/api/projectList";
 import {
   getUpdateProjectErrorMessage,
   updateProject,
@@ -61,6 +65,7 @@ const GUEST_PREVIEW_BY_FILTER: Record<
 
 export const ProjectListPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isLoggedIn, openLoginModal } = useMainLayoutContext();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(isLoggedIn);
@@ -191,8 +196,17 @@ export const ProjectListPage = () => {
 
     try {
       await Promise.all(selectedOwnerIds.map((id) => deleteProject(id)));
+      const deletedProjectIds = new Set(selectedOwnerIds);
+
       setProjects((prev) =>
-        prev.filter((project) => !selectedOwnerIds.includes(project.id)),
+        prev.filter((project) => !deletedProjectIds.has(project.id)),
+      );
+      queryClient.setQueriesData<ProjectSummaryResponse[]>(
+        { queryKey: ["my-projects"] },
+        (cachedProjects) =>
+          cachedProjects?.filter(
+            (project) => !deletedProjectIds.has(project.projectId),
+          ),
       );
       setSelectedIds(new Set());
       setIsSelectionMode(false);

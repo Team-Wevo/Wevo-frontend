@@ -39,6 +39,7 @@ export interface CreateProjectResponseData {
 
 const CREATE_PROJECT_PATH = "/api/projects";
 const CREATE_PROJECT_CACHE_KEY = "wevo:projects:create-cache";
+export const DEFAULT_PROJECT_TITLE = "제목 없는 프로젝트";
 const CREATE_PROJECT_FALLBACK_ERROR_MESSAGE =
   "프로젝트 생성 요청에 실패했습니다.";
 
@@ -79,6 +80,20 @@ export const getCachedCreatedProject = (
 ): CreateProjectResponseData | null => {
   const cache = readCreatedProjectCache();
   return cache[String(projectId)] ?? null;
+};
+
+export const updateCachedCreatedProjectTitle = (
+  projectId: number,
+  title: string,
+): void => {
+  const cache = readCreatedProjectCache();
+  const project = cache[String(projectId)];
+
+  if (!project) {
+    return;
+  }
+
+  writeCreatedProjectCache({ ...project, title });
 };
 
 export const createProject = async (

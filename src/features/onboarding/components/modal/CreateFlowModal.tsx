@@ -1,11 +1,14 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   createProject,
   getCreateProjectErrorMessage,
+  type CreateProjectResponseData,
   type ProjectResultType,
 } from "../../../project/api/projects";
+import type { ProjectSummaryResponse } from "../../../project/api/projectList";
 import { MODAL_SCRIM_CLASS } from "@/shared/styles/modalStyles";
 import AudienceSection from "./AudienceSection";
 import CreatingWorkspaceModal from "./CreatingWorkspaceModal";
@@ -16,6 +19,40 @@ import WritingFlowModal from "./WritingFlowModal";
 import { markWorkspaceOnboardingAsPending } from "@/features/workspace/utils/workspaceOnboardingStorage";
 
 const WORKSPACE_NAVIGATION_DELAY_MS = 2000;
+const MY_PROJECTS_QUERY_KEY = ["my-projects"] as const;
+
+const toProjectSummary = (
+  project: CreateProjectResponseData,
+): ProjectSummaryResponse | null => {
+  const firstSection = [...project.sections].sort(
+    (left, right) => left.order - right.order,
+  )[0];
+
+  if (!firstSection) {
+    return null;
+  }
+
+  return {
+    projectId: project.projectId,
+    title: project.title,
+    resultType: project.resultType,
+    status: project.status,
+    myRole: project.myRole,
+    createdAt: new Date().toISOString(),
+    lastActiveSection: {
+      sectionId: firstSection.sectionId,
+      order: firstSection.order,
+      title: firstSection.title,
+      sectionStatus: firstSection.sectionStatus,
+    },
+    sectionProgress: {
+      total: project.sections.length,
+      confirmed: project.sections.filter(
+        (section) => section.sectionStatus === "CONFIRMED",
+      ).length,
+    },
+  };
+};
 
 interface CreateFlowModalProps {
   isOpen: boolean;
@@ -46,6 +83,7 @@ const CreateFlowModal = ({
   onClose,
 }: CreateFlowModalProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [idea, setIdea] = useState(() => initialIdea.slice(0, 150));
   const [isEditingIdea, setIsEditingIdea] = useState(false);
   const [documentType, setDocumentType] = useState<
@@ -107,11 +145,27 @@ const CreateFlowModal = ({
 
     try {
       const result = await createProject({
-        title: "",
         ideaText: idea.trim(),
         resultType: RESULT_TYPE_BY_DOCUMENT_TYPE[documentType],
         audience: audienceText,
       });
+      const projectSummary = toProjectSummary(result);
+
+      if (projectSummary) {
+        queryClient.setQueryData<ProjectSummaryResponse[]>(
+          MY_PROJECTS_QUERY_KEY,
+          (projects = []) => [
+            projectSummary,
+            ...projects.filter(
+              (project) => project.projectId !== projectSummary.projectId,
+            ),
+          ],
+        );
+        void queryClient.invalidateQueries({
+          queryKey: MY_PROJECTS_QUERY_KEY,
+          refetchType: "none",
+        });
+      }
 
       await new Promise((resolve) => {
         setTimeout(resolve, WORKSPACE_NAVIGATION_DELAY_MS);
